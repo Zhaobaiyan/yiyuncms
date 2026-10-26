@@ -1,0 +1,64 @@
+{extend name="layout" /}
+{block name="title"}{if $field}编辑字段{else}添加字段{/if} - 易云CMS{/block}
+{block name="crumb"}内容管理 · 留言板 · {if $board}{$board.title}{/if} 字段 · {if $field}编辑{else}添加{/if}{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">{if $field}编辑字段「{$field.label}」{else}为「{$board.title|default=''}」添加字段{/if}</div>
+  <form id="bf-form">
+    <input type="hidden" name="board_id" value="{$boardId}">
+    <div class="form-item">
+      <div class="lab">字段名 *</div>
+      <div class="ctl"><input type="text" name="name" value="{$field.name|default=''}" placeholder="如 qq，字母开头" required></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">字段标签 *</div>
+      <div class="ctl"><input type="text" name="label" value="{$field.label|default=''}" placeholder="如 QQ号码" required></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">字段类型</div>
+      <div class="ctl">
+        <select name="type" id="bf-type">
+          {foreach $types as $t => $tn}
+          <option value="{$t}" {if isset($field.type) && $field.type == $t}selected{/if}>{$tn}</option>
+          {/foreach}
+        </select>
+      </div>
+    </div>
+    <div class="form-item" id="bf-opt-box" {if !isset($field.type) || !in_array($field.type, ['select','radio','checkbox'])}style="display:none"{/if}>
+      <div class="lab">选项（每行一个）</div>
+      <div class="ctl">
+        <textarea name="options" rows="4">{if $field && $field.options}{foreach $field.options as $o}{$o}{"\n"}{/foreach}{/if}</textarea>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">是否必填</div>
+      <div class="ctl">
+        <label><input type="radio" name="required" value="1" {if isset($field.required) && $field.required}checked{/if}> 必填</label>
+        &nbsp;&nbsp;
+        <label><input type="radio" name="required" value="0" {if !isset($field.required) || !$field.required}checked{/if}> 非必填</label>
+        <div class="help">必填字段前台未填直接提交会即时提醒</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">排序</div>
+      <div class="ctl"><input type="number" name="sort" value="{$field.sort|default=100}"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl">
+        <button type="submit" class="btn primary">保存</button>
+        <a class="btn" href="/admin/board/fields/id/{$boardId}">返回</a>
+      </div>
+    </div>
+  </form>
+</div>
+<script>
+document.getElementById('bf-type').addEventListener('change', function(){
+  document.getElementById('bf-opt-box').style.display = (this.value==='select'||this.value==='radio'||this.value==='checkbox') ? '' : 'none';
+});
+document.getElementById('bf-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  yy.post('{if $field}/admin/board/field_edit/id/{$field.id}{else}/admin/board/field_edit{/if}', new FormData(this), {});
+});
+</script>
+{/block}

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的购物车 - {$site_name ?? '易云CMS'}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei",Arial,sans-serif;background:#f2f4f7;color:#333}
+a{color:#1e6fff;text-decoration:none}
+.top{background:#1a2744;color:#fff;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.top b{font-size:16px}
+.top a{color:#aebbe0;font-size:13px;margin-left:16px}
+.wrap{max-width:900px;margin:24px auto 40px;padding:0 16px}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(20,40,80,.06)}
+.row{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid #eef1f5}
+.row img{width:72px;height:72px;object-fit:cover;border-radius:8px;background:#f0f2f5}
+.row .t{flex:1;font-size:14px;line-height:1.4}
+.row .p{color:#e02e24;font-weight:700}
+.row .sub{color:#5a6579;font-size:13px;width:90px;text-align:right}
+.num-bd{display:flex;align-items:center;border:1px solid #dde1e8;border-radius:8px;overflow:hidden}
+.num-bd button{width:30px;height:32px;border:0;background:#f7f8fa;cursor:pointer}
+.num-bd input{width:44px;height:32px;border:0;text-align:center;outline:none}
+.del{color:#e02e24;cursor:pointer;font-size:13px}
+.foot{display:flex;align-items:center;justify-content:space-between;padding:16px 20px}
+.total{font-size:16px}
+.total b{color:#e02e24;font-size:22px}
+.btn{padding:10px 28px;border-radius:8px;font-size:15px;background:#1e6fff;color:#fff;border:0;cursor:pointer}
+.btn:hover{background:#0f56e0}
+.empty{text-align:center;padding:70px 0;color:#98a1b3}
+.empty a{color:#1e6fff}
+</style>
+</head>
+<body>
+<div class="top"><b>我的购物车</b><span>
+  <a href="/shop/index">商城首页</a>
+  <a href="/member/center">会员中心</a>
+  <a href="/">返回首页</a></span>
+</div>
+<div class="wrap">
+  <div class="card">
+    {if count($items)>0}
+    {foreach $items as $it}
+    <div class="row" id="cart-{$it.cart_id}">
+      <img src="{$it.thumb}" alt="{$it.title}">
+      <div class="t"><a href="/shop/goods?id={$it.conid}">{$it.title}</a>
+        {if $it.spec}<div style="color:#98a1b3;font-size:12px;margin-top:4px">规格：{$it.spec}</div>{/if}
+        <div style="color:#98a1b3;font-size:12px;margin-top:2px">库存 {$it.stock}</div></div>
+      <div class="p">¥{$it.price}</div>
+      <div class="num-bd">
+        <button onclick="chg('{$it.cart_id}',-1)">−</button>
+        <input id="n-{$it.cart_id}" value="{$it.num}" readonly>
+        <button onclick="chg('{$it.cart_id}',1)">+</button>
+      </div>
+      <div class="sub">¥{$it.subtotal}</div>
+      <span class="del" onclick="del('{$it.cart_id}')">删除</span>
+    </div>
+    {/foreach}
+    <div class="foot">
+      <span class="total">合计：<b>¥{$total}</b></span>
+      <a class="btn" href="/shop/checkout">去结算</a>
+    </div>
+    {else}
+    <div class="empty">购物车还是空的，<a href="/shop/index">去逛逛</a></div>
+    {/if}
+  </div>
+</div>
+<script>
+function post(id,action,num){
+  var fd=new URLSearchParams(); fd.set('id',id); fd.set('action',action||''); if(num)fd.set('num',num);
+  return fetch('/shop/cart_update',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:fd.toString()}).then(function(r){return r.json()});
+}
+function chg(id,d){
+  var n=document.getElementById('n-'+id); var v=parseInt(n.value,10)+d; if(v<1)v=1;
+  post(id,'',v).then(function(){ location.reload(); });
+}
+function del(id){
+  if(!confirm('确定删除该商品？'))return;
+  post(id,'del').then(function(){ document.getElementById('cart-'+id).remove(); });
+}
+</script>
+</body>
+</html>

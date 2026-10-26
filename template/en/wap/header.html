@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="keywords" content="{if isset($keywords) && $keywords}{$keywords}{else}{cms:setting name="site.keywords"}{/if}">
+<meta name="description" content="{if isset($description) && $description}{$description}{else}{cms:setting name="site.description"}{/if}">
+<title>{if isset($seo_title) && $seo_title}{$seo_title}{else}{cms:setting name="site.name"}{/if}</title>
+<link rel="stylesheet" href="/template/en/wap/css/style.css">
+</head>
+<body>
+<div class="w-header">
+  <div class="w-logo"><a href="{:url_home()}">E<em>Cloud</em>CMS</a></div>
+  <div class="w-actions">
+    {foreach :lang_codes() as $lc}
+      <a href="{:url_lang($lc)}" class="{if $lc == lang_code()}on{/if}">{if $lc=='cn'}中{else}EN{/if}</a>
+    {/foreach}
+    {if $is_wap}
+      <a href="{:site_url('device','set',['client'=>'pc','back'=>$cur_url])}">PC</a>
+    {/if}
+  </div>
+</div>
+
+<div class="w-nav">
+  <a href="{:url_home()}" {if $cur_catid == 0}class="on"{/if}>Home</a>
+  {cms:category parent="0" item="cat"}
+    <a href="{:url_cat($cat)}" {if $cur_catid == $cat.id}class="on"{/if}>{$cat.name}</a>
+  {/cms:category}
+</div>
+
+<form class="w-search" action="{:site_url('search','index')}" method="get">
+  <input type="hidden" name="field" value="all">
+  <select name="catid">
+    <option value="0">All</option>
+    {cms:category parent="0" item="cat"}
+      <option value="{$cat.id}" {if isset($catid) && $catid == $cat.id}selected{/if}>{$cat.name}</option>
+    {/cms:category}
+  </select>
+  <input type="text" name="kw" value="{if isset($kw)}{$kw}{/if}" placeholder="Search">
+  <button type="submit">Search</button>
+</form>

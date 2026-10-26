@@ -1,0 +1,113 @@
+{extend name="layout" /}
+{block name="title"}系统设置 - 易云CMS{/block}
+{block name="crumb"}系统设置 · 网站设置{/block}
+{block name="content"}
+<div class="card" style="max-width:820px">
+  <div class="card-title">
+    网站设置
+    <span class="tag" style="background:var(--primary);color:#fff">当前语言：{cms:setting name="site.name" /}</span>
+  </div>
+  <form id="s-form" class="s-form">
+    {foreach $groups as $gname => $group}
+    <div class="page-title" style="margin-top:20px;color:var(--primary)">{$gname}</div>
+      {foreach $group.items as $it}
+      <div class="form-item">
+        <div class="lab">{$it[1]}</div>
+        <div class="ctl">
+          {php} $store = isset($it[3]) ? $it[3] : 'lang'; $val = ($store==='global') ? get_config($it[0]) : get_setting($it[0]); {/php}
+          {if isset($it[2]) && $it[2]=='select'}
+          <select name="{$it[0]}">
+            {foreach $it[4] as $opt}
+            <option value="{$opt[0]}" {if (string)$val==(string)$opt[0]}selected{/if}>{$opt[1]}</option>
+            {/foreach}
+          </select>
+          {elseif isset($it[2]) && $it[2]=='timeout'}
+          <span style="display:flex;gap:8px;align-items:center">
+            <select name="{$it[0]}">
+              {foreach $it[4] as $opt}
+              <option value="{$opt[0]}" {if in_array((string)$val, ['30','60','360']) && (string)$val==(string)$opt[0]}selected{elseif !in_array((string)$val, ['30','60','360']) && $opt[0]=='custom'}selected{/if}>{$opt[1]}</option>
+              {/foreach}
+            </select>
+            <input type="number" min="1" placeholder="自定义分钟数" name="{$it[0]}_custom" style="width:130px;display:none" value="{if !in_array((string)$val, ['30','60','360'])}{$val}{/if}">
+          </span>
+          <div class="help" style="margin-top:4px">后台无任何操作达到设定时长后自动退出登录，默认 1 小时；自定义填分钟数（如 90 = 90 分钟）</div>
+          {elseif isset($it[2]) && $it[2]=='password'}
+          <input type="password" name="{$it[0]}" value="{$val}" autocomplete="off">
+          {elseif isset($it[2]) && $it[2]=='textarea'}
+          <textarea name="{$it[0]}" rows="2">{$val}</textarea>
+          {elseif isset($it[2]) && $it[2]=='image'}
+          <div class="img-picker">
+            <input type="text" name="{$it[0]}" value="{$val}" data-img-input placeholder="图片地址">
+            <button type="button" class="btn sm" data-img-btn>选择图片</button>
+            <div class="img-preview" data-img-prev>{if $val}<img src="{$val}" style="max-height:70px;border-radius:6px">{/if}</div>
+          </div>
+          {else}
+          <input type="text" name="{$it[0]}" value="{$val}">
+          {/if}
+        {if !empty($it[5]) && get_config('base.code_hint') == 1}
+        <span class="code-hint" title="点击复制到剪贴板">{$it[5]|raw}</span>
+        {/if}
+        </div>
+      </div>
+      {/foreach}
+    {/foreach}
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl"><button type="submit" class="btn primary">保存设置</button></div>
+    </div>
+  </form>
+</div>
+<script>
+// 后台无操作超时配置：custom 联动
+(function(){
+  var sel = document.querySelector('select[name="base.session_timeout"]');
+  if(!sel) return;
+  var cus = sel.parentNode.querySelector('input[name="base.session_timeout_custom"]');
+  function sync(){ cus.style.display = (sel.value === 'custom') ? '' : 'none'; }
+  sel.addEventListener('change', sync); sync();
+  document.getElementById('s-form').addEventListener('submit', function(e){
+    if(sel.value === 'custom'){
+      var v = parseInt(cus.value, 10);
+      if(!v || v < 1){ e.preventDefault(); window.yy.toast('请填写自定义分钟数', 'err'); return; }
+      // 动态补 option 后赋值为分钟数
+      if(!sel.querySelector('option[value="'+v+'"]')) sel.appendChild(new Option(v+' 分钟', String(v)));
+      sel.value = String(v);
+    }
+  });
+})();
+document.getElementById('s-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  yy.post('/admin/setting/index', new FormData(this), {callback:function(){}});
+});
+// 调用代码复制
+function copyHint(el){
+  var code = el.textContent.trim();
+  function done(){ yy.toast('已复制：' + code); }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(done).catch(function(){ fallbackCopy(code, done); });
+  } else { fallbackCopy(code, done); }
+}
+function fallbackCopy(code, done){
+  var ta = document.createElement('textarea');
+  ta.value = code; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch(e){ prompt('请手动复制：', code); }
+  document.body.removeChild(ta);
+}
+document.addEventListener('click', function(e){
+  var el = e.target.closest('.code-hint');
+  if (el) copyHint(el);
+});
+// 图片控件绑定
+document.querySelectorAll('[data-img-input]').forEach(function(inp){
+  var btn = inp.nextElementSibling;
+  if (btn && btn.hasAttribute('data-img-btn')) {
+    yy.bindImagePicker(inp, btn);
+  }
+  inp.addEventListener('change', function(){
+    var prev = inp.parentElement.querySelector('[data-img-prev]');
+    if (prev) prev.innerHTML = inp.value ? '<img src="' + inp.value + '" style="max-height:70px;border-radius:6px">' : '';
+  });
+});
+</script>
+{/block}

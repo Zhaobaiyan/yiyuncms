@@ -1,0 +1,45 @@
+{extend name="layout" /}
+{block name="title"}模板文件 - 易云CMS{/block}
+{block name="crumb"}模板与样式 · {$tpl} 模板文件{/block}
+{block name="content"}
+<style>
+  .tpl-end { margin-bottom:20px; }
+  .tpl-end-title { display:flex; align-items:center; gap:8px; font-weight:700; font-size:15px; color:#fff; background:var(--primary,#3b76f6); padding:9px 14px; border-radius:6px; }
+  .tpl-end-title .cnt { font-weight:400; font-size:12px; opacity:.85; }
+  .tpl-group { margin:10px 0 4px; }
+  .tpl-group-title { font-weight:600; font-size:13px; color:var(--text-sub); padding:6px 2px; border-bottom:1px solid #e6e8eb; }
+  .tpl-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 14px; margin-top:5px; border:1px solid #e6e8eb; border-radius:6px; text-decoration:none; color:inherit; background:#fff; transition:border-color .15s, background .15s; }
+  .tpl-item:hover { border-color:var(--primary); background:#f7f9fc; }
+  .tpl-item-name { font-family:Consolas,Menlo,monospace; font-size:13px; word-break:break-all; }
+  .tpl-item-time { flex:none; color:var(--text-sub); font-size:12px; }
+  .tpl-group-empty { color:var(--text-sub); font-size:13px; padding:5px 2px; }
+</style>
+<div class="card">
+  <div class="card-title">模板「{$tpl}」文件列表（点击文件编辑）</div>
+  {if $groups}
+    {foreach $groups as $e}
+      <div class="tpl-end">
+        <div class="tpl-end-title">{$e.name}</div>
+        {foreach $e.groups as $g}
+          <div class="tpl-group">
+            <div class="tpl-group-title">{$g.name}</div>
+            {if $g.files}
+              {foreach $g.files as $f}
+              <a class="tpl-item" href="/admin/template/edit?tpl={$tpl}&file={$f.name}">
+                <span class="tpl-item-name">{$f.name}</span>
+                <span class="tpl-item-time">{$f.mtime}</span>
+              </a>
+              {/foreach}
+            {else}
+              <div class="tpl-group-empty">（空）</div>
+            {/if}
+          </div>
+        {/foreach}
+      </div>
+    {/foreach}
+  {else}
+    <div class="empty">该模板目录下暂无可编辑文件</div>
+  {/if}
+  <div style="margin-top:18px"><a class="btn" href="/admin/template/index">返回模板列表</a></div>
+</div>
+{/block}

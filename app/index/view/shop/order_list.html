@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的订单 - 会员中心</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei",Arial,sans-serif;background:#f2f4f7;color:#333}
+a{color:#1e6fff;text-decoration:none}
+.top{background:#1a2744;color:#fff;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.top b{font-size:16px}
+.top a{color:#aebbe0;font-size:13px;margin-left:16px}
+.wrap{max-width:900px;margin:24px auto 40px;padding:0 16px}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tabs a{padding:8px 18px;border-radius:8px;background:#fff;font-size:13px;color:#5a6579}
+.tabs a:hover{color:#1e6fff}
+.tabs a.on{background:#1e6fff;color:#fff}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(20,40,80,.06);padding:18px 20px;margin-bottom:14px}
+.head{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#98a1b3;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.head .st{font-weight:600}
+.st0{color:#b7791f}.st1{color:#16a34a}.st2{color:#1e6fff}.st3{color:#16a34a}.st4{color:#98a1b3}
+.body{display:flex;align-items:center;gap:14px;border-top:1px dashed #eef1f5;padding-top:12px;flex-wrap:wrap}
+.body img{width:60px;height:60px;object-fit:cover;border-radius:8px}
+.body .t{flex:1;font-size:14px;min-width:180px}
+.body .t .spec{font-size:12px;color:#98a1b3}
+.body .p{color:#e02e24;font-weight:700}
+.foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:13px;flex-wrap:wrap;gap:8px}
+.btn{padding:7px 18px;border-radius:8px;font-size:13px;background:#1e6fff;color:#fff;border:0;cursor:pointer;text-decoration:none;display:inline-block}
+.btn.line{background:#fff;border:1px solid #1e6fff;color:#1e6fff}
+.empty{text-align:center;padding:70px 0;color:#98a1b3}
+</style>
+</head>
+<body>
+<div class="top"><b>我的订单</b><span>
+  <a href="/shop/index">商城首页</a>
+  <a href="/member/center">会员中心</a>
+  <a href="/shop/refund_list">我的售后</a></span>
+</div>
+<div class="wrap">
+  <div class="tabs">
+    <a href="/shop/order_list" class="{if $cur==-1}on{/if}">全部</a>
+    <a href="/shop/order_list?status=0" class="{if $cur==0}on{/if}">待支付</a>
+    <a href="/shop/order_list?status=1" class="{if $cur==1}on{/if}">待发货</a>
+    <a href="/shop/order_list?status=2" class="{if $cur==2}on{/if}">已发货</a>
+    <a href="/shop/order_list?status=3" class="{if $cur==3}on{/if}">已完成</a>
+  </div>
+  {if count($list)>0}
+  {foreach $list as $o}
+  <div class="card">
+    <div class="head">
+      <span>订单号：{$o.order_no} · {$o.create_time|date='Y-m-d H:i'}</span>
+      <span class="st st{$o.status}">{if $o.status==0}待支付{elseif $o.status==1}待发货{elseif $o.status==2}已发货{elseif $o.status==3}已完成{else}已取消{/if}</span>
+    </div>
+    {foreach $o.products as $p}
+    <div class="body">
+      {if $p.pic}<img src="{$p.pic}" alt="{$p.title}">{/if}
+      <div class="t">{$p.title}{if $p.spec}<div class="spec">规格：{$p.spec}</div>{/if}</div>
+      <div class="p">¥{$p.price} × {$p.num}</div>
+    </div>
+    {/foreach}
+    <div class="foot">
+      <span>共 {:count($o.products)} 件 · 应付 <b style="color:#e02e24">¥{$o.pay_amount}</b></span>
+      <span>
+        {if $o.status==0}<a class="btn" href="/shop/pay?id={$o.id}">去支付</a>{/if}
+        <a class="btn line" href="/shop/order_detail?id={$o.id}">详情</a>
+      </span>
+    </div>
+  </div>
+  {/foreach}
+  {else}
+  <div class="empty">暂无订单，<a href="/shop/index">去商城逛逛</a></div>
+  {/if}
+</div>
+</body>
+</html>

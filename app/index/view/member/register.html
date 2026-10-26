@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{$title ?? '会员注册'} - 会员中心</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei",Arial,sans-serif;background:#f2f4f7;color:#333;min-height:100vh}
+a{color:#1e6fff;text-decoration:none}
+.wrap{max-width:420px;margin:60px auto 40px;padding:0 16px}
+.box{background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(20,40,80,.08);padding:36px 32px}
+.logo{text-align:center;font-size:22px;font-weight:700;color:#1a2744;margin-bottom:6px}
+.sub{text-align:center;color:#98a1b3;font-size:13px;margin-bottom:24px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;color:#5a6579;margin-bottom:6px}
+.field input{width:100%;height:42px;border:1px solid #dde1e8;border-radius:8px;padding:0 12px;font-size:14px;outline:none;transition:border .2s}
+.field input:focus{border-color:#1e6fff}
+.btn{width:100%;height:44px;border:0;border-radius:8px;background:#1e6fff;color:#fff;font-size:15px;cursor:pointer;margin-top:6px}
+.btn:hover{background:#0f56e0}
+.tip{text-align:center;font-size:13px;color:#98a1b3;margin-top:16px}
+.err{display:none;background:#fdecec;color:#d03050;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:14px}
+.top{background:#1a2744;color:#fff;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.top b{font-size:16px}
+.top a{color:#aebbe0;font-size:13px;margin-left:16px}
+</style>
+</head>
+<body>
+<div class="top"><b>会员中心</b><span><a href="/">返回首页</a></span></div>
+<div class="wrap">
+<div class="box">
+  <div class="logo">易云 CMS</div>
+  <div class="sub">会员注册</div>
+  <div class="err" id="err"></div>
+  <form id="form" onsubmit="return false">
+    <div class="field"><label>用户名（3-30 位字母/数字/下划线）</label><input type="text" name="username" id="username" placeholder="登录账号" autocomplete="username"></div>
+    <div class="field"><label>昵称</label><input type="text" name="nickname" id="nickname" placeholder="展示昵称，可留空"></div>
+    <div class="field"><label>邮箱</label><input type="text" name="email" id="email" placeholder="用于查询留言回复，可留空"></div>
+    <div class="field"><label>密码（至少 6 位）</label><input type="password" name="password" id="password" placeholder="请输入密码" autocomplete="new-password"></div>
+    <div class="field"><label>确认密码</label><input type="password" name="password2" id="password2" placeholder="再次输入密码"></div>
+    {if $reg_captcha==1}
+    <div class="field"><label>验证码</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" name="captcha" id="captcha" placeholder="输入右侧验证码" style="flex:1">
+        <img id="capimg" src="/member/captcha" title="点击刷新" onclick="this.src='/member/captcha?t='+Date.now()" style="height:42px;border-radius:8px;cursor:pointer">
+      </div>
+    </div>
+    {/if}
+    {if $need_audit==1}
+    <div class="tip" style="color:#b7791f">提示：本网站开启注册审核，注册成功后需管理员审核通过方可登录</div>
+    {/if}
+    <button class="btn" id="btn">注 册</button>
+  </form>
+  <div class="tip">已有账号？<a href="/member/login">直接登录</a></div>
+</div>
+</div>
+<script>
+var btn=document.getElementById('btn');
+var REG_OPEN = {$reg_open};
+var REG_CAPTCHA = {$reg_captcha};
+btn.onclick=function(){
+  var err=document.getElementById('err');err.style.display='none';
+  if(REG_OPEN==0){ err.textContent='网站暂未开放会员注册';err.style.display='block';return; }
+  var fd=new URLSearchParams();
+  fd.set('username',document.getElementById('username').value);
+  fd.set('nickname',document.getElementById('nickname').value);
+  fd.set('email',document.getElementById('email').value);
+  fd.set('password',document.getElementById('password').value);
+  fd.set('password2',document.getElementById('password2').value);
+  if(REG_CAPTCHA==1){ fd.set('captcha',document.getElementById('captcha').value); }
+  fetch('/member/register',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:fd.toString()})
+   .then(function(r){return r.json()}).then(function(j){
+    if(j.code===1){location.href=j.url||'/member/center';}
+    else{err.textContent=j.msg;err.style.display='block';}
+  }).catch(function(){err.textContent='网络错误';err.style.display='block';});
+};
+</script>
+</body>
+</html>

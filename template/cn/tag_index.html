@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta name="renderer" content="webkit|ie-comp|ie-stand" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<meta http-equiv="Cache-Control" content="no-transform"/> 
+<meta name="applicable-device" content="pc,wap">
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+<title>{$title}-{yunu:config name="site_title" /}</title>
+<link rel="Shortcut Icon" type=image/x-icon href="{yunu:config name="site_ico" /}" />
+<meta name="keywords" content="{yunu:config name='seo_keywords' /}">
+<meta name="description" content="{yunu:config name='seo_description' /}">
+<link rel="stylesheet" href="__PUBLIC__/css/animate.min.css">
+<link rel="stylesheet" href="__PUBLIC__/css/swiper.min.css">
+<link rel="stylesheet" href="__PUBLIC__/css/yunu.css">
+<link rel="stylesheet" href="__PUBLIC__/css/media.css">
+<script src="__PUBLIC__/js/jquery.min.js"></script>
+<script src="__PUBLIC__/js/wow.min.js"></script>
+<script src="__PUBLIC__/js/swiper.min.js"></script>
+<script src="__PUBLIC__/js/yunu.js"></script>
+</head>
+<body>
+{include file="header" /}
+{include file="public_banner" /}
+<div class="section-sub">
+  <div class="container">
+    <div class="ct2 clearfix">
+      {include file="public_left" /}
+      <div class="ct2-mn">
+        <div class="sub-tit"><div class="curmbs"> <span>您的位置：</span>TAG结果页</div>
+          {$title} </div>
+        <ul class="list-5">
+          {yunu:list tag="$title" limit="20"}
+          <li> <a href="{$list.url}" title="{$list.title}">
+            <div class="img-center"><img src="{if $list.pic}{$list.pic}{else /}{$list.content|str2img='1'}{/if}" onerror="javascript:this.src='__PUBLIC__/images/nopic.jpg';" alt="{$list.title}"></div>
+            <div class="text">
+              <h4><span>{$list.create_time|date="Y-m-d H:i:s"}</span>{$list.title} </h4>
+              <p>{if $list.desc}{$list.desc|str2sub=140, true}{else /}{$list.content|str2sub=140, true}{/if}...</p>
+              <span class="more">了解详情</span> </div>
+            </a> </li>
+            {/yunu:list}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{include file="footer" /}
+</body>
+</html>

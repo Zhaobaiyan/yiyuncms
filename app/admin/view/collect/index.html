@@ -1,0 +1,74 @@
+{extend name="layout" /}
+{block name="title"}采集器 - 易云CMS{/block}
+{block name="crumb"}扩展功能 · 采集器{/block}
+{block name="content"}
+<div class="toolbar">
+  <form action="/admin/collect/index" method="get" class="filter-form">
+    <input type="text" name="keyword" value="{$keyword}" placeholder="规则名称" style="width:220px">
+    <button class="btn" type="submit">筛选</button>
+    <span class="fl-sp"></span>
+    <a class="btn sm primary" href="/admin/collect/edit">+ 新增采集规则</a>
+    <a class="btn sm" href="/admin/collect/log">采集日志</a>
+  </form>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr>
+      <th style="width:60px">ID</th>
+      <th>规则名称</th>
+      <th style="width:70px">语言</th>
+      <th style="width:130px">目标栏目</th>
+      <th style="width:90px">页数</th>
+      <th style="width:90px">采图</th>
+      <th style="width:160px">上次执行</th>
+      <th style="width:90px">状态</th>
+      <th style="width:210px">操作</th>
+    </tr>
+    {if $rows}
+    {foreach $rows as $r}
+    <tr>
+      <td>{$r.id}</td>
+      <td><b>{$r.name}</b></td>
+      <td class="text-sub">{$r.lang}</td>
+      <td class="text-sub">{$r._cat}</td>
+      <td>{$r.max_page}</td>
+      <td>{if $r.img_switch == 1}是{else /}否{/if}</td>
+      <td class="text-sub">{$r._last}</td>
+      <td>{if $r.status == 1}<span class="tag info">启用</span>{else /}<span class="tag">停用</span>{/if}</td>
+      <td>
+        <span class="ops">
+          <button class="btn sm primary" onclick="runRule({$r.id}, this)">执行采集</button>
+          <a class="btn sm" href="/admin/collect/edit?id={$r.id}">编辑</a>
+          <a class="btn sm" href="/admin/collect/log?rule_id={$r.id}">日志</a>
+          <a class="btn sm danger" href="javascript:;" onclick="yy.confirm('确定删除规则「{$r.name}」？', function(){ yy.post('/admin/collect/delete?id={$r.id}', {}, {literal}{url:'/admin/collect/index'}{/literal}); })">删除</a>
+        </span>
+      </td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="9"><div class="empty">暂无采集规则，点击右上角「新增采集规则」创建</div></td></tr>
+    {/if}
+  </table>
+  <div class="pager-bar"><div class="pagination">{$rows|raw}</div></div>
+</div>
+<div class="card" style="margin-top:16px">
+  <div class="card-title">采集说明</div>
+  <ul class="help-list" style="line-height:2;font-size:13px;color:#5a6579;padding:6px 18px">
+    <li>规则 = 目标站列表页 + 起止标记/正则 → 抓取详情入库到指定语言栏目，标题自动去重。</li>
+    <li>列表地址支持 <code>{page}</code> 翻页占位符（如 <code>https://xxx.com/news/list_{page}.html</code>）。</li>
+    <li>「起止标记」模式：填入列表区域 / 标题 / 正文的起始与结束字符串（HTML 片段），适合非技术用户。</li>
+    <li>「链接正则」：留空用默认 <code>&lt;a href="..."&gt;</code> 提取；如需自定义写正则且第 1 捕获组为 URL。</li>
+    <li>勾选「下载图片」会把正文图片下载到本地 <code>public/upload/image/</code>，第一张图作为缩略图。</li>
+    <li>过滤词：标题包含其中任意词则跳过（逗号分隔）。</li>
+  </ul>
+</div>
+<script>
+function runRule(id, btn){
+  btn.disabled = true; btn.textContent = '采集中...';
+  yy.post('/admin/collect/run', {id:id}, {callback: function(j){
+    btn.disabled = false; btn.textContent = '执行采集';
+    yy.toast(j.msg || '完成');
+  }, failcb: function(){ btn.disabled = false; btn.textContent = '执行采集'; }});
+}
+</script>
+{/block}

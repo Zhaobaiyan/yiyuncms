@@ -1,0 +1,14 @@
+<footer class="w-footer">
+  <p>{cms:setting name="site.copyright"}</p>
+  <?php if (get_setting('site.icp')): ?>
+  <p><a href="https://beian.miit.gov.cn" target="_blank" rel="nofollow"><?php echo get_setting('site.icp'); ?></a></p>
+  <?php endif; ?>
+</footer>
+<script>
+function showMsg(data){
+  var box = document.getElementById('msg-tip');
+  if(box){ box.textContent = data.msg; box.style.color = data.code===1 ? '#18b566' : '#f5533d'; }
+}
+</script>
+</body>
+</html>

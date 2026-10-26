@@ -1,0 +1,81 @@
+{include file="header" /}
+
+<div class="section-sub">
+  <div class="container">
+    <div class="ct2 clearfix">
+      <div class="ct2-sd">
+        <div class="panel-sd">
+          <div class="panel-sd-tit"><span>栏目导航</span></div>
+          <div class="panel-sd-con">
+            <ul class="sd-nav">
+              {cms:category top="1" deep="2" item="nav"}
+              <li>
+                <a href="{:url_cat($nav)}" class="{if $nav.active_self}active{/if}">{$nav.name}</a>
+                {if !empty($nav.children)}
+                <div class="sd-sub">
+                  {foreach $nav.children as $v}
+                  <a href="{:url_cat($v)}" class="{if $v.active_self}active{/if}">{$v.name}</a>
+                  {if !empty($v.children)}
+                  <div class="sd-sub">
+                    {foreach $v.children as $v2}
+                    <a href="{:url_cat($v2)}" class="{if $v2.active_self}active{/if}">{$v2.name}</a>
+                    {/foreach}
+                  </div>
+                  {/if}
+                  {/foreach}
+                </div>
+                {/if}
+              </li>
+              {/cms:category}
+            </ul>
+          </div>
+        </div>
+        <div class="panel-sd mt">
+          <div class="panel-sd-tit"><span>热门资讯</span></div>
+          <div class="panel-sd-con">
+            <ul class="list-sd">
+              {cms:hot num="8" item="h"}
+              <li><a href="{:url_content($h)}" title="{$h.title}">{$h.title}</a></li>
+              {/cms:hot}
+            </ul>
+          </div>
+        </div>
+        {cms:ad name="side_ad"}
+      </div>
+      <div class="ct2-mn">
+        <div class="sub-tit">
+          <div class="curmbs"><span>您的位置：</span>
+            <a href="{:url_home()}">首页</a>
+            {cms:crumbs item="c"}
+            <span>&gt;&gt;</span><a href="{:url_cat($c)}">{$c.name}</a>
+            {/cms:crumbs}
+          </div>
+          {$category.name}
+        </div>
+        <ul class="list-5" id="yy-list">
+          {if $list}
+          {foreach $list as $vo}
+          <li>
+            <a href="{:url_content($vo, $category)}" title="{$vo.title}">
+              <div class="img-center"><img src="{if $vo.thumb}{$vo.thumb}{else}{$vo.image}{/if}" onerror="javascript:this.src='__PUBLIC__/images/nopic.jpg';" alt="{$vo.title}"></div>
+              <div class="text">
+                <h4><span>{$vo.create_time|date='Y-m-d H:i:s'}</span>{$vo.title}</h4>
+                <p>{$vo.description}...</p>
+                <span class="more">了解详情</span>
+              </div>
+            </a>
+          </li>
+          {/foreach}
+          {else}
+          <li><div style="text-align:center;color:#999;padding:40px 0">该栏目暂无内容</div></li>
+          {/if}
+        </ul>
+        <div class="pages">
+          {if is_object($list) && method_exists($list, "render")}{$list|raw}{/if}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{include file="footer" /}

@@ -1,0 +1,64 @@
+{extend name="layout" /}
+{block name="title"}广告位 / 轮播图 - 易云CMS{/block}
+{block name="crumb"}模板与样式 · 广告位 / 轮播图{/block}
+{block name="content"}
+{if $parentId > 0}
+<div class="toolbar">
+  <a class="btn" href="/admin/ad/index">← 返回分类</a>
+  <a class="btn primary" href="/admin/ad/edit?parent_id={$parentId}">+ 添加轮播图</a>
+  <span class="text-sub">当前分类：<b>{$parent.title}</b>，前台用 {literal}{cms:ad name="标识" /}{/literal} 调用该分类下的轮播图</span>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr><th style="width:56px">ID</th><th style="width:120px">图片</th><th>标识</th><th>名称</th><th>链接</th><th style="width:70px">排序</th><th style="width:80px">状态</th><th style="width:150px">操作</th></tr>
+    {if $list}
+    {foreach $list as $row}
+    <tr>
+      <td>{$row.id}</td>
+      <td>{if $row.image}<img src="{$row.image}" style="max-height:48px;border-radius:6px">{else}<span class="text-sub">无图</span>{/if}</td>
+      <td><code class="mono">{$row.name}</code></td>
+      <td>{$row.title}</td>
+      <td class="text-sub" style="word-break:break-all;max-width:160px">{$row.url}</td>
+      <td>{$row.sort}</td>
+      <td>{if $row.status==1}<span class="tag ok">启用</span>{else}<span class="tag gray">停用</span>{/if}</td>
+      <td class="ops">
+        <a class="btn sm" href="/admin/ad/edit/id/{$row.id}">编辑</a>
+        <button class="btn sm danger" onclick="yy.confirm('删除该轮播图？', function(){ yy.post('/admin/ad/delete/id/{$row.id}', {}, {literal}{url:'/admin/ad/index?parent_id={$parentId}'}{/literal}); })">删除</button>
+      </td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="8"><div class="empty">该分类下还没有轮播图，点击「添加轮播图」</div></td></tr>
+    {/if}
+  </table>
+</div>
+{else}
+<div class="toolbar">
+  <a class="btn primary" href="/admin/ad/edit">+ 添加分类</a>
+  <span class="text-sub">分类用于组织广告位（如 首页轮播、顶部Banner、底部、内页）；点击「轮播图管理」进入该分类下添加轮播图片</span>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr><th style="width:56px">ID</th><th>分类名称</th><th>轮播图数</th><th>排序</th><th style="width:80px">状态</th><th style="width:220px">操作</th></tr>
+    {if $list}
+    {foreach $list as $row}
+    <tr>
+      <td>{$row.id}</td>
+      <td><b>{$row.title}</b>{if $row.name}<span class="text-sub mono"> /{$row.name}</span>{/if}</td>
+      <td>{$row.child_count} 条</td>
+      <td>{$row.sort}</td>
+      <td>{if $row.status==1}<span class="tag ok">启用</span>{else}<span class="tag gray">停用</span>{/if}</td>
+      <td class="ops">
+        <a class="btn sm" href="/admin/ad/index?parent_id={$row.id}">轮播图管理</a>
+        <a class="btn sm" href="/admin/ad/edit/id/{$row.id}">编辑</a>
+        <button class="btn sm danger" onclick="yy.confirm('删除分类？其下轮播图将转为顶级分类。', function(){ yy.post('/admin/ad/delete/id/{$row.id}', {}, {literal}{url:'/admin/ad/index'}{/literal}); })">删除</button>
+      </td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="6"><div class="empty">还没有分类，点击「添加分类」开始（如 首页轮播、顶部Banner、底部）</div></td></tr>
+    {/if}
+  </table>
+</div>
+{/if}
+{/block}

@@ -1,0 +1,60 @@
+{extend name="layout" /}
+{block name="title"}{if $field}编辑模板字段{else}添加模板字段{/if} - 易云CMS{/block}
+{block name="crumb"}内容管理 · 栏目模型 · {if $model}{$model.title}{/if} 字段 · {if $field}编辑{else}添加{/if}{/block}
+{block name="content"}
+<div class="card" style="max-width:620px">
+  <div class="card-title">{if $field}编辑模板字段「{$field.title}」{else}为「{$model.title|default=''}」添加模板字段{/if}</div>
+  <form id="f-form">
+    <input type="hidden" name="model_id" value="{$modelId}">
+    <div class="form-item">
+      <div class="lab">字段标识 *</div>
+      <div class="ctl">
+        <input type="text" name="name" value="{$field.name|default=''}" placeholder="如 sub_image，字母开头，前台调用用" required>
+        <div class="help">前台用 {literal}{cms:catfield name="字段标识"}{/literal} 调用</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">字段名称 *</div>
+      <div class="ctl"><input type="text" name="title" value="{$field.title|default=''}" placeholder="如 副图片" required></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">字段类型</div>
+      <div class="ctl">
+        <select name="type" id="f-type">
+          {foreach $types as $t => $tn}
+          <option value="{$t}" {if isset($field.type) && $field.type == $t}selected{/if}>{$tn}</option>
+          {/foreach}
+        </select>
+      </div>
+    </div>
+    <div class="form-item" id="opt-box" {if !isset($field.type) || !in_array($field.type, ['select','radio','checkbox'])}style="display:none"{/if}>
+      <div class="lab">选项（英文逗号分隔）</div>
+      <div class="ctl">
+        <input type="text" name="options" value="{$field.options|default=''}" placeholder="如 红,绿,蓝">
+        <div class="help">仅「下拉选择/单选/多选」需要填写</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">排序</div>
+      <div class="ctl"><input type="number" name="sort" value="{$field.sort|default=100}"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl">
+        <button type="submit" class="btn primary">保存</button>
+        <a class="btn" href="/admin/cat_model/fields/model_id/{$modelId}">返回</a>
+      </div>
+    </div>
+  </form>
+</div>
+<script>
+document.getElementById('f-type').addEventListener('change', function(){
+  var v = this.value;
+  document.getElementById('opt-box').style.display = (v==='select'||v==='radio'||v==='checkbox') ? '' : 'none';
+});
+document.getElementById('f-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  yy.post('{if $field}/admin/cat_model/field_edit/id/{$field.id}{else}/admin/cat_model/field_edit{/if}', new FormData(this), {});
+});
+</script>
+{/block}

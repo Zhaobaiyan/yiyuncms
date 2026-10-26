@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>系统发生错误</title>
+    <meta name="robots" content="noindex,nofollow" />
+    <style>
+        /* Base */
+        body {
+            color: #333;
+            font: 16px Verdana, "Helvetica Neue", helvetica, Arial, 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 0 20px 20px;
+        }
+        h1{
+            margin: 10px 0 0;
+            font-size: 28px;
+            font-weight: 500;
+            line-height: 32px;
+        }
+        h2{
+            color: #4288ce;
+            font-weight: 400;
+            padding: 6px 0;
+            margin: 6px 0 0;
+            font-size: 18px;
+            border-bottom: 1px solid #eee;
+        }
+        h3{
+            margin: 12px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        abbr{
+            cursor: help;
+            text-decoration: underline;
+            text-decoration-style: dotted;
+        }
+        a{
+            color: #868686;
+            cursor: pointer;
+        }
+        a:hover{
+            text-decoration: underline;
+        }
+        .line-error{
+            background: #f8cbcb;
+        }
+        .echo table {
+            width: 100%;
+        }
+        .echo pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: #f7f7f7;
+            border: 0;
+            border-radius: 3px;
+            font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        }
+        .echo pre > pre {
+            padding: 0;
+            margin: 0;
+        }
+        /* Exception Info */
+        .exception {
+            margin-top: 20px;
+        }
+        .exception .message{
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-bottom: 0 none;
+            line-height: 18px;
+            font-size:16px;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            font-family: Consolas,"Liberation Mono",Courier,Verdana,"微软雅黑",serif;
+        }
+        .exception .code{
+            float: left;
+            text-align: center;
+            color: #fff;
+            margin-right: 12px;
+            padding: 16px;
+            border-radius: 4px;
+            background: #999;
+        }
+        .exception .source-code{
+            padding: 6px;
+            border: 1px solid #ddd;
+
+            background: #f9f9f9;
+            overflow-x: auto;
+
+        }
+        .exception .source-code pre{
+            margin: 0;
+        }
+        .exception .source-code pre ol{
+            margin: 0;
+            color: #4288ce;
+            display: inline-block;
+            min-width: 100%;
+            box-sizing: border-box;
+            font-size:14px;
+            font-family: "Century Gothic",Consolas,"Liberation Mono",Courier,Verdana,serif;
+            padding-left: 40px;
+        }
+        .exception .source-code pre li{
+            border-left: 1px solid #ddd;
+            height: 18px;
+            line-height: 18px;
+        }
+        .exception .source-code pre code{
+            color: #333;
+            height: 100%;
+            display: inline-block;
+            border-left: 1px solid #fff;
+            font-size:14px;
+            font-family: Consolas,"Liberation Mono",Courier,Verdana,"微软雅黑",serif;
+        }
+        .exception .trace{
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-top: 0 none;
+            line-height: 16px;
+            font-size:14px;
+            font-family: Consolas,"Liberation Mono",Courier,Verdana,"微软雅黑",serif;
+        }
+        .exception .trace h2:hover {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .exception .trace ol{
+            margin: 12px;
+        }
+        .exception .trace ol li{
+            padding: 2px 4px;
+        }
+        .exception div:last-child{
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* Exception Variables */
+        .exception-var table{
+            width: 100%;
+            margin: 12px 0;
+            box-sizing: border-box;
+            table-layout:fixed;
+            word-wrap:break-word;
+        }
+        .exception-var table caption{
+            text-align: left;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 6px 0;
+        }
+        .exception-var table caption small{
+            font-weight: 300;
+            display: inline-block;
+            margin-left: 10px;
+            color: #ccc;
+        }
+        .exception-var table tbody{
+            font-size: 13px;
+            font-family: Consolas, "Liberation Mono", Courier, "微软雅黑",serif;
+        }
+        .exception-var table td{
+            padding: 0 6px;
+            vertical-align: top;
+            word-break: break-all;
+        }
+        .exception-var table td:first-child{
+            width: 28%;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .exception-var table td pre{
+            margin: 0;
+        }
+
+        /* Copyright Info */
+        .copyright{
+            margin-top: 24px;
+            padding: 12px 0;
+            border-top: 1px solid #eee;
+        }
+
+        /* SPAN elements with the classes below are added by prettyprint. */
+        pre.prettyprint .pln { color: #000 }  /* plain text */
+        pre.prettyprint .str { color: #080 }  /* string content */
+        pre.prettyprint .kwd { color: #008 }  /* a keyword */
+        pre.prettyprint .com { color: #800 }  /* a comment */
+        pre.prettyprint .typ { color: #606 }  /* a type name */
+        pre.prettyprint .lit { color: #066 }  /* a literal value */
+        /* punctuation, lisp open bracket, lisp close bracket */
+        pre.prettyprint .pun, pre.prettyprint .opn, pre.prettyprint .clo { color: #660 }
+        pre.prettyprint .tag { color: #008 }  /* a markup tag name */
+        pre.prettyprint .atn { color: #606 }  /* a markup attribute name */
+        pre.prettyprint .atv { color: #080 }  /* a markup attribute value */
+        pre.prettyprint .dec, pre.prettyprint .var { color: #606 }  /* a declaration; a variable name */
+        pre.prettyprint .fun { color: red }  /* a function name */
+    </style>
+</head>
+<body>
+                <div class="exception">
+        <div class="message">
+            <div class="info">
+                <div>
+                    <h2>#0 [10501]<abbr title="think\db\exception\PDOException">PDOException</abbr> in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\PDOConnection.php line 836">PDOConnection.php line 836</a></h2>
+                </div>
+                <div><h1>SQLSTATE[HY000] [2002] 由于目标计算机积极拒绝，无法连接。</h1></div>
+            </div>
+        </div>
+                            <div class="source-code">
+                    <pre class="prettyprint lang-php"><ol start="827"><li class="line-0-827"><code>            } else {
+</code></li><li class="line-0-828"><code>                if ($this-&gt;reConnectTimes &lt; 4 &amp;&amp; $this-&gt;isBreak($e)) {
+</code></li><li class="line-0-829"><code>                    $this-&gt;reConnectTimes++;
+</code></li><li class="line-0-830"><code>
+</code></li><li class="line-0-831"><code>                    return $this-&gt;close()-&gt;getPDOStatement($sql, $bind, $master, $procedure);
+</code></li><li class="line-0-832"><code>                }
+</code></li><li class="line-0-833"><code>            }
+</code></li><li class="line-0-834"><code>
+</code></li><li class="line-0-835"><code>            if ($e instanceof \PDOException) {
+</code></li><li class="line-0-836 line-error"><code>                throw new PDOException($e, $this-&gt;config, $this-&gt;getLastsql());
+</code></li><li class="line-0-837"><code>            } else {
+</code></li><li class="line-0-838"><code>                throw $e;
+</code></li><li class="line-0-839"><code>            }
+</code></li><li class="line-0-840"><code>        }
+</code></li><li class="line-0-841"><code>    }
+</code></li><li class="line-0-842"><code>
+</code></li><li class="line-0-843"><code>    /**
+</code></li><li class="line-0-844"><code>     * 执行语句.
+</code></li><li class="line-0-845"><code>     *
+</code></li></ol></pre>
+                </div>
+                    <div class="trace">
+            <h2 data-expand="1">Call Stack</h2>
+            <ol>
+                <li>in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\PDOConnection.php line 836">PDOConnection.php line 836</a></li>
+                                    <li>
+                        at <abbr title="think\db\PDOConnection">PDOConnection</abbr>->getPDOStatement('<a class="toggle" title="SHOW FULL COLUMNS FROM `yy_cn_category`">SHOW FULL COLUMNS FR...</a>') in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\connector\Mysql.php line 68">Mysql.php line 68</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\connector\Mysql">Mysql</abbr>->getFields('`yy_cn_category`') in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\PDOConnection.php line 438">PDOConnection.php line 438</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\PDOConnection">PDOConnection</abbr>->getTableFieldsInfo('yy_cn_category') in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\PDOConnection.php line 395">PDOConnection.php line 395</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\PDOConnection">PDOConnection</abbr>->getCachedSchemaInfo('<a class="toggle" title="127.0.0.1_3306|youyun_cms.yy_cn_category">127.0.0.1_3306|youyu...</a>', 'yy_cn_category', <em>false</em>) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\PDOConnection.php line 360">PDOConnection.php line 360</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\PDOConnection">PDOConnection</abbr>->getSchemaInfo('yy_cn_category') in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\PDOConnection.php line 424">PDOConnection.php line 424</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\PDOConnection">PDOConnection</abbr>->getTableInfo('yy_cn_category', 'type') in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\PDOConnection.php line 513">PDOConnection.php line 513</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\PDOConnection">PDOConnection</abbr>->getFieldsType('yy_cn_category') in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\concern\TableFieldInfo.php line 60">TableFieldInfo.php line 60</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\Query">Query</abbr>->getFieldsType() in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\concern\TableFieldInfo.php line 84">TableFieldInfo.php line 84</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\Query">Query</abbr>->getFieldsBindType() in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\BaseBuilder.php line 220">BaseBuilder.php line 220</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\BaseBuilder">BaseBuilder</abbr>->buildWhere(<em>object</em>(<abbr title="think\db\Query">Query</abbr>), ['AND' => [['is_show', '=', 1], ['parent_id', '=', 0]]]) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\Builder.php line 222">Builder.php line 222</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\Builder">Builder</abbr>->parseWhere(<em>object</em>(<abbr title="think\db\Query">Query</abbr>), ['AND' => [['is_show', '=', 1], ['parent_id', '=', 0]]]) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\builder\Mysql.php line 103">Mysql.php line 103</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\builder\Mysql">Mysql</abbr>->select(<em>object</em>(<abbr title="think\db\Query">Query</abbr>)) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\PDOConnection.php line 968">PDOConnection.php line 968</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\PDOConnection">PDOConnection</abbr>->think\db\{closure}(<em>object</em>(<abbr title="think\db\Query">Query</abbr>)) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\PDOConnection.php line 736">PDOConnection.php line 736</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\PDOConnection">PDOConnection</abbr>->pdoQuery(<em>object</em>(<abbr title="think\db\Query">Query</abbr>), <em>object</em>(<abbr title="Closure">Closure</abbr>)) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\PDOConnection.php line 967">PDOConnection.php line 967</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\PDOConnection">PDOConnection</abbr>->select(<em>object</em>(<abbr title="think\db\Query">Query</abbr>)) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-orm\src\db\BaseQuery.php line 1427">BaseQuery.php line 1427</a>                    </li>
+                                    <li>
+                        at <abbr title="think\db\BaseQuery">BaseQuery</abbr>->select() in <a class="toggle" title="F:\豆包下载\CMS\app\common\service\TagService.php line 88">TagService.php line 88</a>                    </li>
+                                    <li>
+                        at <abbr title="app\common\service\TagService">TagService</abbr>::categories(0, 20, '', 0) in <a class="toggle" title="F:\豆包下载\CMS\runtime\index\temp\6071114f98d0973bb29411b95c6e0167.php line 35">6071114f98d0973bb29411b95c6e0167.php line 35</a>                    </li>
+                                    <li>
+                        at include('<a class="toggle" title="F:\豆包下载\CMS\runtime\index\temp\6071114f98d0973bb29411b95c6e0167.php">F:\豆包下载\CMS\...</a>') in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-template\src\template\driver\File.php line 59">File.php line 59</a>                    </li>
+                                    <li>
+                        at <abbr title="think\template\driver\File">File</abbr>->read('<a class="toggle" title="F:\豆包下载\CMS\runtime\index\temp\6071114f98d0973bb29411b95c6e0167.php">F:\豆包下载\CMS\...</a>', ['is_wap' => <em>false</em>, 'lang_code' => 'cn', 'cur_url' => '<a class="toggle" title="http://127.0.0.1:8899/">http://127.0.0.1:889...</a>', ...]) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-template\src\Template.php line 255">Template.php line 255</a>                    </li>
+                                    <li>
+                        at <abbr title="think\Template">Template</abbr>->fetch('<a class="toggle" title="F:\豆包下载\CMS\template\cn\index.html">F:\豆包下载\CMS\...</a>', ['is_wap' => <em>false</em>, 'lang_code' => 'cn', 'cur_url' => '<a class="toggle" title="http://127.0.0.1:8899/">http://127.0.0.1:889...</a>', ...]) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-view\src\Think.php line 149">Think.php line 149</a>                    </li>
+                                    <li>
+                        at <abbr title="think\view\driver\Think">Think</abbr>->fetch('<a class="toggle" title="F:\豆包下载\CMS\template\cn\index.html">F:\豆包下载\CMS\...</a>', ['is_wap' => <em>false</em>, 'lang_code' => 'cn', 'cur_url' => '<a class="toggle" title="http://127.0.0.1:8899/">http://127.0.0.1:889...</a>', ...]) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\framework\src\think\View.php line 90">View.php line 90</a>                    </li>
+                                    <li>
+                        at <abbr title="think\View">View</abbr>->think\{closure}() in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\framework\src\think\View.php line 126">View.php line 126</a>                    </li>
+                                    <li>
+                        at <abbr title="think\View">View</abbr>->getContent(<em>object</em>(<abbr title="Closure">Closure</abbr>)) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\framework\src\think\View.php line 89">View.php line 89</a>                    </li>
+                                    <li>
+                        at <abbr title="think\View">View</abbr>->fetch('/index', ['cur_catid' => 0]) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\framework\src\think\response\View.php line 92">View.php line 92</a>                    </li>
+                                    <li>
+                        at <abbr title="think\response\View">View</abbr>->output('/index') in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\framework\src\think\Response.php line 388">Response.php line 388</a>                    </li>
+                                    <li>
+                        at <abbr title="think\Response">Response</abbr>->getContent() in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\think-trace\src\TraceDebug.php line 75">TraceDebug.php line 75</a>                    </li>
+                                    <li>
+                        at <abbr title="think\trace\TraceDebug">TraceDebug</abbr>->handle(<em>object</em>(<abbr title="think\Request">Request</abbr>), <em>object</em>(<abbr title="Closure">Closure</abbr>))                    </li>
+                                    <li>
+                        at call_user_func([<em>object</em>(<abbr title="think\trace\TraceDebug">TraceDebug</abbr>), 'handle'], <em>object</em>(<abbr title="think\Request">Request</abbr>), <em>object</em>(<abbr title="Closure">Closure</abbr>)) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\framework\src\think\Middleware.php line 142">Middleware.php line 142</a>                    </li>
+                                    <li>
+                        at <abbr title="think\Middleware">Middleware</abbr>->think\{closure}(<em>object</em>(<abbr title="think\Request">Request</abbr>), <em>object</em>(<abbr title="Closure">Closure</abbr>)) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\framework\src\think\Pipeline.php line 85">Pipeline.php line 85</a>                    </li>
+                                    <li>
+                        at <abbr title="think\Pipeline">Pipeline</abbr>->think\{closure}(<em>object</em>(<abbr title="think\Request">Request</abbr>)) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\framework\src\think\Pipeline.php line 66">Pipeline.php line 66</a>                    </li>
+                                    <li>
+                        at <abbr title="think\Pipeline">Pipeline</abbr>->then(<em>object</em>(<abbr title="Closure">Closure</abbr>)) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\framework\src\think\Http.php line 205">Http.php line 205</a>                    </li>
+                                    <li>
+                        at <abbr title="think\Http">Http</abbr>->runWithRequest(<em>object</em>(<abbr title="think\Request">Request</abbr>)) in <a class="toggle" title="F:\豆包下载\CMS\vendor\topthink\framework\src\think\Http.php line 170">Http.php line 170</a>                    </li>
+                                    <li>
+                        at <abbr title="think\Http">Http</abbr>->run() in <a class="toggle" title="F:\豆包下载\CMS\public\index.php line 15">index.php line 15</a>                    </li>
+                            </ol>
+        </div>
+    </div>
+                
+        <div class="exception-var">
+        <h2>Exception Datas</h2>
+                <table>
+                        <caption>PDO Error Info</caption>
+            <tbody>
+                                <tr>
+                    <td>SQLSTATE</td>
+                    <td>HY000</td>
+                </tr>
+                                <tr>
+                    <td>Driver Error Code</td>
+                    <td>2002</td>
+                </tr>
+                                <tr>
+                    <td>Driver Error Message</td>
+                    <td>由于目标计算机积极拒绝，无法连接。</td>
+                </tr>
+                            </tbody>
+                    </table>
+                <table>
+                        <caption>Database Status</caption>
+            <tbody>
+                                <tr>
+                    <td>Error Code</td>
+                    <td>10501</td>
+                </tr>
+                                <tr>
+                    <td>Error Message</td>
+                    <td>SQLSTATE[HY000] [2002] 由于目标计算机积极拒绝，无法连接。</td>
+                </tr>
+                                <tr>
+                    <td>Error SQL</td>
+                    <td></td>
+                </tr>
+                            </tbody>
+                    </table>
+                <table>
+                        <caption>Database Config</caption>
+            <tbody>
+                                <tr>
+                    <td>type</td>
+                    <td>mysql</td>
+                </tr>
+                                <tr>
+                    <td>hostname</td>
+                    <td>127.0.0.1</td>
+                </tr>
+                                <tr>
+                    <td>database</td>
+                    <td>youyun_cms</td>
+                </tr>
+                                <tr>
+                    <td>hostport</td>
+                    <td>3306</td>
+                </tr>
+                                <tr>
+                    <td>dsn</td>
+                    <td></td>
+                </tr>
+                                <tr>
+                    <td>params</td>
+                    <td>[]</td>
+                </tr>
+                                <tr>
+                    <td>charset</td>
+                    <td>utf8mb4</td>
+                </tr>
+                                <tr>
+                    <td>prefix</td>
+                    <td>yy_</td>
+                </tr>
+                                <tr>
+                    <td>deploy</td>
+                    <td>0</td>
+                </tr>
+                                <tr>
+                    <td>rw_separate</td>
+                    <td>false</td>
+                </tr>
+                                <tr>
+                    <td>master_num</td>
+                    <td>1</td>
+                </tr>
+                                <tr>
+                    <td>slave_no</td>
+                    <td></td>
+                </tr>
+                                <tr>
+                    <td>read_master</td>
+                    <td>false</td>
+                </tr>
+                                <tr>
+                    <td>fields_strict</td>
+                    <td>true</td>
+                </tr>
+                                <tr>
+                    <td>fields_cache</td>
+                    <td>false</td>
+                </tr>
+                                <tr>
+                    <td>trigger_sql</td>
+                    <td>true</td>
+                </tr>
+                                <tr>
+                    <td>builder</td>
+                    <td></td>
+                </tr>
+                                <tr>
+                    <td>query</td>
+                    <td></td>
+                </tr>
+                                <tr>
+                    <td>break_reconnect</td>
+                    <td>false</td>
+                </tr>
+                                <tr>
+                    <td>break_match_str</td>
+                    <td>[]</td>
+                </tr>
+                                <tr>
+                    <td>auto_param_bind</td>
+                    <td>true</td>
+                </tr>
+                            </tbody>
+                    </table>
+            </div>
+    
+        <div class="exception-var">
+        <h2>Environment Variables</h2>
+                <table>
+                        <caption>GET Data<small>empty</small></caption>
+                    </table>
+                <table>
+                        <caption>POST Data<small>empty</small></caption>
+                    </table>
+                <table>
+                        <caption>Files<small>empty</small></caption>
+                    </table>
+                <table>
+                        <caption>Cookies<small>empty</small></caption>
+                    </table>
+                <table>
+                        <caption>Session<small>empty</small></caption>
+                    </table>
+                <table>
+                        <caption>Server/Request Data</caption>
+            <tbody>
+                                <tr>
+                    <td>DOCUMENT_ROOT</td>
+                    <td>F:\豆包下载\CMS\public</td>
+                </tr>
+                                <tr>
+                    <td>REMOTE_ADDR</td>
+                    <td>127.0.0.1</td>
+                </tr>
+                                <tr>
+                    <td>REMOTE_PORT</td>
+                    <td>62270</td>
+                </tr>
+                                <tr>
+                    <td>SERVER_SOFTWARE</td>
+                    <td>PHP 8.2.34 Development Server</td>
+                </tr>
+                                <tr>
+                    <td>SERVER_PROTOCOL</td>
+                    <td>HTTP/1.1</td>
+                </tr>
+                                <tr>
+                    <td>SERVER_NAME</td>
+                    <td>127.0.0.1</td>
+                </tr>
+                                <tr>
+                    <td>SERVER_PORT</td>
+                    <td>8899</td>
+                </tr>
+                                <tr>
+                    <td>REQUEST_URI</td>
+                    <td>/</td>
+                </tr>
+                                <tr>
+                    <td>REQUEST_METHOD</td>
+                    <td>GET</td>
+                </tr>
+                                <tr>
+                    <td>SCRIPT_NAME</td>
+                    <td>/index.php</td>
+                </tr>
+                                <tr>
+                    <td>SCRIPT_FILENAME</td>
+                    <td>F:\豆包下载\CMS\public\index.php</td>
+                </tr>
+                                <tr>
+                    <td>PHP_SELF</td>
+                    <td>/index.php</td>
+                </tr>
+                                <tr>
+                    <td>HTTP_HOST</td>
+                    <td>127.0.0.1:8899</td>
+                </tr>
+                                <tr>
+                    <td>HTTP_USER_AGENT</td>
+                    <td>curl/8.13.0</td>
+                </tr>
+                                <tr>
+                    <td>HTTP_ACCEPT</td>
+                    <td>*/*</td>
+                </tr>
+                                <tr>
+                    <td>REQUEST_TIME_FLOAT</td>
+                    <td>1790236560.5153</td>
+                </tr>
+                                <tr>
+                    <td>REQUEST_TIME</td>
+                    <td>1790236560</td>
+                </tr>
+                            </tbody>
+                    </table>
+            </div>
+    
+    <div class="copyright">
+        <a title="官方网站" href="http://www.thinkphp.cn">ThinkPHP</a> 
+        <span>V6.1.4</span> 
+        <span>{ 十年磨一剑-为API开发设计的高性能框架 }</span>
+        <span>- <a title="官方手册" href="https://www.kancloud.cn/manual/thinkphp6_0/content">官方手册</a></span>
+    </div>
+        <script>
+        function $(selector, node){
+            var elements;
+
+            node = node || document;
+            if(document.querySelectorAll){
+                elements = node.querySelectorAll(selector);
+            } else {
+                switch(selector.substr(0, 1)){
+                    case '#':
+                        elements = [node.getElementById(selector.substr(1))];
+                        break;
+                    case '.':
+                        if(document.getElementsByClassName){
+                            elements = node.getElementsByClassName(selector.substr(1));
+                        } else {
+                            elements = get_elements_by_class(selector.substr(1), node);
+                        }
+                        break;
+                    default:
+                        elements = node.getElementsByTagName();
+                }
+            }
+            return elements;
+
+            function get_elements_by_class(search_class, node, tag) {
+                var elements = [], eles, 
+                    pattern  = new RegExp('(^|\\s)' + search_class + '(\\s|$)');
+
+                node = node || document;
+                tag  = tag  || '*';
+
+                eles = node.getElementsByTagName(tag);
+                for(var i = 0; i < eles.length; i++) {
+                    if(pattern.test(eles[i].className)) {
+                        elements.push(eles[i])
+                    }
+                }
+
+                return elements;
+            }
+        }
+
+        $.getScript = function(src, func){
+            var script = document.createElement('script');
+            
+            script.async  = 'async';
+            script.src    = src;
+            script.onload = func || function(){};
+            
+            $('head')[0].appendChild(script);
+        }
+
+        ;(function(){
+            var files = $('.toggle');
+            var ol    = $('ol', $('.prettyprint')[0]);
+            var li    = $('li', ol[0]);   
+
+            // 短路径和长路径变换
+            for(var i = 0; i < files.length; i++){
+                files[i].ondblclick = function(){
+                    var title = this.title;
+
+                    this.title = this.innerHTML;
+                    this.innerHTML = title;
+                }
+            }
+
+            (function () {
+                var expand = function (dom, expand) {
+                    var ol = $('ol', dom.parentNode)[0];
+                    expand = undefined === expand ? dom.attributes['data-expand'].value === '0' : undefined;
+                    if (expand) {
+                        dom.attributes['data-expand'].value = '1';
+                        ol.style.display = 'none';
+                        dom.innerText = 'Call Stack (展开)';
+                    } else {
+                        dom.attributes['data-expand'].value = '0';
+                        ol.style.display = 'block';
+                        dom.innerText = 'Call Stack (折叠)';
+                    }
+                };
+                var traces = $('.trace');
+                for (var i = 0; i < traces.length; i ++) {
+                    var h2 = $('h2', traces[i])[0];
+                    expand(h2);
+                    h2.onclick = function () {
+                        expand(this);
+                    };
+                }
+            })();
+
+            $.getScript('//cdn.bootcdn.net/ajax/libs/prettify/r298/prettify.min.js', function(){
+                prettyPrint();
+            });
+        })();
+    </script>
+    </body>
+</html>

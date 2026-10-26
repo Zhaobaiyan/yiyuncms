@@ -1,0 +1,140 @@
+{include file="header" /}
+{if isset($tip) && $tip == 'content_private'}
+<div style="padding:12px 20px;background:#fff7ed;color:#b45309;text-align:center;font-size:15px;border-bottom:1px solid #fed7aa">内容未公开，该内容尚未公开发布。</div>
+{/if}
+
+
+<div class="swiper-container banner">
+  <div class="swiper-wrapper">
+    {cms:ad name="home_banner_pc"}
+  </div>
+  <div class="swiper-pagination"></div>
+</div>
+<div class="swiper-container m-banner">
+  <div class="swiper-wrapper">
+    {cms:ad name="home_banner_wap"}
+  </div>
+  <div class="swiper-pagination"></div>
+</div>
+
+<div class="section in-about">
+  <div class="container clearfix">
+    <div class="in-about-left wow fadeInLeft">
+      <div class="img-cover"><span style="background-image:url(__PUBLIC__/images/aboutus.png)"></span></div>
+      <div class="text">
+        <h2><span>关于我们</span>{cms:setting name="site.name"}</h2>
+        <?php $about = get_category(7); if ($about): ?>
+        <div class="text-con">{$about.content|raw}</div>
+        <div class="more"><a href="{:url_cat($about)}"><span>了解更多</span><img src="__PUBLIC__/images/jt-3.png"></a></div>
+        <?php endif; ?>
+      </div>
+    </div>
+    <div class="in-about-right wow fadeInRight">
+      <div class="tits"><span>新闻中心</span><a href="{:url_cat(get_category(2))}"><img src="__PUBLIC__/images/newsarrow.png" alt=""></a></div>
+      <ul>
+        {cms:list catid="2" num="4" item="vo"}
+        <li><span>{$vo.create_time|date='Y-m-d'}</span><a href="{:url_content($vo)}" title="{$vo.title}">{$vo.title}</a></li>
+        {/cms:list}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section in-pro">
+  <div class="container">
+    <div class="section-title wow fadeInUp">
+      <span>产品中心</span>
+      <div class="in-pro-menu">
+        {cms:category parent="3" num="5" item="cat"}
+        <a href="{:url_cat($cat)}">{$cat.name}</a>
+        {/cms:category}
+      </div>
+    </div>
+    <ul class="clearfix wow fadeInDown">
+      {cms:list catid="3" num="8" item="vo"}
+      <li><a href="{:url_content($vo)}" title="{$vo.title}">
+        <div class="img-center"><img src="{if $vo.thumb}{$vo.thumb}{else}{$vo.image}{/if}" alt="{$vo.title}"></div>
+        <div class="text"><h2>{$vo.title}</h2></div>
+      </a></li>
+      {/cms:list}
+    </ul>
+  </div>
+</div>
+
+<div class="section in-ys">
+  <div class="container">
+    <div class="section-title3 wow fadeInUp">
+      <span>产品优势</span>
+      <p>Product Advantages</p>
+    </div>
+    <ul class="clearfix wow fadeInDown">
+      <li><a href="javascript:;">
+        <div class="icon"><img src="__PUBLIC__/images/ys-icon1.png"></div>
+        <div class="yuan"><span></span></div>
+        <div class="text"><h2>先进设备，做工考究</h2><p>全套现代化先进生产设备，全程标准化精细加工，每处工艺细节反复打磨，用料扎实做工考究。</p></div>
+      </a></li>
+      <li><a href="javascript:;">
+        <div class="icon"><img src="__PUBLIC__/images/ys-icon2.png"></div>
+        <div class="yuan"><span></span></div>
+        <div class="text"><h2>严控品质，匠心打磨</h2><p>从原料检测到成品出厂层层把关严控品质，每一处细节皆用心匠心打磨，持久耐用无惧户外风霜。</p></div>
+      </a></li>
+      <li><a href="javascript:;">
+        <div class="icon"><img src="__PUBLIC__/images/ys-icon3.png"></div>
+        <div class="yuan"><span></span></div>
+        <div class="text"><h2>精湛工艺，锻造精品</h2><p>多重分层标准化施工工艺，层层压实均匀铺装，严控平整度与弹性标准，细节精工打磨。</p></div>
+      </a></li>
+    </ul>
+  </div>
+</div>
+
+<div class="section in-fangan">
+  <div class="container clearfix">
+    <div class="in-fangan-left wow fadeInLeft">
+      <div class="tits">企业优势</div>
+      <ul class="in-fangan-menu">
+        <?php $num = 1;?>
+        {cms:category parent="4" num="8" item="cat"}
+        <li{if $num == 1} class="active"{/if}><a href="javascript:;">{$cat.name}</a></li>
+        <?php $num++;?>
+        {/cms:category}
+      </ul>
+    </div>
+    <div class="in-fangan-con swiper-container wow fadeInRight">
+      <div class="swiper-wrapper">
+        {cms:category parent="4" num="8" item="cat"}
+        <div class="swiper-slide"><a href="{:url_cat($cat)}">
+          <div class="img-center"><img src="{$cat.image}" alt="{$cat.name}"></div>
+          <div class="text">
+            <h2>{$cat.description}</h2>
+            <div class="qyysright">
+              <div class="qyystext">{$cat.name}</div>
+              <div class="qyysico"><img src="__PUBLIC__/images/qyysico.png" alt=""></div>
+            </div>
+          </div>
+        </a></div>
+        {/cms:category}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section2">
+  <div class="container">
+    <div class="yunu-link">
+      <h4>友情链接 <small>/ LINKS</small></h4>
+      <ul class="clearfix">
+        {cms:link num="20" item="vo"}
+        <li><a href="{$vo.url}" target="_blank">{$vo.name}</a></li>
+        {/cms:link}
+      </ul>
+    </div>
+  </div>
+</div>
+
+{include file="footer" /}
+<script>
+  var banner = new Swiper('.banner', {autoplay:{disableOnInteraction:false,delay:3000},loop:true,pagination:{el:'.banner .swiper-pagination',clickable:true}});
+  var banners = new Swiper('.m-banner', {autoplay:true,pagination:{el:'.m-banner .swiper-pagination',clickable:true}});
+  tabsSwiper('.in-fangan-menu', '.in-fangan-con');
+  $('.nav li:first').addClass('active');
+</script>

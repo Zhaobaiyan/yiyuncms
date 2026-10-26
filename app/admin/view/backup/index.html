@@ -1,0 +1,52 @@
+{extend name="layout" /}
+{block name="title"}数据备份 - 易云CMS{/block}
+{block name="crumb"}系统设置 · 数据备份{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">一键备份 / 恢复</div>
+  <div style="padding:4px 2px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <button class="btn primary" onclick="yy.confirm('确定现在执行数据备份？将导出全部数据表为 SQL 文件', function(){ yy.post('/admin/backup/backup', {}, {literal}{url:'/admin/backup/index'}{/literal}); })">立即备份</button>
+    <span class="text-sub">备份文件保存在 runtime/backup/ 目录；建议定期下载保存</span>
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">数据表清单（{count($tables)} 张）</div>
+  <table class="tbl">
+    <tr><th>表名</th><th>记录数</th></tr>
+    {foreach $tables as $tb}
+    <tr><td class="mono">{$tb.name}</td><td>{$tb.count}</td></tr>
+    {/foreach}
+  </table>
+</div>
+<div class="card">
+  <div class="card-title">已有备份文件（{count($files)} 个）</div>
+  {if $files}
+  <table class="tbl">
+    <tr><th>文件名</th><th>大小</th><th>时间</th><th style="width:240px">操作</th></tr>
+    {foreach $files as $f}
+    <tr>
+      <td class="mono">{$f.name}</td>
+      <td>{:round($f.size/1024, 1)} KB</td>
+      <td class="text-sub">{$f.time|date='Y-m-d H:i'}</td>
+      <td class="ops">
+        <a class="btn sm" href="/admin/backup/download?file={$f.name}">下载</a>
+        <button class="btn sm warn" onclick="restoreFile('{$f.name}')">恢复</button>
+        <button class="btn sm danger" onclick="yy.confirm('删除备份文件「{$f.name}」？', function(){ yy.post('/admin/backup/delete', {file: '{$f.name}'}, {literal}{url:'/admin/backup/index'}{/literal}); })">删除</button>
+      </td>
+    </tr>
+    {/foreach}
+  </table>
+  {else}
+  <div class="empty">暂无备份文件</div>
+  {/if}
+</div>
+<script>
+function restoreFile(name){
+  yy.confirm('恢复备份「' + name + '」将覆盖当前全部数据，此操作不可撤销，确定继续？', function(){
+    yy.confirm('再次确认：恢复后当前数据将被备份文件内容替换，确定恢复？', function(){
+      yy.post('/admin/backup/restore', {file: name}, {callback: function(){ location.reload(); }});
+    });
+  });
+}
+</script>
+{/block}

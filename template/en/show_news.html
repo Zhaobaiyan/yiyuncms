@@ -1,0 +1,69 @@
+{include file="header" /}
+
+<div class="container">
+  <div class="crumbs">
+    <a href="{:url_home()}">Home</a>
+    {if $category}
+      {cms:crumbs catid="{$category.id}" item="c"}
+        &nbsp;&gt;&nbsp;<a href="{:url_cat($c)}">{$c.name}</a>
+      {/cms:crumbs}
+    {/if}
+  </div>
+
+  <div class="detail">
+    <h1>{$content.title}</h1>
+    <div class="meta">
+      {if $content.author}Author: {$content.author}　{/if}
+      {if $content.source}Source: {$content.source}　{/if}
+      Time: {$content.create_time|date='Y-m-d H:i'}　Views: {$content.views}
+    </div>
+
+    <div class="content">
+      {$content.content|raw}
+    </div>
+
+    {if $content.thumb}
+    <img src="{$content.thumb}" alt="{$content.title}" style="max-width:100%;margin:20px 0;border-radius:10px">
+    {/if}
+
+    {cms:prevnext}
+    <div class="prevnext">
+      <span>Prev: {if $prev}<a href="{:url_content($prev)}">{$prev.title}</a>{else}none{/if}</span>
+      <span>Next: {if $next}<a href="{:url_content($next)}">{$next.title}</a>{else}none{/if}</span>
+    </div>
+    {/cms:prevnext}
+  </div>
+
+  {if $is_single}
+  <div class="section" style="max-width:860px;margin:0 auto">
+    <div class="section-head"><h2>Contact Us</h2><p>Leave a message and we will get back to you</p></div>
+    <form id="msg-form" class="form-grid">
+      <input type="text" name="name" placeholder="Your name *" required>
+      <input type="text" name="phone" placeholder="Phone">
+      <input type="email" name="email" placeholder="Email">
+      <input type="text" name="title" placeholder="Subject">
+      <textarea class="full" name="content" placeholder="Message *" required></textarea>
+      <button class="full" type="submit">Submit</button>
+      <div class="full msg-tip" id="msg-tip"></div>
+    </form>
+  </div>
+  {/if}
+</div>
+
+<script>
+(function(){
+  var f = document.getElementById('msg-form');
+  if(!f) return;
+  f.addEventListener('submit', function(e){
+    e.preventDefault();
+    fetch('/index/message/submit', {method:'POST', body:new FormData(f)})
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        showMsg(res);
+        if(res.code === 1){ f.reset(); }
+      });
+  });
+})();
+</script>
+
+{include file="footer" /}

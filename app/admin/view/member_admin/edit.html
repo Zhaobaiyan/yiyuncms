@@ -1,0 +1,78 @@
+{extend name="layout" /}
+{block name="title"}{if $row.id}编辑会员{else}添加会员{/if} - 易云CMS{/block}
+{block name="crumb"}内容管理 · 会员管理 · {if $row.id}编辑会员{else}添加会员{/if}{/block}
+{block name="content"}
+<div class="card" style="max-width:680px">
+  <form onsubmit="return saveMember()">
+    <div class="form-item">
+      <div class="lab">会员账号 <em>*</em></div>
+      <div class="ctl">
+        <input type="text" class="ipt" id="username" value="{$row.username}" placeholder="登录账号，唯一">
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">登录密码 {if $row.id}<span class="text-sub">（留空则不修改）</span>{else}<em>*</em>{/if}</div>
+      <div class="ctl">
+        <input type="password" class="ipt" id="password" placeholder="{if $row.id}留空保持原密码{else}设置登录密码{/if}">
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">昵称</div>
+      <div class="ctl"><input type="text" class="ipt" id="nickname" value="{$row.nickname}" placeholder="前台显示名称"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">邮箱</div>
+      <div class="ctl"><input type="text" class="ipt" id="email" value="{$row.email}" placeholder="选填"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">手机号</div>
+      <div class="ctl"><input type="text" class="ipt" id="phone" value="{$row.phone}" placeholder="选填"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">头像</div>
+      <div class="ctl" style="display:flex;gap:8px;align-items:center">
+        <input type="text" class="ipt" id="avatar" value="{$row.avatar}" placeholder="点击右侧选择图片" style="flex:1">
+        <button type="button" class="btn sm" onclick="yy.pickImage(function(url){ document.getElementById('avatar').value = url; })">选择图片</button>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">状态</div>
+      <div class="ctl">
+        <label><input type="radio" name="status" value="1" {if $row.status==1}checked{/if}> 正常</label>
+        &nbsp;&nbsp;
+        <label><input type="radio" name="status" value="0" {if $row.status==0}checked{/if}> 待审核</label>
+        &nbsp;&nbsp;
+        <label><input type="radio" name="status" value="-1" {if $row.status==-1}checked{/if}> 禁用</label>
+      </div>
+    </div>
+    <div class="form-item">
+      <button type="submit" class="btn primary">保存</button>
+      <a class="btn" href="/admin/member_admin/index" style="margin-left:8px">返回</a>
+    </div>
+  </form>
+</div>
+<script>
+function saveMember(){
+  var username = document.getElementById('username').value.trim();
+  var password = document.getElementById('password').value;
+  if(!username){ yy.alert('请填写会员账号'); return false; }
+  {if !$row.id}if(!password){ yy.alert('请填写会员密码'); return false; }{/if}
+  var fd = new URLSearchParams();
+  fd.set('id', '{$row.id}');
+  fd.set('username', username);
+  fd.set('password', password);
+  fd.set('nickname', document.getElementById('nickname').value.trim());
+  fd.set('email', document.getElementById('email').value.trim());
+  fd.set('phone', document.getElementById('phone').value.trim());
+  fd.set('avatar', document.getElementById('avatar').value.trim());
+  fd.set('status', document.querySelector('input[name=status]:checked').value);
+  fetch('/admin/member_admin/edit', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: fd.toString() })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if(j.code === 1){ location.href = j.url || '/admin/member_admin/index'; }
+      else { yy.alert(j.msg || '保存失败'); }
+    });
+  return false;
+}
+</script>
+{/block}

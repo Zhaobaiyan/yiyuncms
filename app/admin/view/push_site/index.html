@@ -1,0 +1,164 @@
+{extend name="layout" /}
+{block name="title"}推送管理 - 易云CMS{/block}
+{block name="crumb"}扩展功能 · 推送管理{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">跨站/跨语言内容推送（v3.20）
+    <span class="text-sub">分站 → 主站：主站管理员审核通过后发布到主站；主站 → 分站：分站管理员接收后发布。发起入口：内容管理 → 勾选内容 → 「推送到站点」。</span>
+  </div>
+  <div class="tabs" style="display:flex;gap:10px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
+    <a class="btn sm {if $tab=='in'}primary{/if}" href="/admin/push_site/index?tab=in">待我处理{if $cnt.in>0}<b style="color:#e54d42">（{$cnt.in}）</b>{/if}</a>
+    <a class="btn sm {if $tab=='out'}primary{/if}" href="/admin/push_site/index?tab=out">我发起的{if $cnt.out>0}<b style="color:#e54d42">（{$cnt.out}）</b>{/if}</a>
+    <a class="btn sm {if $tab=='all'}primary{/if}" href="/admin/push_site/index?tab=all">全部记录</a>
+    <form style="display:flex;gap:6px;align-items:center;margin-left:auto" onsubmit="return doSearch()">
+      <input type="text" id="kw" value="{$keyword}" placeholder="按标题搜索" style="width:180px">
+      <button class="btn sm" type="submit">搜索</button>
+    </form>
+  </div>
+  <table class="tbl">
+    <tr>
+      <th style="width:70px">ID</th>
+      <th style="width:200px">来源 → 目标</th>
+      <th>标题（来源内容）</th>
+      <th style="width:120px">状态</th>
+      <th style="width:140px">发起人</th>
+      <th style="width:90px">时间</th>
+      <th style="width:230px">操作</th>
+    </tr>
+    {foreach $list as $row}
+    <tr>
+      <td>{$row.id}</td>
+      <td>
+        <span class="tag">{if isset($names[$row.from_site])}{$names[$row.from_site]}{else/}?{/if}</span>
+        <span class="text-sub">→</span>
+        <span class="tag blue">{if isset($names[$row.to_site])}{$names[$row.to_site]}{else/}?{/if}</span>
+        <div class="text-sub">
+          {if isset($cat_names[$row.from_lang][$row.from_catid])}{$cat_names[$row.from_lang][$row.from_catid]}（{$row.from_lang}）{else/}{$row.from_lang}{/if}
+          <span class="text-sub">→</span>
+          {if isset($cat_names[$row.to_lang][$row.to_catid])}{$cat_names[$row.to_lang][$row.to_catid]}（{$row.to_lang}）{else/}{$row.to_lang}{/if}
+        </div>
+      </td>
+      <td>
+        <div>{$row.title}</div>
+        {if $row.target_content_id}<div class="text-sub">已生成目标内容 #{$row.target_content_id}</div>{/if}
+        {if $row.remark}<div class="text-sub" style="color:#e54d42">备注：{$row.remark}</div>{/if}
+      </td>
+      <td>
+        {if $row.status==0}<span class="tag warn">待处理</span>
+        {elseif $row.status==1/}<span class="tag ok">已采纳发布</span>
+        {elseif $row.status==2/}<span class="tag err">已拒绝</span>
+        {else/}<span class="tag">已撤回</span>{/if}
+      </td>
+      <td class="text-sub">
+        {$row.creator_name|default='-'}
+        {if $row.audit_name}<div>处理：{$row.audit_name}</div>{/if}
+      </td>
+      <td class="text-sub">{$row.create_time|date='m-d H:i'}</td>
+      <td>
+        {if $row.status==0 && $row.to_site==$my_site && $canAudit}
+          <input type="hidden" id="act-lang-{$row.id}" value="{$row.to_lang}">
+          <input type="hidden" id="act-fromlang-{$row.id}" value="{$row.from_lang}">
+          <input type="hidden" id="act-title-{$row.id}" value="{$row.title}">
+          <input type="hidden" id="act-tocat-{$row.id}" value="{$row.to_catid}">
+          <input type="hidden" id="act-fromcat-{$row.id}" value="{if isset($cat_names[$row.from_lang][$row.from_catid])}{$cat_names[$row.from_lang][$row.from_catid]}{else/}-{/if}">
+          <button class="btn sm primary" onclick="act({$row.id},'pass')">采纳/通过</button>
+          <button class="btn sm err" onclick="act({$row.id},'reject')">拒绝</button>
+        {elseif $row.status==0 && $row.from_site==$my_site/}
+          <button class="btn sm ghost" onclick="act({$row.id},'withdraw')">撤回</button>
+        {else/}
+          <span class="text-sub">—</span>
+        {/if}
+        <a class="btn sm" target="_blank" href="{if $row.from_site != 'main'}/{$row.from_lang}{/if}/show/index?id={$row.from_content_id}" title="查看来源文章前台详情">预览</a>
+      </td>
+    </tr>
+    {/foreach}
+  </table>
+  {if count($list)==0}<div class="empty">暂无推送记录</div>{/if}
+  <div class="page-bar">{$list|raw}</div>
+</div>
+
+<div class="modal-mask" id="act-mask" style="display:none" onclick="if(event.target==this)closeAct()">
+  <div class="modal" style="max-width:480px;width:480px">
+    <div class="m-head" id="act-title">处理推送</div>
+    <div class="m-body" id="act-body" style="padding:20px 22px"></div>
+    <div class="m-foot">
+      <button class="btn sm" onclick="closeAct()">取消</button>
+      <button class="btn sm primary" onclick="submitAct()">确定</button>
+    </div>
+  </div>
+</div>
+<style>
+.push-act-info{background:#f7f9fc;border:1px solid #e6ebf1;border-radius:8px;padding:10px 12px;margin:6px 0 12px}
+.push-act-info .pi-row{display:flex;gap:8px;font-size:13px;line-height:1.9}
+.push-act-info .pi-lab{color:#8892a6;flex-shrink:0;width:64px}
+.push-act-info .pi-val{color:#2a3442;word-break:break-all}
+</style>
+<script>
+var _aid = 0, _aact = '';
+function doSearch(){ location.href = '/admin/push_site/index?tab={$tab}&keyword=' + encodeURIComponent(document.getElementById('kw').value); return false; }
+function act(id, a){
+  _aid = id; _aact = a;
+  var t = document.getElementById('act-title'), b = document.getElementById('act-body');
+  if(a == 'reject'){
+    t.innerText = '拒绝该推送'; b.innerHTML = '<div class="form-item"><div class="lab">拒绝原因</div><div class="ctl"><textarea id="act-remark" rows="3" placeholder="必填，发起方可查看"></textarea></div></div>';
+  } else if(a == 'withdraw'){
+    t.innerText = '撤回推送'; b.innerHTML = '<p style="margin:6px 0">确定撤回该推送吗？发起方撤回后目标站不可再处理。</p>';
+  } else {
+    t.innerText = '采纳/通过推送';
+    b.innerHTML =
+      '<div class="push-act-info">' +
+        '<div class="pi-row"><span class="pi-lab">来源文章</span><span class="pi-val" id="act-info-title"></span></div>' +
+        '<div class="pi-row"><span class="pi-lab">来源栏目</span><span class="pi-val" id="act-info-cat"></span></div>' +
+        '<div class="pi-row"><span class="pi-lab">处理说明</span><span class="pi-val">通过后内容将完整复制（含扩展字段/图片集）到目标站点指定栏目并直接发布</span></div>' +
+      '</div>' +
+      '<div class="form-item"><div class="lab">目标栏目</div><div class="ctl"><select id="act-catid"></select></div></div>' +
+      '<p class="text-sub" id="act-cat-loading" style="margin:4px 0">加载栏目…</p>' +
+      '<p class="text-sub" style="margin:6px 0">通过后将自动跳转到目标内容编辑页，可直接预览校对与修改。</p>';
+    var ttl = document.getElementById('act-title-' + _aid);
+    document.getElementById('act-info-title').textContent = ttl ? ttl.value : '';
+    var fc = document.getElementById('act-fromcat-' + _aid);
+    document.getElementById('act-info-cat').textContent = fc ? fc.value : '-';
+    loadCats();
+  }
+  document.getElementById('act-mask').style.display = 'flex';
+}
+function loadCats(){
+  var lang = document.getElementById('act-lang-' + _aid) ? document.getElementById('act-lang-' + _aid).value : '';
+  if(!lang){ document.getElementById('act-cat-loading').innerText = '无法确定目标语言'; return; }
+  // v3.21.1：发起方推送时选择的目标栏目（to_catid），采纳时默认选中，无需审核人重新选择
+  var defCat = document.getElementById('act-tocat-' + _aid) ? document.getElementById('act-tocat-' + _aid).value : '';
+  fetch('/admin/push_site/cats?to_lang=' + lang).then(function(r){ return r.json(); }).then(function(res){
+    var sel = document.getElementById('act-catid');
+    sel.innerHTML = '';
+    if(res.code == 1 && res.data && res.data.cats){
+      res.data.cats.forEach(function(c){
+        var o = document.createElement('option');
+        o.value = c.id;
+        // 树形缩进：├─ 分支线 + 深度缩进，便于一眼看出栏目层级
+        o.text = (c.depth > 0 ? '　'.repeat(c.depth) + '├─ ' : '') + c.name + '（#' + c.id + '）';
+        sel.appendChild(o);
+      });
+      // 默认选中发起方推送的目标栏目（若该栏目仍存在）
+      if(defCat && sel.querySelector('option[value="' + defCat + '"]')) sel.value = defCat;
+      document.getElementById('act-cat-loading').style.display = 'none';
+    } else { document.getElementById('act-cat-loading').innerText = '加载失败：' + (res.msg||''); }
+  }).catch(function(){ document.getElementById('act-cat-loading').innerText = '栏目加载失败'; });
+}
+function closeAct(){ document.getElementById('act-mask').style.display = 'none'; }
+function submitAct(){
+  var p = {id: _aid, act: _aact};
+  if(_aact == 'reject'){
+    var r = document.getElementById('act-remark').value.trim();
+    if(!r) return yy.toast('请填写拒绝原因','err');
+    p.remark = r;
+  } else if(_aact == 'pass'){
+    p.to_catid = document.getElementById('act-catid').value;
+  }
+  if(_aact == 'withdraw'){
+    yy.post('/admin/push_site/withdraw', {id: _aid});
+  } else {
+    yy.post('/admin/push_site/audit', p);
+  }
+}
+</script>
+{/block}

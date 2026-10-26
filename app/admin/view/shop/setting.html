@@ -1,0 +1,105 @@
+{extend name="layout" /}
+{block name="title"}支付设置 - 易云CMS{/block}
+{block name="crumb"}商城管理 · 支付设置{/block}
+{block name="content"}
+<div class="card" style="max-width:860px">
+  <div class="card-title">支付设置</div>
+  <form id="p-form" class="s-form">
+    <div class="form-item">
+      <div class="lab">支付模式</div>
+      <div class="ctl">
+        <select name="pay_mode" class="ipt" style="width:220px">
+          <option value="1" {if $pay_mode==1}selected{/if}>自动模式（配置了商户号走真实支付，未配置则走模拟）</option>
+          <option value="0" {if $pay_mode==0}selected{/if}>仅测试模式（强制使用模拟收银台）</option>
+        </select>
+        <div class="help">自动模式：微信/支付宝分别按各自商户号是否填写完整自动切换真实/模拟；仅测试模式：即使填了商户号也只走模拟。</div>
+      </div>
+    </div>
+
+    <div class="card-title" style="margin-top:20px">微信支付（Native 扫码，APIv2）</div>
+    <div class="form-item">
+      <div class="lab">微信支付开关</div>
+      <div class="ctl">
+        <label class="switch"><input type="checkbox" name="pay_wechat" value="1" {if $pay_wechat==1}checked{/if}><span class="slider"></span></label>
+        <div class="help">关闭后前台不提供微信支付选项</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">微信商户号 MchID</div>
+      <div class="ctl"><input type="text" name="wx_mchid" class="ipt" value="{$wx_mchid}" style="width:320px" placeholder="如：1900000109"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">公众号 AppID</div>
+      <div class="ctl"><input type="text" name="wx_appid" class="ipt" value="{$wx_appid}" style="width:320px" placeholder="如：wx8888888888888888"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">API 密钥 Key</div>
+      <div class="ctl"><input type="text" name="wx_key" class="ipt" value="{$wx_key}" style="width:320px" placeholder="APIv2 32位密钥（商户平台-账户中心-API安全）"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">退款证书 cert 路径</div>
+      <div class="ctl"><input type="text" name="wx_cert_path" class="ipt" value="{$wx_cert_path}" style="width:420px" placeholder="服务器绝对路径 apiclient_cert.pem（留空=退款需线下处理）"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">退款证书 key 路径</div>
+      <div class="ctl"><input type="text" name="wx_key_path" class="ipt" value="{$wx_key_path}" style="width:420px" placeholder="服务器绝对路径 apiclient_key.pem"></div>
+    </div>
+
+    <div class="card-title" style="margin-top:20px">支付宝（当面付扫码 / 电脑网站收银台，RSA2）</div>
+    <div class="form-item">
+      <div class="lab">支付宝开关</div>
+      <div class="ctl">
+        <label class="switch"><input type="checkbox" name="pay_alipay" value="1" {if $pay_alipay==1}checked{/if}><span class="slider"></span></label>
+        <div class="help">关闭后前台不提供支付宝支付选项</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">应用 AppID</div>
+      <div class="ctl"><input type="text" name="ali_appid" class="ipt" value="{$ali_appid}" style="width:320px" placeholder="开放平台应用 AppID"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">应用私钥</div>
+      <div class="ctl"><textarea name="ali_private_key" class="ipt" rows="5" style="width:420px" placeholder="应用私钥（PKCS8，可含或省略 BEGIN 标记）">{$ali_private_key}</textarea></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">支付宝公钥</div>
+      <div class="ctl"><textarea name="ali_public_key" class="ipt" rows="4" style="width:420px" placeholder="支付宝公钥（可含或省略 BEGIN 标记）">{$ali_public_key}</textarea></div>
+    </div>
+
+    <div class="card-title" style="margin-top:20px">测试与线下</div>
+    <div class="form-item">
+      <div class="lab">模拟支付</div>
+      <div class="ctl">
+        <label class="switch"><input type="checkbox" name="pay_test" value="1" {if $pay_test==1}checked{/if}><span class="slider"></span></label>
+        <div class="help">开启后前台提供「模拟支付」，点击即支付成功，便于本地测试</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">线下转账</div>
+      <div class="ctl">
+        <label class="switch"><input type="checkbox" name="pay_offline" value="1" {if $pay_offline==1}checked{/if}><span class="slider"></span></label>
+        <div class="help">开启后前台提供「线下转账」，管理员在订单管理中确认收款</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl">
+        <button type="submit" class="btn primary">保存设置</button>
+        <span class="help" style="margin-left:12px">回调地址（服务器需外网可达）：微信 /shop/notify_wechat，支付宝 /shop/notify_alipay；本地测试无法接收回调时，前台支付页会自动轮询订单状态完成。</span>
+      </div>
+    </div>
+  </form>
+</div>
+<script>
+document.getElementById('p-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  var fd = new FormData(this);
+  fd.set('pay_mode', document.querySelector('[name=pay_mode]').value);
+  fd.set('pay_wechat', document.querySelector('[name=pay_wechat]').checked ? 1 : 0);
+  fd.set('pay_alipay', document.querySelector('[name=pay_alipay]').checked ? 1 : 0);
+  fd.set('pay_test', document.querySelector('[name=pay_test]').checked ? 1 : 0);
+  fd.set('pay_offline', document.querySelector('[name=pay_offline]').checked ? 1 : 0);
+  yy.post('/admin/shop/setting', fd, {literal}{url:'/admin/shop/setting'}{/literal});
+});
+</script>
+{/block}

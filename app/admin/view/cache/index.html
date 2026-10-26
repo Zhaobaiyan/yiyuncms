@@ -1,0 +1,27 @@
+{extend name="layout" /}
+{block name="title"}缓存管理 - 易云CMS{/block}
+{block name="crumb"}系统设置 · 缓存管理{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">缓存状态</div>
+  <table class="tbl">
+    <tr><th style="width:160px">配置项</th><th>当前值</th></tr>
+    <tr><td>默认驱动</td><td><span class="tag info">{$info.driver}</span>（{if $info.type == 'Redis'}Redis 内存缓存{elseif $info.type == 'File' || $info.driver == 'file'}文件缓存{else}{$info.type}{/if}）</td></tr>
+    <tr><td>缓存前缀</td><td class="mono">{$info.prefix|default='（无）'}</td></tr>
+    <tr><td>数据缓存占用</td><td>{$cacheMB} MB</td></tr>
+    <tr><td>模板编译缓存占用</td><td>{$tempMB} MB</td></tr>
+  </table>
+  <div class="help" style="margin-top:10px">
+    使用 Redis 缓存：修改 config/cache.php 将 default 设为 redis 并填写连接信息（phpstudy 环境默认已安装 Redis 扩展），静态页面生成不受缓存驱动影响。
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">一键清理</div>
+  <div style="display:flex;gap:10px;padding:4px 2px;flex-wrap:wrap;align-items:center">
+    <button class="btn primary" onclick="yy.confirm('清理模板缓存（temp/ 编译文件）？', function(){ yy.post('/admin/cache/clear', {types: 'template'}, {literal}{url:'/admin/cache/index'}{/literal}); })">清理模板缓存</button>
+    <button class="btn" onclick="yy.confirm('清理数据缓存（cache/ 全部缓存数据）？', function(){ yy.post('/admin/cache/clear', {types: 'data'}, {literal}{url:'/admin/cache/index'}{/literal}); })">清理数据缓存</button>
+    <button class="btn warn" onclick="yy.confirm('清理全部缓存（模板+数据）？', function(){ yy.post('/admin/cache/clear', {types: 'all'}, {literal}{url:'/admin/cache/index'}{/literal}); })">清理全部</button>
+    <span class="text-sub">清理缓存不影响任何数据，仅删除编译与临时文件</span>
+  </div>
+</div>
+{/block}

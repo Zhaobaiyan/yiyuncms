@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta name="renderer" content="webkit|ie-comp|ie-stand" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-transform"/> 
+<meta name="applicable-device" content="pc,wap">
+<title>搜索-{yunu:config name="site.name" /}</title>
+<meta name="keywords" content="{if isset($kw) && $kw}{$kw}{/if}">
+<meta name="description" content="全站搜索">
+<link rel="Shortcut Icon" type=image/x-icon href="{yunu:config name="site_ico" /}" />
+<link rel="stylesheet" href="__PUBLIC__/css/modern.css">
+<script src="__PUBLIC__/js/jquery.min.js"></script>
+</head>
+<body>
+{include file="header" /}
+<?php $skw = isset($kw) ? $kw : ''; $scatid = isset($catid) ? $catid : 0; $sf = isset($field) ? $field : 'all'; ?>
+
+<!-- 搜索条 -->
+<div class="yy-search-bar">
+  <div class="yy-container">
+    <h1>站内搜索</h1>
+    <form action="{:site_url('search','index')}" method="get">
+      <input type="hidden" name="field" value="{$sf}">
+      <select name="catid" style="height:48px;border-radius:999px;border:0;padding:0 16px;max-width:160px">
+        <option value="0">全站</option>
+        {foreach $cats as $cat}
+        <option value="{$cat.id}" {if $scatid == $cat.id}selected{/if}>{$cat.name}</option>
+        {/foreach}
+      </select>
+      <input type="text" name="kw" value="{$skw}" placeholder="搜索标题或内容">
+      <button type="submit">搜索</button>
+    </form>
+    <div style="margin-top:16px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="{:site_url('search','index',['kw'=>$skw,'catid'=>$scatid,'field'=>'all'])}" style="padding:6px 18px;border-radius:999px;font-size:13px;{if $sf=='all'}background:var(--yy-accent);color:#fff{else}background:rgba(255,255,255,.12);color:#fff{/if}">标题+正文</a>
+      <a href="{:site_url('search','index',['kw'=>$skw,'catid'=>$scatid,'field'=>'title'])}" style="padding:6px 18px;border-radius:999px;font-size:13px;{if $sf=='title'}background:var(--yy-accent);color:#fff{else}background:rgba(255,255,255,.12);color:#fff{/if}">仅标题</a>
+      <a href="{:site_url('search','index',['kw'=>$skw,'catid'=>$scatid,'field'=>'content'])}" style="padding:6px 18px;border-radius:999px;font-size:13px;{if $sf=='content'}background:var(--yy-accent);color:#fff{else}background:rgba(255,255,255,.12);color:#fff{/if}">仅正文</a>
+    </div>
+  </div>
+</div>
+
+<div class="yy-section">
+  <div class="yy-container" style="max-width:1080px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:15px;color:var(--yy-muted)">
+      {if isset($kw) && $kw !== ''}关键词「<b style="color:var(--yy-primary)">{$kw}</b>」共找到 <b style="color:var(--yy-primary)">{$total}</b> 条结果{else}请输入搜索关键词{/if}
+    </div>
+    <div style="background:#fff;border:1px solid var(--yy-line);border-radius:var(--yy-radius);padding:20px 24px">
+      <div class="yy-news-list">
+        {if $list}
+        {foreach $list as $vo}
+        <li>
+          <div class="yy-n-date"><b>{$vo.create_time|date='d'}</b><span>{$vo.create_time|date='Y-m'}</span></div>
+          <div class="yy-n-txt">
+            <h3><a href="{:url_content($vo)}" title="{$vo.title}">{$vo.title}</a></h3>
+            {if $vo.description}<p>{$vo.description|str2sub=100, true}</p>{/if}
+          </div>
+          <a class="yy-more-link" href="{:url_content($vo)}">详情 →</a>
+        </li>
+        {/foreach}
+        {else}
+        <div class="yy-search-empty">{if isset($kw) && $kw}没有找到相关结果，换个关键词试试{else}请输入关键词搜索{/if}</div>
+        {/if}
+      </div>
+      <div class="yy-pages">
+        {$list|raw}
+      </div>
+    </div>
+  </div>
+</div>
+
+{include file="footer" /}
+</body>
+</html>

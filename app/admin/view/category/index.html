@@ -1,0 +1,243 @@
+{extend name="layout" /}
+{block name="title"}栏目管理 - 易云CMS{/block}
+{block name="crumb"}内容管理 · 栏目管理{/block}
+{block name="content"}
+<div class="toolbar">
+  <a class="btn primary" href="/admin/category/add">+ 添加栏目</a>
+  <button class="btn" onclick="batchAdd()">批量添加栏目</button>
+  <button class="btn sm" onclick="batchCopyLang()">跨语言复制</button>
+  <button class="btn sm" id="cat-collapse-all">一键收起</button>
+  <button class="btn sm" id="cat-expand-all">一键展开</button>
+  {if $is_trash}
+  <a class="btn primary" href="/admin/category/index">← 返回栏目列表</a>
+  <span class="text-sub">回收站栏目可恢复或彻底删除（彻底删除会连同其子栏目与内容一并清除，不可恢复）</span>
+  {else}
+  <a class="btn" href="/admin/category/index?status=trash">回收站</a>
+  {/if}
+  <span class="text-sub">勾选栏目可跨语言复制（含子栏目与内容、保持层级）；名称/别名/排序/每页条数直接点按修改</span>
+</div>
+<div class="card">
+  <table class="tbl">
+    <thead>
+    <tr>
+      <th style="width:36px"><input type="checkbox" id="cat-checkAll" title="全选"></th>
+      <th style="width:60px">ID</th>
+      <th>栏目名称 / 别名</th>
+      <th>类型</th>
+      <th>排序</th>
+      <th style="width:70px">每页</th>
+      <th>导航</th>
+      <th>状态</th>
+      {if $is_trash}<th>删除时间</th>{/if}
+      <th style="width:240px">操作</th>
+    </tr>
+    </thead>
+    <tbody id="cat-tbody">
+    {if $flat}
+    {foreach $flat as $cat}
+    <tr data-id="{$cat.id}" data-parent="{$cat.parent_id}" data-depth="{$cat.depth}"{if !$is_trash && $cat.depth > 0} style="display:none"{/if}>
+      <td><input type="checkbox" class="cat-check" value="{$cat.id}"></td>
+      <td>{$cat.id}</td>
+      <td style="padding-left:{$cat.indent}px;{if $cat.depth > 0}border-left:2px solid #dbe7f5;{/if}">
+        {if !empty($cat.has_child)}<span class="cat-toggle" data-expand="{$cat.id}" data-open="0" title="点击展开/收起子栏目">＋</span>{/if}
+        {if $cat.depth > 0}<span class="text-sub">└ </span>{/if}
+        <span class="editable" data-id="{$cat.id}" data-field="name" title="点击修改栏目名称">{$cat.name}</span>
+        {if $cat.ename}
+          <span class="editable text-sub mono" data-id="{$cat.id}" data-field="ename" title="点击修改别名">/{$cat.ename}</span>
+        {else}
+          <span class="editable text-sub mono" data-id="{$cat.id}" data-field="ename" title="点击设置别名">/（未设置）</span>
+        {/if}
+      </td>
+      <td>
+        {if $cat.type == 'list'}<span class="tag">列表</span>
+        {elseif $cat.type == 'single'}<span class="tag info">单页</span>
+        {elseif $cat.type == 'redirect'}<span class="tag warn">跳转</span>
+        {else}<span class="tag warn">外链</span>{/if}
+      </td>
+      <td><span class="editable num" data-id="{$cat.id}" data-field="sort" title="点击修改排序">{$cat.sort}</span></td>
+      <td><span class="editable num" data-id="{$cat.id}" data-field="pagesize" title="点击修改每页条数(默认10)">{$cat.pagesize|default=10}</span></td>
+      <td>
+        {if $cat.is_nav == 1}
+          <button class="tag ok" data-toggle="is_nav" data-id="{$cat.id}" title="点击切换">是</button>
+        {else}
+          <button class="tag gray" data-toggle="is_nav" data-id="{$cat.id}" title="点击切换">否</button>
+        {/if}
+      </td>
+      <td>
+        {if $cat.is_show == 1}
+          <button class="tag ok" data-toggle="is_show" data-id="{$cat.id}" title="点击切换">显示</button>
+        {else}
+          <button class="tag gray" data-toggle="is_show" data-id="{$cat.id}" title="点击切换">隐藏</button>
+        {/if}
+      </td>
+      {if $is_trash}<td class="text-sub">{$cat.delete_time|date='Y-m-d H:i'}</td>{/if}
+      <td class="ops">
+        {if $is_trash}
+        <button class="btn sm primary" onclick="catRestore({$cat.id})">恢复</button>
+        <button class="btn sm danger" onclick="catPurge({$cat.id}, '{$cat.name|htmlspecialchars}')">彻底删除</button>
+        {else}
+        <a class="btn sm" href="/admin/content/index?catid={$cat.id}" title="该栏目内容管理">内容</a>
+        <a class="btn sm" href="/admin/content/add?catid={$cat.id}" title="发布内容到该栏目">发布</a>
+        <a class="btn sm" href="/admin/category/edit/id/{$cat.id}">编辑</a>
+        <button class="btn sm danger" onclick="catDelete({$cat.id}, '{$cat.name|htmlspecialchars}')">删除</button>
+        {/if}
+      </td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="8"><div class="empty">还没有栏目，点击右上角「添加栏目」开始</div></td></tr>
+    {/if}
+    </tbody>
+  </table>
+</div>
+{if get_config('base.code_hint') == 1}
+<details class="code-guide">
+  <summary>前台调用指南（点击展开，含栏目/列表/翻页/推荐头条调用代码）</summary>
+  <div class="code-guide-body">
+    {literal}
+    <h4>一、导航与栏目</h4>
+    <p>主导航（自动读取导航开启的顶级栏目）：</p>
+    <pre>{cms:nav item="vo"}
+  &lt;a href="{$vo.url}"&gt;{$vo.name}&lt;/a&gt;
+{/cms:nav}</pre>
+    <p>栏目列表（parent=0 顶级，1 一级栏目，也支持栏目别名）：</p>
+    <pre>{cms:category parent="0" item="vo"}
+  &lt;a href="{$vo.url}"&gt;{$vo.name}&lt;/a&gt;（子栏目：{$vo.children|raw}）
+{/cms:category}</pre>
+    <p>当前栏目信息（列表页中可用）：</p>
+    <pre>{cms:category id="5" item="vo"} {$vo.name} / {$vo.ename} / {$vo.description} {/cms:category}</pre>
+    <p>栏目自定义字段（栏目编辑中添加的字段）：</p>
+    <pre>{cms:catfield name="tel" /}</pre>
+
+    <h4>二、内容列表</h4>
+    <p>指定栏目内容（catid 支持逗号分隔多栏目，0 为全站）：</p>
+    <pre>{cms:list catid="5" num="10" item="vo"}
+  &lt;a href="{$vo.url}"&gt;{$vo.title}&lt;/a&gt;　{$vo.create_time|date='Y-m-d'}
+{/cms:list}</pre>
+    <p>排序方式：order="list"(默认/置顶优先) / "views"(浏览量) / "update"(时间) / "rand"(随机)</p>
+    <p>按标记筛选（flag 可组合）：</p>
+    <pre>推荐：{cms:list catid="5" num="6" flag="recommend" item="vo"}...{/cms:list}
+头条：{cms:list catid="0" num="5" flag="top" item="vo"}...{/cms:list}
+热门：{cms:list catid="5" num="8" flag="hot" item="vo"}...{/cms:list}
+置顶+推荐：{cms:list catid="5" num="10" flag="top|recommend" item="vo"}...{/cms:list}</pre>
+    <p>指定模型内容：model_id="2"；自定义条件：where="views&gt;100"（谨慎使用）</p>
+    <p>内容字段速查：title 标题 / url 链接 / thumb 缩略图 / desc 描述 / content 正文 / create_time 发布时间 / views 浏览量 / is_top 置顶 / is_recommend 推荐 / is_hot 热门 / flag 标记</p>
+
+    <h4>三、列表页翻页（list_xxx.html 模板）</h4>
+    <p>每页条数由「栏目管理 → 每页」控制（默认 10 条，点按直接修改）；模板标签 <b>{cms:list num="N"}</b> 若写明 N，则以代码中的条数为准（不写 num 则按栏目每页条数）。翻页代码直接输出 $list 变量即可：</p>
+    <pre>{$list|raw}</pre>
+    <p>翻页同时配合内容列表：</p>
+    <pre>{cms:list catid="5" item="vo"}
+  &lt;a href="{$vo.url}"&gt;{$vo.title}&lt;/a&gt;　{$vo.create_time|date='Y-m-d'}
+{/cms:list}
+{$list|raw}</pre>
+    <p>说明：上例不写 num，列表条数自动取该栏目的「每页」设置；写 num="N" 则固定 N 条。</p>
+
+    <h4>四、内容详情页（show_xxx.html 模板）</h4>
+    <p>详情页直接使用 $content 对象输出：</p>
+    <pre>{$content.title}　{$content.create_time|date='Y-m-d H:i'}　浏览：{$content.views}
+{$content.content|raw}</pre>
+    <p>上一篇 / 下一篇：</p>
+    <pre>{cms:prevnext} 上一篇：{$prev.title} 下一篇：{$next.title} {/cms:prevnext}</pre>
+    <p>面包屑导航：</p>
+    <pre>{cms:crumbs} {$vo.name} {/cms:crumbs}</pre>
+
+    <h4>五、通用调用</h4>
+    <p>自定义块 / 广告 / 友情链接：</p>
+    <pre>{cms:block name="tel" /}
+{cms:ad name="index_banner" /}
+{cms:link num="10" item="vo"} {$vo.name} {/cms:link}</pre>
+    <p>站点配置（网站名称 / 地址 / LOGO / 备案号等）：</p>
+    <pre>{cms:setting name="site.name" /}
+{cms:setting name="site.url" /}
+{cms:setting name="site.logo" /}
+{cms:setting name="site.icp" /}</pre>
+    <p>完整字段与参数见《前台标签调用手册》（docs/前台标签调用手册.md）。</p>
+    {/literal}
+  </div>
+</details>
+{/if}
+<script>
+document.getElementById('cat-checkAll').addEventListener('change', function(){
+  var ck = this.checked;
+  document.querySelectorAll('.cat-check').forEach(function(c){ c.checked = ck; });
+});
+function catSelected(){ return Array.from(document.querySelectorAll('.cat-check:checked')).map(function(c){ return c.value; }); }
+function batchCopyLang(){
+  var ids = catSelected();
+  if(!ids.length) return yy.toast('请先选择栏目','err');
+  var langs = '{foreach :lang_codes() as $lc}{if $lc != lang_code()}<option value="{$lc}">{$lc}</option>{/if}{/foreach}';
+  var mask = document.createElement('div');
+  mask.className = 'modal-mask show';
+  mask.innerHTML =
+    '<div class="modal">' +
+    '<div class="m-head">跨语言复制栏目 <span data-a="close" style="float:right;cursor:pointer;opacity:.6">✕</span></div>' +
+    '<div class="m-body">' +
+      '<div class="lab">将选中的 ' + ids.length + ' 个栏目（含其全部子栏目与内容，保持层级）复制到目标语言：</div>' +
+      '<select id="cl-lang" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px"><option value="">选择目标语言</option>' + langs + '</select>' +
+      '<select id="cl-parent" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px"><option value="">选择目标父栏目</option></select>' +
+    '</div>' +
+    '<div class="m-foot"><button class="btn" data-a="cancel">取消</button><button class="btn primary" data-a="ok">复制</button></div></div>';
+  document.body.appendChild(mask);
+  mask.querySelector('#cl-lang').addEventListener('change', function(){
+    var lang = this.value, sel = mask.querySelector('#cl-parent');
+    if(!lang){ sel.innerHTML='<option value="">请先选择语言</option>'; return; }
+    fetch('/admin/category/langCats?lang=' + lang).then(function(r){ return r.json(); }).then(function(res){
+      var opts = '<option value="">顶级（放在根目录下）</option>';
+      (function walk(cats, d){
+        (cats || []).forEach(function(c){
+          var pad=''; for(var i=0;i<d;i++) pad+='　';
+          opts += '<option value="'+c.id+'">'+pad+'└ '+c.name+'</option>';
+          if(c.children && c.children.length) walk(c.children, d+1);
+        });
+      })(res.data || [], 0);
+      sel.innerHTML = opts;
+    }).catch(function(){ sel.innerHTML='<option value="">栏目加载失败</option>'; });
+  });
+  mask.addEventListener('click', function (e) {
+    var a = e.target.getAttribute('data-a');
+    if (a === 'close' || a === 'cancel' || e.target === mask) { mask.remove(); return; }
+    if (a === 'ok') {
+      var lang = document.getElementById('cl-lang').value;
+      var parent = document.getElementById('cl-parent').value;
+      if (!lang) { yy.toast('请选择目标语言','err'); return; }
+      mask.remove();
+      yy.post('/admin/category/batchCopyLang', {ids: ids.join(','), target_lang: lang, target_parent: parent || 0}, {callback: function(){ location.reload(); }});
+    }
+  });
+}function catRestore(id){
+  yy.confirm('确定恢复该栏目吗？（其下内容如需恢复请到内容管理回收站）', function(){ yy.post('/admin/category/restore', {ids: id}, {callback: function(){ location.reload(); }}); });
+}
+function catPurge(id, name){
+  yy.confirm('彻底删除栏目「' + name + '」？其全部子栏目与内容将一并彻底删除，不可恢复！', function(){ yy.post('/admin/category/purge', {ids: id}, {callback: function(){ location.reload(); }}); });
+}
+function catDelete(id, name){
+  var mask = document.createElement('div');
+  mask.className = 'modal-mask show';
+  mask.innerHTML =
+    '<div class="modal">' +
+    '<div class="m-head">删除栏目「' + name + '」 <span data-a="close" style="float:right;cursor:pointer;opacity:.6">✕</span></div>' +
+    '<div class="m-body">' +
+      '<div class="lab">默认移入回收站（可恢复）。若该栏目下有子栏目或内容，需勾选下面选项一并删除：</div>' +
+      '<label style="display:block;margin:6px 0"><input type="checkbox" id="cd-force" value="1"> 连同子栏目与内容一起删除（移入回收站，可恢复）</label>' +
+      '<div class="help" style="color:#8892a6">勾选后将把该栏目、全部子栏目及其内容移入回收站；彻底删除请在回收站中操作。</div>' +
+    '</div>' +
+    '<div class="m-foot"><button class="btn" data-a="cancel">取消</button><button class="btn danger" data-a="ok">删除</button></div></div>';
+  document.body.appendChild(mask);
+  mask.addEventListener('click', function (e) {
+    var a = e.target.getAttribute('data-a');
+    if (a === 'close' || a === 'cancel' || e.target === mask) { mask.remove(); return; }
+    if (a === 'ok') {
+      var force = document.getElementById('cd-force').checked ? 1 : 0;
+      mask.remove();
+      yy.post('/admin/category/delete/id/' + id, {force: force}, {callback: function(){ location.reload(); }});
+    }
+  });
+}
+
+</script>
+{/block}
+{block name="script"}
+<script src="/static/admin/js/pinyin-pro.min.js"></script>
+<script src="/static/admin/js/category_index.js?v=5"></script>
+{/block}

@@ -1,0 +1,117 @@
+{extend name="layout" /}
+{block name="title"}{if $info}编辑留言板{else}添加留言板{/if} - 易云CMS{/block}
+{block name="crumb"}内容管理 · 留言板 · {if $info}编辑{else}添加{/if}{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">{if $info}编辑留言板「{$info.title}」{else}添加留言板{/if}</div>
+  <form id="b-form">
+    <div class="form-item">
+      <div class="lab">留言板标识 *</div>
+      <div class="ctl"><input type="text" name="name" value="{$info.name|default=''}" placeholder="如 recruit，字母开头" required></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">留言板名称 *</div>
+      <div class="ctl"><input type="text" name="title" value="{$info.title|default=''}" placeholder="如 招聘留言" required></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">描述</div>
+      <div class="ctl"><input type="text" name="description" value="{$info.description|default=''}"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">状态</div>
+      <div class="ctl">
+        <label><input type="radio" name="status" value="1" {if !isset($info.status) || $info.status == 1}checked{/if}> 启用</label>
+        &nbsp;&nbsp;
+        <label><input type="radio" name="status" value="0" {if isset($info.status) && $info.status == 0}checked{/if}> 停用</label>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">验证码</div>
+      <div class="ctl">
+        <label><input type="radio" name="captcha" value="1" {if isset($info.captcha) && $info.captcha == 1}checked{/if}> 开启</label>
+        &nbsp;&nbsp;
+        <label><input type="radio" name="captcha" value="0" {if !isset($info.captcha) || $info.captcha == 0}checked{/if}> 关闭</label>
+        <span class="text-sub">开启后前台留言需输入图形验证码</span>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">前台是否公开选择</div>
+      <div class="ctl">
+        <label><input type="radio" name="show_public" value="1" {if isset($info.show_public) && $info.show_public == 1}checked{/if}> 显示（前台表单出现"是否公开"选项，由访客选择）</label>
+        &nbsp;&nbsp;
+        <label><input type="radio" name="show_public" value="0" {if !isset($info.show_public) || $info.show_public == 0}checked{/if}> 不显示（按下方默认公开设置）</label>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">默认公开</div>
+      <div class="ctl">
+        <label><input type="radio" name="default_public" value="1" {if !isset($info.default_public) || $info.default_public == 1}checked{/if}> 默认公开（审核通过后前台"最新留言"展示）</label>
+        &nbsp;&nbsp;
+        <label><input type="radio" name="default_public" value="0" {if isset($info.default_public) && $info.default_public == 0}checked{/if}> 默认不公开（仅凭查询码查询）</label>
+        <span class="text-sub">仅在"前台是否公开选择 = 不显示"时生效</span>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">排序</div>
+      <div class="ctl"><input type="number" name="sort" value="{$info.sort|default=100}"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl">
+        <button type="submit" class="btn primary">保存</button>
+        <a class="btn" href="/admin/board/index">返回</a>
+      </div>
+    </div>
+    {if $info}
+    <div class="form-item">
+      <div class="lab">前台调用代码</div>
+      <div class="ctl">
+        <button type="button" class="btn" onclick="viewBoardCode({$info.id})">查看留言板代码</button>
+        <span class="text-sub">点击生成可直接放入前台模板使用的表单代码，复制即可</span>
+      </div>
+    </div>
+    {/if}
+  </form>
+</div>
+<script>
+document.getElementById('b-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  yy.post('{if $info}/admin/board/edit/id/{$info.id}{else}/admin/board/edit{/if}', new FormData(this), {});
+});
+
+function viewBoardCode(id){
+  fetch('/admin/board/code/id/'+id).then(function(r){return r.json();}).then(function(res){
+    if(res.code!==1){ alert(res.msg); return; }
+    showCode(res.data);
+  }).catch(function(){ alert('获取代码失败'); });
+}
+function showCode(code){
+  var mask = document.createElement('div');
+  mask.className = 'modal-mask show';
+  mask.style.alignItems = 'flex-start';
+  mask.style.paddingTop = '40px';
+  var esc = String(code).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  mask.innerHTML =
+    '<div class="modal" style="max-width:900px;width:92%">' +
+    '<div class="m-head">留言板前台调用代码 <span style="color:#999;font-weight:normal">（复制到前台模板即可使用）</span></div>' +
+    '<div class="m-body"><textarea id="board-code" readonly style="width:100%;height:340px;font-family:ui-monospace,Consolas,monospace;font-size:12px;border:1px solid #e2e8f0;border-radius:8px;padding:10px;box-sizing:border-box">' + esc + '</textarea></div>' +
+    '<div class="m-foot">' +
+    '<button class="btn" data-a="cancel">关闭</button>' +
+    '<button class="btn primary" data-a="copy">复制代码</button>' +
+    '</div></div>';
+  mask.addEventListener('click', function(e){
+    var a = e.target.getAttribute('data-a');
+    if(a==='cancel' || e.target===mask){ mask.remove(); }
+    if(a==='copy'){
+      var ta = document.getElementById('board-code');
+      ta.removeAttribute('readonly');
+      ta.select();
+      try { document.execCommand('copy'); alert('已复制，粘贴到前台模板即可使用'); }
+      catch(err){ alert('复制失败，请手动复制'); }
+      ta.setAttribute('readonly','readonly');
+    }
+  });
+  document.body.appendChild(mask);
+}
+</script>
+{/block}

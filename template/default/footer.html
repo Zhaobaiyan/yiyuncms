@@ -1,0 +1,36 @@
+<footer class="footer">
+  <div class="container">
+    <div class="grid">
+      <div>
+        <h4>关于我们</h4>
+        <p>{cms:block name="footer_about"}</p>
+      </div>
+      <div>
+        <h4>友情链接</h4>
+        <div class="links">
+          {cms:link num="8" item="lk"}
+            <a href="{$lk.url}" target="_blank" rel="nofollow">{$lk.name}</a>
+          {/cms:link}
+        </div>
+      </div>
+      <div>
+        <h4>联系方式</h4>
+        <div>{cms:block name="footer_contact"}</div>
+      </div>
+    </div>
+    <div class="copy">
+      {cms:setting name="site.copyright"}
+      <?php if (get_setting('site.icp')): ?>
+      　<a href="https://beian.miit.gov.cn" target="_blank" rel="nofollow"><?php echo get_setting('site.icp'); ?></a>
+      <?php endif; ?>
+    </div>
+  </div>
+</footer>
+<script>
+function showMsg(data){
+  var box = document.getElementById('msg-tip');
+  if(box){ box.textContent = data.msg; box.style.color = data.code===1 ? '#18b566' : '#f5533d'; }
+}
+</script>
+</body>
+</html>

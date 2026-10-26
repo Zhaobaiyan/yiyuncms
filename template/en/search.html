@@ -1,0 +1,64 @@
+{include file="header" /}
+
+<div class="container">
+  <div class="crumbs"><a href="{:url_home()}">Home</a> &nbsp;&gt;&nbsp; Search</div>
+
+  <div class="layout-2col">
+    <div>
+      <h2 style="font-size:24px;color:#1e293b;margin:22px 0 6px">
+        Results for "{$kw}"{if $catid > 0} (in category){/if}: {$total} found
+      </h2>
+
+      <div class="search-tabs">
+        <a href="{:site_url('search','index',['kw'=>$kw,'catid'=>$catid,'field'=>'all'])}" class="{if !isset($field) || $field=='all'}on{/if}">Title + Content</a>
+        <a href="{:site_url('search','index',['kw'=>$kw,'catid'=>$catid,'field'=>'title'])}" class="{if isset($field) && $field=='title'}on{/if}">Title only</a>
+        <a href="{:site_url('search','index',['kw'=>$kw,'catid'=>$catid,'field'=>'content'])}" class="{if isset($field) && $field=='content'}on{/if}">Content only</a>
+      </div>
+
+      <div class="article-list">
+        {if $list && count($list)}
+        {foreach $list as $vo}
+        <div class="article-item">
+          {if $vo.thumb}<img class="thumb" src="{$vo.thumb}" alt="{$vo.title}">{/if}
+          <div class="info">
+            <h3><a href="{:url_content($vo)}">{$vo.title}</a></h3>
+            <div class="desc">{$vo.description}</div>
+            <div class="meta">{$vo.create_time|date='Y-m-d H:i'}　Views: {$vo.views}</div>
+          </div>
+        </div>
+        {/foreach}
+        {else}
+        <div style="text-align:center;color:#94a3b8;padding:40px 0">{if $kw}No results found{else}Enter keywords to search{/if}</div>
+        {/if}
+      </div>
+      <div class="pagination">{$list|raw}</div>
+    </div>
+
+    <aside class="side">
+      <div class="card">
+        <h4>Search by Category</h4>
+        <form action="{:site_url('search','index')}" method="get" class="search-form-v">
+          <input type="hidden" name="field" value="{if isset($field)}{$field}{else}all{/if}">
+          <select name="catid" style="width:100%;margin-bottom:8px">
+            <option value="0">All</option>
+            {foreach $cats as $cat}
+              <option value="{$cat.id}" {if $catid == $cat.id}selected{/if}>{$cat.name}</option>
+            {/foreach}
+          </select>
+          <input type="text" name="kw" value="{if isset($kw)}{$kw}{/if}" placeholder="Keyword" style="width:100%;box-sizing:border-box">
+          <button type="submit" class="btn-ghost" style="width:100%;margin-top:8px">Search</button>
+        </form>
+      </div>
+      <div class="card">
+        <h4>Hot Articles</h4>
+        <ul>
+          {cms:hot num="8" item="h"}
+            <li><a href="{:url_content($h)}">{$h.title}</a></li>
+          {/cms:hot}
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>
+
+{include file="footer" /}

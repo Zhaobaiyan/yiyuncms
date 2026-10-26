@@ -1,0 +1,31 @@
+{extend name="layout" /}
+{block name="title"}管理员 - 易云CMS{/block}
+{block name="crumb"}扩展功能 · 管理员{/block}
+{block name="content"}
+<div class="toolbar">
+  <a class="btn primary" href="/admin/admin/edit">+ 添加管理员</a>
+  <a class="btn" href="/admin/admin_role/index">角色管理</a>
+  <span class="text-sub">先到「角色管理」配置角色权限，再为管理员指定角色</span>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr><th style="width:60px">ID</th><th>账号</th><th>昵称</th><th>角色</th><th>登录次数</th><th style="width:90px">状态</th><th style="width:140px">操作</th></tr>
+    {foreach $list as $row}
+    <tr>
+      <td>{$row.id}</td>
+      <td>{$row.username}</td>
+      <td>{$row.nickname}</td>
+      <td>{if $row.role=='super'}<span class="tag info">超级管理员</span>{else}<span class="tag">{$row.role_name}</span>{/if}</td>
+      <td>{$row.login_count}</td>
+      <td>{if $row.status==1}<span class="tag ok">启用</span>{else}<span class="tag gray">禁用</span>{/if}</td>
+      <td>
+        <a class="btn sm" href="/admin/admin/edit/id/{$row.id}">编辑</a>
+        {if $row.id != 1}
+        <button class="btn sm danger" onclick="yy.confirm('删除该管理员？', function(){ yy.post('/admin/admin/delete/id/{$row.id}', {}, {literal}{url:'/admin/admin/index'}{/literal}); })">删除</button>
+        {/if}
+      </td>
+    </tr>
+    {/foreach}
+  </table>
+</div>
+{/block}

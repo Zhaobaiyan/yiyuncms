@@ -1,0 +1,416 @@
+{extend name="layout" /}
+{block name="title"}菜单管理 - 易云CMS{/block}
+{block name="crumb"}系统设置 · 菜单管理{/block}
+{block name="content"}
+<div class="card" style="padding-top:6px">
+  <div style="background:#f0f7ff;border:1px solid #cfe3ff;border-radius:8px;padding:8px 12px;font-size:12px;color:#1a5fb4;margin:10px 0 6px">
+    <b>拖动排序</b>：按住一级菜单或子菜单行直接拖到目标位置，出现蓝色插入线后松手自动保存。<br>
+    <b>改变层级</b>：把子菜单拖到某个一级菜单的标题行上，即成为该一级菜单的子项；一级菜单拖到一级菜单标题行上/下为组间排序。<br>
+    <b>行内改名</b>：点击菜单名称直接修改，回车或点击其他位置保存。开关打开 = 侧边栏显示；关闭 = 隐藏（不影响权限）。<br>
+    <b>新增/删除</b>：点顶部「新增一级菜单」或每组标题右侧的 ＋ 添加菜单；点行右侧 ✕ 删除（删除一级菜单会连带删除其下全部子菜单）。
+  </div>
+  <div class="menu-toolbar">
+    <button type="button" class="btn sm primary" onclick="openAddMenu(0)">＋ 新增一级菜单</button>
+    <span class="menu-tip">新增的一级菜单默认显示在侧边栏末尾；新增子菜单时路由地址请填写后台控制器/方法路径（如 content/index）。</span>
+  </div>
+  {foreach $groups as $gkey => $g}
+  {php}$gkeyMark = 'group:' . $gkey;{/php}
+  <div class="menu-group" data-id="{$g.id}" data-pid="{$g.pid}" data-key="{$gkey}" data-icon="{$g.icon}" data-url="{$g.url}">
+    <div class="g-title" draggable="true" title="按住拖动可排序一级菜单">
+      <span class="gt-name cell-name" title="点击改名">{$g.name}</span>
+      <span class="g-sort">
+        <input type="number" class="sort-input" data-id="{$g.id}" value="{$g.sort}" min="0" title="排序（数字越小越靠前），回车或失焦保存">
+        <span class="g-sort-tip">排序</span>
+      </span>
+      <span class="g-switch">
+        <label class="switch" title="开关整个一级菜单（含全部子项）">
+          <input type="checkbox" data-url="{if $g.child}{$gkeyMark}{else}{$g.url}{/if}" {if $g.child}{if !in_array($gkeyMark, $hidden, true)}checked{/if}{else}{if !in_array($g.url, $hidden, true)}checked{/if}{/if} onchange="toggleMenu(this)">
+          <span class="slider"></span>
+        </label>
+        <span class="g-st">一级</span>
+      </span>
+      <span class="g-op">
+        <button type="button" class="op-btn add" onclick="openAddMenu({$g.id})" title="在此一级菜单下新增子菜单">＋</button>
+        <button type="button" class="op-btn del" onclick="delMenu({$g.id}, 0)" title="删除该一级菜单（含全部子菜单）">✕</button>
+      </span>
+    </div>
+    {if $g.child}
+      {foreach $g.child as $item}
+      <div class="m-row" data-id="{$item.id}" data-pid="{$item.pid}" data-url="{$item.url}" draggable="true" title="按住拖动可排序；拖到一级菜单标题行可改变所属层级">
+        <span class="m-name cell-name" title="点击改名">{$item.name}</span>
+        <span class="m-url mono">/{$item.url}</span>
+        <span class="m-sort">
+          <input type="number" class="sort-input" data-id="{$item.id}" value="{$item.sort}" min="0" title="子菜单排序（数字越小越靠前），回车或失焦保存">
+        </span>
+        <span class="m-st">
+          <label class="switch" title="点击切换显示/隐藏">
+            <input type="checkbox" data-url="{$item.url}" {if !in_array($item.url, $hidden, true)}checked{/if} onchange="toggleMenu(this)">
+            <span class="slider"></span>
+          </label>
+        </span>
+        <span class="m-op">
+          <button type="button" class="op-btn del" onclick="delMenu({$item.id}, 1)" title="删除该子菜单">✕</button>
+        </span>
+      </div>
+      {/foreach}
+    {/if}
+  </div>
+  {/foreach}
+</div>
+<style>
+  .menu-group{cursor:default;}
+  .cell-name{cursor:pointer;}
+  .cell-name:hover{color:#1e9fff;}
+  .title-edit{width:150px;height:24px;border:1px solid #1e9fff;border-radius:3px;padding:0 6px;box-sizing:border-box;font-size:13px;vertical-align:middle;}
+  .g-title.dragging,.m-row.dragging{opacity:.45;background:#f0f6ff;}
+  .g-title.drag-over-above,.m-row.drag-over-above{box-shadow:inset 0 2px 0 #1e9fff;}
+  .g-title.drag-over-below,.m-row.drag-over-below{box-shadow:inset 0 -2px 0 #1e9fff;}
+  .m-row{cursor:move;}
+  .g-title{cursor:move;}
+  .g-title .cell-name,.m-row .cell-name{cursor:pointer;}
+  .menu-toolbar{display:flex;align-items:center;gap:12px;padding:10px 2px 2px;}
+  .menu-tip{font-size:12px;color:#8a94a6;}
+  .g-op,.m-op{display:flex;align-items:center;gap:4px;margin-left:8px;flex-shrink:0;}
+  .op-btn{width:22px;height:22px;line-height:1;padding:0;border:1px solid #dfe4ea;background:#fff;border-radius:4px;color:#8a94a6;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;}
+  .op-btn:hover{border-color:#1e9fff;color:#1e9fff;background:#f0f7ff;}
+  .op-btn.del:hover{border-color:#e64545;color:#e64545;background:#fff3f3;}
+  .m-row .m-op{margin-left:2px;}
+  .g-title .g-op{margin-left:4px;}
+  /* 新增菜单弹窗 */
+  .menu-modal{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(15,23,42,.45);z-index:9999;display:none;align-items:center;justify-content:center;}
+  .menu-modal.show{display:flex;}
+  .menu-modal .modal{width:420px;max-width:92vw;background:#fff;border-radius:10px;box-shadow:0 12px 40px rgba(15,23,42,.25);overflow:hidden;}
+  .menu-modal .m-head{padding:14px 18px;font-size:15px;font-weight:600;border-bottom:1px solid #eef1f5;}
+  .menu-modal .m-body{padding:16px 18px;}
+  .menu-modal .f-row{margin-bottom:12px;}
+  .menu-modal .f-row:last-child{margin-bottom:0;}
+  .menu-modal .f-label{display:block;font-size:12px;color:#5c6b80;margin-bottom:5px;}
+  .menu-modal .f-label b{color:#e64545;font-weight:400;}
+  .menu-modal input{width:100%;height:32px;border:1px solid #dfe4ea;border-radius:5px;padding:0 10px;box-sizing:border-box;font-size:13px;}
+  .menu-modal input:focus{border-color:#1e9fff;outline:none;}
+  .menu-modal .m-foot{padding:12px 18px;border-top:1px solid #eef1f5;display:flex;justify-content:flex-end;gap:10px;}
+  .menu-modal .btn{height:30px;padding:0 18px;border-radius:5px;font-size:13px;cursor:pointer;border:1px solid #dfe4ea;background:#fff;color:#333;}
+  .menu-modal .btn.primary{background:#1e9fff;border-color:#1e9fff;color:#fff;}
+  .menu-modal .btn.primary:hover{background:#0f8aee;}
+  .menu-modal .btn.danger{background:#e64545;border-color:#e64545;color:#fff;}
+</style>
+<script>
+{literal}
+function toggleMenu(chk){
+  var url = chk.getAttribute('data-url');
+  if(!url) return;
+  chk.disabled = true;
+  yy.post('/admin/menu/toggle', {url:url}, {callback: function(d){
+    chk.disabled = false;
+    if(d.code===1){
+      chk.checked = !chk.checked;
+      // 一级组开关：整组隐藏/显示时同步子项勾选状态
+      if(url.indexOf('group:') === 0){
+        var gkey = url.replace('group:','');
+        var box = chk.closest('.menu-group');
+        var on = chk.checked;
+        box.querySelectorAll('.m-row input[type=checkbox]').forEach(function(c){ c.checked = on; });
+        yy.toast(d.msg || '操作成功');
+        setTimeout(function(){ top.location.reload(); }, 600);
+      } else {
+        yy.toast(d.msg || '操作成功');
+      }
+    } else {
+      yy.toast(d.msg || '操作失败', 'err');
+    }
+  }});
+}
+
+/* ---------- 整树保存（拖动/改名/数字排序后调用） ---------- */
+var saving = false;
+function collectAndSave(){
+  if(saving) return;
+  saving = true;
+  var rows = [];
+  document.querySelectorAll('.menu-group').forEach(function(g){
+    var gName = g.querySelector('.gt-name');
+    rows.push({
+      id: parseInt(g.getAttribute('data-id'),10)||0,
+      pid: 0,
+      key: g.getAttribute('data-key')||'',
+      icon: g.getAttribute('data-icon')||'',
+      url: g.getAttribute('data-url')||'',
+      name: gName ? gName.textContent.trim() : '',
+      sort: 0
+    });
+    var ii = 0;
+    g.querySelectorAll('.m-row').forEach(function(r){
+      var iName = r.querySelector('.m-name');
+      rows.push({
+        id: parseInt(r.getAttribute('data-id'),10)||0,
+        pid: parseInt(g.getAttribute('data-id'),10)||0,
+        name: iName ? iName.textContent.trim() : '',
+        url: r.getAttribute('data-url')||'',
+        sort: ++ii
+      });
+    });
+  });
+  // 组间按 DOM 顺序排序值：组 sort 需要全局递增还是组内？组 sort 为组间顺序（全局 1..N）
+  var gs = 0;
+  rows.forEach(function(r){ if(r.pid===0) r.sort = ++gs; });
+  yy.post('/admin/menu/savetree', {tree: JSON.stringify(rows)}, {callback: function(d){
+    saving = false;
+    if(d.code===1){
+      yy.toast(d.msg || '保存成功');
+      setTimeout(function(){ location.reload(); }, 700);
+    } else {
+      yy.toast(d.msg || '保存失败', 'err');
+      location.reload();
+    }
+  }});
+}
+
+/* ---------- 新增 / 删除菜单 ---------- */
+function openAddMenu(pid){
+  var isGroup = (pid === 0);
+  var mask = document.getElementById('menu-add-modal');
+  if(!mask){
+    mask = document.createElement('div');
+    mask.id = 'menu-add-modal';
+    mask.className = 'menu-modal';
+    mask.innerHTML =
+      '<div class="modal">' +
+      '<div class="m-head" id="mad-title">新增菜单</div>' +
+      '<div class="m-body">' +
+        '<div class="f-row" id="mad-pidrow"><label class="f-label">所属一级菜单</label>' +
+          '<select id="mad-pid" style="width:100%;height:32px;border:1px solid #dfe4ea;border-radius:5px;padding:0 8px;font-size:13px"></select></div>' +
+        '<div class="f-row"><label class="f-label">菜单名称 <b>*</b></label><input id="mad-name" type="text" placeholder="如：单页栏目"></div>' +
+        '<div class="f-row" id="mad-keyrow"><label class="f-label">内部标识（英文 key，仅一级菜单需要，如 news）</label><input id="mad-key" type="text" placeholder="不填则自动生成"></div>' +
+        '<div class="f-row" id="mad-iconrow"><label class="f-label">图标（仅一级菜单需要，可选）</label><input id="mad-icon" type="text" placeholder="如：&#9679;"></div>' +
+        '<div class="f-row"><label class="f-label">路由地址 <b id="mad-urlstar" style="display:none">*</b>（如 content/index；一级菜单可不填）</label><input id="mad-url" type="text" placeholder="控制器/方法路径"></div>' +
+      '</div>' +
+      '<div class="m-foot">' +
+        '<button type="button" class="btn" onclick="closeAddMenu()">取消</button>' +
+        '<button type="button" class="btn primary" onclick="submitAddMenu()">保存</button>' +
+      '</div></div>';
+    mask.addEventListener('click', function(e){ if(e.target === mask) closeAddMenu(); });
+    document.body.appendChild(mask);
+  }
+  // 填充父级下拉（新增子菜单时选）
+  var sel = document.getElementById('mad-pid');
+  sel.innerHTML = '';
+  var groups = document.querySelectorAll('.menu-group');
+  var gi = 0;
+  groups.forEach(function(g){
+    var gName = g.querySelector('.gt-name');
+    var opt = document.createElement('option');
+    opt.value = g.getAttribute('data-id');
+    opt.textContent = gName ? gName.textContent.trim() : ('组' + (++gi));
+    sel.appendChild(opt);
+  });
+  document.getElementById('mad-pidrow').style.display = isGroup ? 'none' : '';
+  document.getElementById('mad-keyrow').style.display = isGroup ? '' : 'none';
+  document.getElementById('mad-iconrow').style.display = isGroup ? '' : 'none';
+  document.getElementById('mad-urlstar').style.display = isGroup ? 'none' : '';
+  document.getElementById('mad-title').textContent = isGroup ? '新增一级菜单' : '新增子菜单';
+  if(!isGroup) sel.value = String(pid);
+  document.getElementById('mad-name').value = '';
+  document.getElementById('mad-key').value = '';
+  document.getElementById('mad-icon').value = '';
+  document.getElementById('mad-url').value = '';
+  mask.classList.add('show');
+  setTimeout(function(){ document.getElementById('mad-name').focus(); }, 60);
+}
+function closeAddMenu(){
+  var mask = document.getElementById('menu-add-modal');
+  if(mask) mask.classList.remove('show');
+}
+function submitAddMenu(){
+  var isGroup = (document.getElementById('mad-pidrow').style.display === 'none');
+  var pid  = isGroup ? 0 : parseInt(document.getElementById('mad-pid').value, 10) || 0;
+  var name = document.getElementById('mad-name').value.trim();
+  var key  = document.getElementById('mad-key').value.trim();
+  var icon = document.getElementById('mad-icon').value.trim();
+  var url  = document.getElementById('mad-url').value.trim();
+  if(name === ''){ yy.toast('请填写菜单名称', 'err'); return; }
+  if(!isGroup && url === ''){ yy.toast('子菜单请填写路由地址', 'err'); return; }
+  yy.post('/admin/menu/add', {pid: pid, name: name, key: key, icon: icon, url: url}, {callback: function(d){
+    if(d.code === 1){
+      yy.toast(d.msg || '已添加');
+      closeAddMenu();
+      setTimeout(function(){ location.reload(); }, 700);
+    } else {
+      yy.toast(d.msg || '添加失败', 'err');
+    }
+  }});
+}
+function delMenu(id, isItem){
+  if(!id) return;
+  var tip = isItem ? '确认删除该子菜单？' : '确认删除该一级菜单？其下全部子菜单将一并删除！';
+  yy.confirm(tip, function(){
+    yy.post('/admin/menu/del', {id: id}, {callback: function(d){
+      if(d.code === 1){
+        yy.toast(d.msg || '已删除');
+        setTimeout(function(){ location.reload(); }, 700);
+      } else {
+        yy.toast(d.msg || '删除失败', 'err');
+      }
+    }});
+  });
+}
+
+/* ---------- 行内改名 ---------- */
+function bindRename(){
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    if(!t.classList || !t.classList.contains('cell-name')) return;
+    if(t.classList.contains('editing')) return;
+    var old = t.textContent.trim();
+    t.classList.add('editing');
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = 'title-edit';
+    inp.value = old;
+    t.replaceWith(inp);
+    inp.focus();
+    inp.setSelectionRange(inp.value.length, inp.value.length);
+    var done = function(save){
+      var val = inp.value.trim();
+      var span = document.createElement('span');
+      span.className = 'cell-name' + (t.classList.contains('gt-name') ? ' gt-name' : ' m-name');
+      span.title = '点击改名';
+      span.textContent = val || old;
+      inp.replaceWith(span);
+      if(save && val !== '' && val !== old) collectAndSave();
+    };
+    inp.addEventListener('blur', function(){ done(true); });
+    inp.addEventListener('keydown', function(e){
+      if(e.keyCode === 13) done(true);
+      if(e.keyCode === 27) done(false);
+    });
+  });
+}
+
+/* ---------- 拖动排序 / 改变层级 ---------- */
+var dragEl = null;
+function isGroupRow(el){ return el && el.classList && el.classList.contains('g-title'); }
+function isItemRow(el){ return el && el.classList && el.classList.contains('m-row'); }
+
+function bindDrag(){
+  // dragstart 委托：组头 g-title 与子项 m-row
+  document.addEventListener('dragstart', function(e){
+    var t = e.target;
+    // 输入框/开关等控件不触发行拖拽
+    if(t.tagName === 'INPUT' || t.tagName === 'LABEL' || t.tagName === 'BUTTON' || t.tagName === 'A' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA') return;
+    var g = t.closest ? (t.closest('.g-title') || t.closest('.m-row')) : null;
+    if(!g){ e.preventDefault(); return; }
+    dragEl = g;
+    g.classList.add('dragging');
+    try { e.dataTransfer.setData('text/plain', 'menu'); e.dataTransfer.effectAllowed = 'move'; } catch(err){}
+  });
+  document.addEventListener('dragend', function(){
+    if(dragEl){ dragEl.classList.remove('dragging'); dragEl = null; }
+    document.querySelectorAll('.drag-over-above,.drag-over-below').forEach(function(x){ x.classList.remove('drag-over-above','drag-over-below'); });
+  });
+  // dragover：组头/子项行可接收
+  document.addEventListener('dragover', function(e){
+    if(!dragEl) return;
+    var t = e.target;
+    var g = t.closest ? (t.closest('.g-title') || t.closest('.m-row')) : null;
+    if(!g || g === dragEl) return;
+    // 组行只能拖到组头（组间排序）；子项拖到组头（成为子级）或子项行（排序）
+    var dragIsGroup = isGroupRow(dragEl);
+    var targetIsGroup = isGroupRow(g);
+    var targetIsItem = isItemRow(g);
+    if(dragIsGroup && targetIsItem) return; // 组不能变成子级
+    e.preventDefault();
+    g.classList.remove('drag-over-above','drag-over-below');
+    var rect = g.getBoundingClientRect();
+    var half = rect.height / 2;
+    if(e.clientY - rect.top < half){
+      g.classList.add('drag-over-above');
+    } else {
+      g.classList.add('drag-over-below');
+    }
+  });
+  document.addEventListener('dragleave', function(e){
+    var t = e.target;
+    var g = t.closest ? (t.closest('.g-title') || t.closest('.m-row')) : null;
+    if(g) g.classList.remove('drag-over-above','drag-over-below');
+  });
+  // drop
+  document.addEventListener('drop', function(e){
+    if(!dragEl) return;
+    e.preventDefault();
+    var t = e.target;
+    var g = t.closest ? (t.closest('.g-title') || t.closest('.m-row')) : null;
+    if(!g || g === dragEl) return;
+    var above = g.classList.contains('drag-over-above');
+    g.classList.remove('drag-over-above','drag-over-below');
+    var dragIsGroup = isGroupRow(dragEl);
+    var targetIsGroup = isGroupRow(g);
+    var targetIsItem = isItemRow(g);
+    if(dragIsGroup && targetIsGroup){
+      // 组间排序
+      var gwrap = g.closest('.menu-group');
+      if(above){ gwrap.parentNode.insertBefore(dragEl.closest('.menu-group'), gwrap); }
+      else {
+        var next = gwrap.nextElementSibling;
+        gwrap.parentNode.insertBefore(dragEl.closest('.menu-group'), next || null);
+      }
+    } else if(!dragIsGroup && targetIsGroup){
+      // 子项 → 组头：成为该组子级（追加到该组子项列表末尾）
+      var wrap = g.closest('.menu-group');
+      var itemRow = dragEl.closest('.m-row');
+      itemRow.setAttribute('data-pid', wrap.getAttribute('data-id'));
+      wrap.appendChild(itemRow);
+    } else if(!dragIsGroup && targetIsItem){
+      // 子项 → 子项：同父排序
+      var itemRow2 = dragEl.closest('.m-row');
+      var targetPid = g.closest('.menu-group').getAttribute('data-id');
+      itemRow2.setAttribute('data-pid', targetPid);
+      if(above){
+        g.parentNode.insertBefore(itemRow2, g);
+      } else {
+        var nxt = g.nextElementSibling;
+        g.parentNode.insertBefore(itemRow2, nxt || null);
+      }
+    }
+    dragEl = null;
+    document.querySelectorAll('.drag-over-above,.drag-over-below,.dragging').forEach(function(x){ x.classList.remove('drag-over-above','drag-over-below','dragging'); });
+    collectAndSave();
+  });
+  // 阻止空白区域 drop 打开文件
+  document.addEventListener('dragover', function(e){
+    var t = e.target;
+    if(t && t.closest && !t.closest('.g-title') && !t.closest('.m-row')){ e.preventDefault(); }
+  });
+}
+
+/* ---------- 数字排序（单行直接改 DB sort，回车或失焦保存） ---------- */
+var sortBusy = false;
+function bindSort(){
+  document.addEventListener('change', function(e){
+    var inp = e.target;
+    if(!inp.classList || !inp.classList.contains('sort-input')) return;
+    if(sortBusy) return;
+    var val = parseInt(inp.value, 10);
+    if(isNaN(val) || val < 0) val = 0;
+    var id = parseInt(inp.getAttribute('data-id'), 10) || 0;
+    if(id <= 0) return;
+    sortBusy = true;
+    document.querySelectorAll('.sort-input').forEach(function(x){ x.disabled = true; });
+    yy.post('/admin/menu/sortone', {id: id, val: val}, {callback: function(d){
+      sortBusy = false;
+      document.querySelectorAll('.sort-input').forEach(function(x){ x.disabled = false; });
+      if(d.code === 1){
+        yy.toast(d.msg || '排序已保存');
+        setTimeout(function(){ location.reload(); }, 500);
+      } else {
+        yy.toast(d.msg || '保存失败', 'err');
+      }
+    }});
+  });
+}
+
+bindRename();
+bindDrag();
+bindSort();
+{/literal}
+</script>
+{/block}

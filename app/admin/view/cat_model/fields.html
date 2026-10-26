@@ -1,0 +1,36 @@
+{extend name="layout" /}
+{block name="title"}栏目模型字段 - 易云CMS{/block}
+{block name="crumb"}内容管理 · 栏目模型 · {$model.title} 字段{/block}
+{block name="content"}
+<div class="toolbar">
+  <a class="btn primary" href="/admin/cat_model/field_edit?model_id={$model.id}">+ 添加字段</a>
+  <a class="btn" href="/admin/cat_model/index">返回模型</a>
+</div>
+<div class="card">
+  <div class="card-title" style="font-weight:600;margin-bottom:8px">「{$model.title}」模板字段</div>
+  <div class="help" style="padding:0 0 10px">使用该栏目模型的栏目，编辑时会自动带出以下字段并填写各自的值；前台用 {literal}{cms:catfield name="字段标识"}{/literal} 调用。</div>
+  <table class="tbl">
+    <tr><th style="width:60px">ID</th><th>字段标识</th><th>字段名称</th><th>类型</th><th>选项</th><th>排序</th><th style="width:140px">操作</th></tr>
+    {foreach $fields as $f}
+    <tr>
+      <td>{$f.id}</td>
+      <td><code class="mono">{$f.name}</code></td>
+      <td>{$f.title}</td>
+      <td>{$types[$f.type]|default=$f.type}</td>
+      <td>{if !empty($f.options)}{$f.options}{else}-{/if}</td>
+      <td>{$f.sort}</td>
+      <td>
+        <a class="btn sm" href="/admin/cat_model/field_edit/id/{$f.id}">编辑</a>
+        <button class="btn sm danger" onclick="yy.confirm('删除字段「{$f.title}」？删除后使用该模型的栏目不再显示此字段', function(){ yy.post('/admin/cat_model/field_delete/id/{$f.id}', {}, {literal}{url:'/admin/cat_model/fields/model_id/{$model.id}'}{/literal}); })">删除</button>
+      </td>
+    </tr>
+    {/foreach}
+    {if !$fields->count()}
+    <tr><td colspan="7"><div class="empty">暂无模板字段，点击右上角「添加字段」；例如添加"副图片"（类型选 图片，标识 sub_image）</div></td></tr>
+    {/if}
+  </table>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="help" style="padding:10px 0">字段类型说明：单行文本 / 图片（自动带上传按钮，前台可输出 img 标签或仅地址）/ 多行文本 / 富文本 / 下拉选择 / 单选 / 多选。下拉/单选/多选需填写选项（英文逗号分隔，如 红,绿,蓝）。</div>
+</div>
+{/block}

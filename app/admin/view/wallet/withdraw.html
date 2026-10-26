@@ -1,0 +1,62 @@
+{extend name="layout" /}
+{block name="title"}提现审核 - 易云CMS{/block}
+{block name="crumb"}商城管理 · 提现审核{/block}
+{block name="content"}
+<div class="toolbar">
+  <form class="inline-form" method="get" action="/admin/wallet/withdraw">
+    <select name="status" class="ipt sm" onchange="this.form.submit()">
+      <option value="-1" {if $cur==-1}selected{/if}>全部</option>
+      <option value="0" {if $cur==0}selected{/if}>处理中</option>
+      <option value="1" {if $cur==1}selected{/if}>已打款</option>
+      <option value="2" {if $cur==2}selected{/if}>已拒绝</option>
+    </select>
+  </form>
+  <a class="btn sm" href="/admin/wallet/index">钱包列表</a>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr><th style="width:50px">ID</th><th>会员</th><th>金额(元)</th><th>渠道</th><th>收款账号</th><th>姓名</th><th>状态</th><th>申请时间</th><th style="width:170px">操作</th></tr>
+    {if $list}
+    {foreach $list as $row}
+    <tr>
+      <td>{$row.id}</td>
+      <td>{$row.nickname|default=''}{if $row.username}<br><span class="text-sub">{$row.username}</span>{/if}</td>
+      <td><b>¥{$row.amount}</b></td>
+      <td>{if $row.channel=='wechat'}微信{else}支付宝{/if}</td>
+      <td>{$row.account}</td>
+      <td>{$row.real_name}</td>
+      <td>
+        {if $row.status==0}<span class="tag warn">处理中</span>
+        {elseif $row.status==1}<span class="tag ok">已打款</span>
+        {else}<span class="tag gray">已拒绝</span>{/if}
+        {if $row.admin_note}<br><small class="text-sub">{$row.admin_note}</small>{/if}
+      </td>
+      <td>{$row.create_time|date='Y-m-d H:i'}</td>
+      <td>
+        {if $row.status==0}
+        <button class="btn sm primary" onclick="handle({$row.id},'pay')">打款</button>
+        <button class="btn sm danger" onclick="handle({$row.id},'reject')">拒绝</button>
+        {else}<span class="text-sub">已处理</span>{/if}
+      </td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="9"><div class="empty">暂无提现申请</div></td></tr>
+    {/if}
+  </table>
+  <div class="pager-bar"><div class="pagination">{$pages|raw}</div></div>
+</div>
+<script>
+function handle(id, action){
+  var note = '';
+  if (action === 'reject') {
+    note = prompt('拒绝理由（将退回冻结金额到余额）：', '');
+    if (note === null) return;
+  }
+  var msg = action === 'pay' ? '确认已向该会员打款？' : '确认拒绝该提现申请？';
+  yy.confirm(msg, function(){
+    yy.post('/admin/wallet/withdraw_handle', { id: id, action: action, admin_note: note || '' }, {literal}{url:'/admin/wallet/withdraw'}{/literal});
+  });
+}
+</script>
+{/block}

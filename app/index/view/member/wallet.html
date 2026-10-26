@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的钱包 - 会员中心</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei",Arial,sans-serif;background:#f2f4f7;color:#333}
+a{color:#1e6fff;text-decoration:none}
+.top{background:#1a2744;color:#fff;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.top b{font-size:16px}
+.top a{color:#aebbe0;font-size:13px;margin-left:16px}
+.wrap{max-width:860px;margin:24px auto 40px;padding:0 16px}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(20,40,80,.06);padding:20px;margin-bottom:14px}
+.card h3{font-size:15px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #eef1f5}
+.balance-bd{display:flex;flex-wrap:wrap;gap:24px}
+.balance-bd .item{flex:1;min-width:150px;text-align:center;background:#fafbfd;border-radius:10px;padding:18px 10px}
+.balance-bd .item b{display:block;font-size:24px;color:#1a2744;margin-top:6px}
+.balance-bd .item .lb{color:#5a6579;font-size:13px}
+.balance-bd .item .green{color:#16a34a}
+.balance-bd .item .blue{color:#1e6fff}
+.withdraw-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.withdraw-form{grid-template-columns:1fr}}
+.field label{display:block;font-size:13px;color:#5a6579;margin-bottom:6px}
+.field input,.field select{width:100%;height:40px;border:1px solid #dde1e8;border-radius:8px;padding:0 12px;font-size:14px;outline:none;background:#fff}
+.field input:focus,.field select:focus{border-color:#1e6fff}
+.field select{cursor:pointer}
+.btn{padding:9px 26px;border:0;border-radius:8px;background:#1e6fff;color:#fff;font-size:14px;cursor:pointer}
+.btn:hover{background:#0f56e0}
+.btn.gray{background:#98a1b3}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 8px;border-bottom:1px solid #eef1f5;text-align:left}
+th{color:#5a6579;font-weight:600;background:#fafbfd}
+.pos{color:#16a34a}.neg{color:#d03050}
+.st{padding:2px 10px;border-radius:10px;font-size:12px}
+.st0{background:#fff7e6;color:#d48806}.st1{background:#e8f7ee;color:#25a35a}.st2{background:#fdecec;color:#d03050}
+.err{display:none;background:#fdecec;color:#d03050;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+.ok{display:none;background:#e8f7ee;color:#25a35a;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="top"><b>我的钱包</b><span>
+  <a href="/member/center">会员中心</a>
+  <a href="/shop/order_list">我的订单</a>
+  <a href="/">返回首页</a></span>
+</div>
+<div class="wrap">
+  <div class="err" id="err"></div>
+  <div class="ok" id="ok"></div>
+  <div class="card">
+    <h3>账户余额</h3>
+    <div class="balance-bd">
+      <div class="item"><span class="lb">可用余额</span><b>¥{$wallet.balance}</b></div>
+      <div class="item"><span class="lb">提现冻结中</span><b class="blue">¥{$wallet.frozen}</b></div>
+      <div class="item"><span class="lb">累计收入</span><b class="green">¥{$wallet.total_income}</b></div>
+      <div class="item"><span class="lb">累计提现</span><b>¥{$wallet.total_withdraw}</b></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>申请提现（到微信 / 支付宝）</h3>
+    <div class="withdraw-form">
+      <div class="field"><label>提现金额（元，最低 1 元）</label><input type="number" id="amount" min="1" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label>提现渠道</label>
+        <select id="channel"><option value="wechat">微信</option><option value="alipay">支付宝</option></select>
+      </div>
+      <div class="field"><label>收款账号（微信号 / 支付宝账号）</label><input type="text" id="account" placeholder="请输入收款账号"></div>
+      <div class="field"><label>收款人姓名</label><input type="text" id="real_name" placeholder="与账号一致的姓名"></div>
+    </div>
+    <div style="margin-top:14px"><button class="btn" onclick="submitWd()">提交提现申请</button></div>
+  </div>
+  <div class="card">
+    <h3>提现记录</h3>
+    {if count($withdraws)>0}
+    <table>
+      <tr><th>申请时间</th><th>金额</th><th>渠道</th><th>账号</th><th>状态</th></tr>
+      {foreach $withdraws as $w}
+      <tr>
+        <td>{$w.create_time|date='Y-m-d H:i'}</td>
+        <td class="neg">-¥{$w.amount}</td>
+        <td>{if $w.channel=='wechat'}微信{else}支付宝{/if}</td>
+        <td>{$w.account}</td>
+        <td><span class="st st{$w.status}">{if $w.status==0}处理中{elseif $w.status==1}已打款{else}已拒绝{/if}</span>{if $w.admin_note}<br><small style="color:#98a1b3">{$w.admin_note}</small>{/if}</td>
+      </tr>
+      {/foreach}
+    </table>
+    {else}<div style="color:#98a1b3;padding:16px 0;text-align:center">暂无提现记录</div>{/if}
+  </div>
+  <div class="card">
+    <h3>钱包流水</h3>
+    {if count($logs)>0}
+    <table>
+      <tr><th>时间</th><th>类型</th><th>金额</th><th>变动后余额</th><th>备注</th></tr>
+      {foreach $logs as $l}
+      <tr>
+        <td>{$l.create_time|date='Y-m-d H:i'}</td>
+        <td>{$l._type}</td>
+        <td class="{if $l.amount>=0}pos{else}neg{/if}">{if $l.amount>=0}+{/if}¥{$l.amount}</td>
+        <td>¥{$l.balance_after}</td>
+        <td>{$l.note}</td>
+      </tr>
+      {/foreach}
+    </table>
+    {else}<div style="color:#98a1b3;padding:16px 0;text-align:center">暂无流水记录</div>{/if}
+  </div>
+</div>
+<script>
+function submitWd(){
+  var err=document.getElementById('err'),ok=document.getElementById('ok');
+  err.style.display=ok.style.display='none';
+  var fd=new URLSearchParams();
+  fd.set('amount',document.getElementById('amount').value);
+  fd.set('channel',document.getElementById('channel').value);
+  fd.set('account',document.getElementById('account').value);
+  fd.set('real_name',document.getElementById('real_name').value);
+  fetch('/member/withdraw_add',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:fd.toString()})
+   .then(function(r){return r.json()}).then(function(j){
+    if(j.code===1){location.href=j.url;} else {err.textContent=j.msg;err.style.display='block';}
+  }).catch(function(){err.textContent='网络错误';err.style.display='block';});
+}
+</script>
+</body>
+</html>

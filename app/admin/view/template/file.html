@@ -1,0 +1,23 @@
+{extend name="layout" /}
+{block name="title"}编辑文件 - 易云CMS{/block}
+{block name="crumb"}模板与样式 · 编辑 {$fileInfo.name}{/block}
+{block name="content"}
+<div class="card">
+  <div class="flex-between" style="margin-bottom:12px">
+    <div class="card-title" style="margin:0;padding:0;border:none">{$tpl} / {$fileInfo.name}</div>
+    <a class="btn" href="/admin/template/edit?tpl={$tpl}">返回文件列表</a>
+  </div>
+  <form id="f-form">
+    <textarea name="content" rows="24" class="mono" style="max-width:100%;width:100%">{:htmlspecialchars($fileInfo.content)}</textarea>
+    <div style="margin-top:12px">
+      <button type="submit" class="btn primary">保存文件</button>
+    </div>
+  </form>
+</div>
+<script>
+document.getElementById('f-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  yy.post('/admin/template/edit?tpl={$tpl}&file={$fileInfo.name}', new FormData(this), {});
+});
+</script>
+{/block}

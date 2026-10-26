@@ -1,0 +1,69 @@
+{include file="header" /}
+
+<div class="container">
+  <div class="crumbs">
+    <a href="/">首页</a>
+    {if $category}
+      {cms:crumbs catid="{$category.id}" item="c"}
+        &nbsp;&gt;&nbsp;<a href="{:url_cat($c)}">{$c.name}</a>
+      {/cms:crumbs}
+    {/if}
+  </div>
+
+  <div class="detail">
+    <h1>{$content.title}</h1>
+    <div class="meta">
+      {if $content.author}作者：{$content.author}　{/if}
+      {if $content.source}来源：{$content.source}　{/if}
+      时间：{$content.create_time|date='Y-m-d H:i'}　浏览：{$content.views}
+    </div>
+
+    <div class="content">
+      {$content.content|raw}
+    </div>
+
+    {if $content.thumb}
+    <img src="{$content.thumb}" alt="{$content.title}" style="max-width:100%;margin:20px 0;border-radius:10px">
+    {/if}
+
+    {cms:prevnext}
+    <div class="prevnext">
+      <span>上一篇：{if $prev}<a href="{:url_content($prev)}">{$prev.title}</a>{else}没有了{/if}</span>
+      <span>下一篇：{if $next}<a href="{:url_content($next)}">{$next.title}</a>{else}没有了{/if}</span>
+    </div>
+    {/cms:prevnext}
+  </div>
+
+  {if $is_single}
+  <div class="section" style="max-width:860px;margin:0 auto">
+    <div class="section-head"><h2>在线留言</h2><p>欢迎留言，我们会尽快与您联系</p></div>
+    <form id="msg-form" class="form-grid">
+      <input type="text" name="name" placeholder="您的称呼 *" required>
+      <input type="text" name="phone" placeholder="联系电话">
+      <input type="email" name="email" placeholder="电子邮箱">
+      <input type="text" name="title" placeholder="留言主题">
+      <textarea class="full" name="content" placeholder="留言内容 *" required></textarea>
+      <button class="full" type="submit">提交留言</button>
+      <div class="full msg-tip" id="msg-tip"></div>
+    </form>
+  </div>
+  {/if}
+</div>
+
+<script>
+(function(){
+  var f = document.getElementById('msg-form');
+  if(!f) return;
+  f.addEventListener('submit', function(e){
+    e.preventDefault();
+    fetch('/index/message/submit', {method:'POST', body:new FormData(f)})
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        showMsg(res);
+        if(res.code === 1){ f.reset(); }
+      });
+  });
+})();
+</script>
+
+{include file="footer" /}

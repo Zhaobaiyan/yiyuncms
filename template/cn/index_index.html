@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta name="renderer" content="webkit|ie-comp|ie-stand" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-transform"/> 
+<meta name="applicable-device" content="pc,wap">
+<title>{yunu:config name="seo_title" /}</title>
+<meta name="keywords" content="{yunu:config name='seo_keywords' /}">
+<meta name="description" content="{yunu:config name='seo_description' /}">
+<link rel="Shortcut Icon" type=image/x-icon href="{yunu:config name="site_ico" /}" />
+<link rel="stylesheet" href="__PUBLIC__/css/swiper.min.css">
+<link rel="stylesheet" href="__PUBLIC__/css/modern.css">
+<script src="__PUBLIC__/js/jquery.min.js"></script>
+<script src="__PUBLIC__/js/swiper.min.js"></script>
+</head>
+<body>
+{include file="header" /}
+
+<!-- Hero -->
+<div class="yy-hero">
+  <div class="yy-container">
+    <div class="yy-hero-deco"></div>
+    <div class="yy-hero-title">严控每寸品质<br>打磨每片赛场</div>
+    <div class="yy-hero-sub">{yunu:config name="site.name" /} · 现代化企业建站演示站</div>
+    <div class="yy-hero-desc">{yunu:config name="site.description" /}</div>
+    <div class="yy-hero-actions">
+      {if $sys_open.shop}<a class="yy-btn yy-btn-accent" href="/shop/index">进入商城</a>{/if}
+      {if $sys_open.member}<a class="yy-btn yy-btn-ghost" href="/member/register">注册会员</a>{/if}
+      {if $sys_open.service}<a class="yy-btn yy-btn-outline" href="/service/chat">在线客服</a>{/if}
+    </div>
+    <div class="yy-hero-stats">
+      <div><b>200+</b><span>产品数量</span></div>
+      <div><b>1000+</b><span>服务客户</span></div>
+      <div><b>10+</b><span>行业经验</span></div>
+      <div><b>30+</b><span>覆盖城市</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 广告轮播 -->
+<div class="yy-banner" style="margin:36px auto 0;max-width:1280px;padding:0 20px">
+  <div class="swiper-container" style="border-radius:16px;overflow:hidden;box-shadow:0 6px 24px rgba(30,58,95,.1)">
+    <div class="swiper-wrapper">
+      {yunu:banner type="1" limit="5" orderby="sort desc"}
+      <div class="swiper-slide"><a href="{$banner.url}"><img src="{$banner.pic}" alt="{$banner.title}"></a></div>
+      {/yunu:banner}
+    </div>
+    <div class="swiper-pagination"></div>
+  </div>
+</div>
+
+<!-- 平台功能总览 -->
+<div class="yy-section">
+  <div class="yy-container">
+    <div class="yy-section-head">
+      <div><h2>平台功能</h2><p>易云CMS 全功能演示 · 会员 / 商城 / 评论 / 收藏 / 客服 / 站群</p></div>
+    </div>
+    <div class="yy-features">
+      {if $sys_open.shop}
+      <a class="yy-feature" href="/shop/index">
+        <div class="yy-f-icon">🛒</div>
+        <div><h3>在线商城</h3><p>产品价格、库存销量、加入购物车、订单支付一站式体验。</p><span class="yy-f-link">进入商城 →</span></div>
+      </a>
+      {/if}
+      {if $sys_open.member}
+      <a class="yy-feature" href="/member/center">
+        <div class="yy-f-icon">👤</div>
+        <div><h3>会员中心</h3><p>注册登录、个人资料、我的收藏、我的订单集中管理。</p><span class="yy-f-link">进入会员中心 →</span></div>
+      </a>
+      {/if}
+      {if $sys_open.service}
+      <a class="yy-feature" href="/service/chat">
+        <div class="yy-f-icon">💬</div>
+        <div><h3>在线客服</h3><p>会员与客服实时沟通，前后台互聊即时回复。</p><span class="yy-f-link">开始咨询 →</span></div>
+      </a>
+      {/if}
+      <a class="yy-feature" href="/message.html">
+        <div class="yy-f-icon">📮</div>
+        <div><h3>留言板</h3><p>可配置验证码、公开/私密留言，后台逐条回复。</p><span class="yy-f-link">在线留言 →</span></div>
+      </a>
+      <a class="yy-feature" href="/search.html">
+        <div class="yy-f-icon">🔍</div>
+        <div><h3>全站搜索</h3><p>标题/正文全文检索，支持栏目限定与分页。</p><span class="yy-f-link">搜索内容 →</span></div>
+      </a>
+      <a class="yy-feature" href="/admin/site/index" target="_blank">
+        <div class="yy-f-icon">🌐</div>
+        <div><h3>站群系统</h3><p>多域名入口、语言白名单、默认语言一键切换。</p><span class="yy-f-link">后台站群管理 →</span></div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- 产品中心 -->
+<div class="yy-section yy-section-alt">
+  <div class="yy-container">
+    <div class="yy-section-head">
+      <div><h2>产品中心</h2><p>精选产品 · 支持价格 / 购物车 / 收藏 / 评论</p></div>
+      <a class="yy-more-link" href="{:url_cat(get_category(61))}">查看全部 →</a>
+    </div>
+    <div class="yy-grid">
+      {cms:list catid="61" num="8" item="vo"}
+      <div class="yy-card">
+        <a class="yy-card-img" href="{:url_content($vo)}" title="{$vo.title}">
+          <img src="{if $vo.pic}{$vo.pic}{else /}{$vo.image}{/if}" alt="{$vo.title}">
+          {if $vo.is_top==1}<span class="yy-tag">置顶</span>{/if}
+        </a>
+        <div class="yy-card-body">
+          <h3><a href="{:url_content($vo)}" title="{$vo.title}">{$vo.title}</a></h3>
+          {if $vo.description}<div class="yy-card-desc">{$vo.description|str2sub=60, true}</div>{/if}
+          {if $vo.price > 0}
+          <div class="yy-price-row">
+            <span class="yy-price"><i>¥</i>{$vo.price}{if $vo.original_price > 0}<span class="yy-price-old">¥{$vo.original_price}</span>{/if}</span>
+            <span class="yy-sales">已售 {$vo.sales} 件</span>
+          </div>
+          {/if}
+        </div>
+      </div>
+      {/cms:list}
+    </div>
+  </div>
+</div>
+
+<!-- 新闻资讯 -->
+<div class="yy-section">
+  <div class="yy-container">
+    <div class="yy-section-head">
+      <div><h2>新闻资讯</h2><p>行业动态 · 公司新闻 · 常见问题</p></div>
+      <a class="yy-more-link" href="{:url_cat(get_category(60))}">查看全部 →</a>
+    </div>
+    <ul class="yy-news-list">
+      {cms:list catid="60" num="6" item="vo"}
+      <li>
+        <div class="yy-n-date"><b>{$vo.create_time|date='d'}</b><span>{$vo.create_time|date='Y-m'}</span></div>
+        <div class="yy-n-txt">
+          <h3><a href="{:url_content($vo)}" title="{$vo.title}">{$vo.title}</a></h3>
+          {if $vo.description}<p>{$vo.description|str2sub=90, true}</p>{/if}
+        </div>
+        <a class="yy-more-link" href="{:url_content($vo)}">详情 →</a>
+      </li>
+      {/cms:list}
+    </ul>
+  </div>
+</div>
+
+<!-- 工程案例 -->
+<div class="yy-section yy-section-alt">
+  <div class="yy-container">
+    <div class="yy-section-head">
+      <div><h2>工程案例</h2><p>匠心品质 · 案例展示</p></div>
+      <a class="yy-more-link" href="{:url_cat(get_category(63))}">查看全部 →</a>
+    </div>
+    <div class="yy-grid">
+      {cms:list catid="63" num="4" item="vo"}
+      <div class="yy-card">
+        <a class="yy-card-img" href="{:url_content($vo)}" title="{$vo.title}">
+          <img src="{if $vo.pic}{$vo.pic}{else /}{$vo.image}{/if}" alt="{$vo.title}">
+        </a>
+        <div class="yy-card-body">
+          <h3><a href="{:url_content($vo)}" title="{$vo.title}">{$vo.title}</a></h3>
+          {if $vo.description}<div class="yy-card-desc">{$vo.description|str2sub=60, true}</div>{/if}
+        </div>
+      </div>
+      {/cms:list}
+    </div>
+  </div>
+</div>
+
+<!-- 留言板入口 -->
+<div class="yy-section" style="padding-bottom:20px">
+  <div class="yy-container">
+    <div class="yy-board" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+      <div>
+        <h3 style="font-size:20px;font-weight:700">在线留言</h3>
+        <p style="color:var(--yy-muted);margin-top:6px">留下您的需求，我们将尽快与您联系</p>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a class="yy-btn yy-btn-primary" href="/message.html">前往留言板</a>
+        <a class="yy-btn yy-btn-outline" href="{:url_cat(get_category(84))}">联系我们</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 友情链接 -->
+<div class="yy-section" style="padding-top:8px">
+  <div class="yy-container">
+    <div class="yy-section-head">
+      <div><h2>友情链接</h2></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px">
+      {cms:link num="20" item="vo"}
+      <a class="yy-btn yy-btn-outline yy-btn-sm" href="{$vo.url}" target="_blank">{$vo.name}</a>
+      {/cms:link}
+    </div>
+  </div>
+</div>
+
+{include file="footer" /}
+<script>
+var yyBanner = document.querySelector('.yy-banner .swiper-wrapper');
+if (yyBanner && yyBanner.children.length > 0) {
+  new Swiper('.yy-banner .swiper-container',{autoplay:{disableOnInteraction:false,delay:3500},loop:true,pagination:{el:'.yy-banner .swiper-pagination',clickable:true}});
+} else if (yyBanner) { yyBanner.closest('.yy-banner').style.display='none'; }
+</script>
+</body>
+</html>

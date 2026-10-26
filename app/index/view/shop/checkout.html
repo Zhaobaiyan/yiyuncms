@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>确认订单 - {$site_name ?? '易云CMS'}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei",Arial,sans-serif;background:#f2f4f7;color:#333}
+a{color:#1e6fff;text-decoration:none}
+.top{background:#1a2744;color:#fff;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.top b{font-size:16px}
+.top a{color:#aebbe0;font-size:13px;margin-left:16px}
+.wrap{max-width:900px;margin:24px auto 40px;padding:0 16px}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(20,40,80,.06);padding:20px;margin-bottom:16px}
+.card h3{font-size:15px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #eef1f5}
+.row{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid #f5f6f8;flex-wrap:wrap}
+.row img{width:56px;height:56px;object-fit:cover;border-radius:8px}
+.row .t{flex:1;font-size:14px;min-width:200px}
+.row .p{color:#e02e24;font-weight:700}
+.row .spec-sel{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row .spec-sel select{height:32px;padding:0 8px;border:1px solid #dde1e8;border-radius:6px;outline:none;background:#fff;cursor:pointer}
+.row .spec-sel label{font-size:12px;color:#5a6579}
+.row .spec-fixed{font-size:12px;color:#5a6579;margin-top:4px;background:#f0f4ff;display:inline-block;padding:2px 8px;border-radius:4px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;color:#5a6579;margin-bottom:6px}
+.field input,.field textarea{width:100%;height:42px;border:1px solid #dde1e8;border-radius:8px;padding:0 12px;font-size:14px;outline:none}
+.field textarea{height:70px;padding:10px 12px;resize:none}
+.field input:focus,.field textarea:focus{border-color:#1e6fff}
+.pay-op{display:flex;gap:12px;flex-wrap:wrap}
+.pay-op label{flex:1;min-width:170px;border:1px solid #dde1e8;border-radius:8px;padding:12px 16px;cursor:pointer;display:flex;gap:8px;align-items:center;font-size:14px}
+.pay-op label:hover{border-color:#1e6fff}
+.pay-op input{accent-color:#1e6fff}
+.pay-op .pico{font-size:20px}
+.foot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.total b{color:#e02e24;font-size:22px}
+.btn{padding:10px 32px;border-radius:8px;font-size:15px;background:#1e6fff;color:#fff;border:0;cursor:pointer}
+.btn:hover{background:#0f56e0}
+.err{display:none;background:#fdecec;color:#d03050;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="top"><b>确认订单</b><span>
+  <a href="/shop/cart">返回购物车</a>
+  <a href="/member/center">会员中心</a></span>
+</div>
+<div class="wrap">
+  <div class="err" id="err"></div>
+  <div class="card">
+    <h3>商品清单（可分别选择规格）</h3>
+    {foreach $items as $it}
+    <div class="row">
+      <img src="{$it.thumb}" alt="{$it.title}">
+      <div class="t">{$it.title}
+        {if $it.spec}<div class="spec-fixed">规格：{$it.spec}</div>{/if}
+      </div>
+      {if !$it.spec && isset($specs_map[$it.conid]) && $specs_map[$it.conid]}
+      <div class="spec-sel">
+        {foreach $specs_map[$it.conid] as $sname=>$soptions}
+        <label>{$sname}：
+          <select name="spec[{$it.cart_id}]" class="spec-inp">
+            {foreach $soptions as $opt}<option value="{$opt}">{$opt}</option>{/foreach}
+          </select>
+        </label>
+        {/foreach}
+      </div>
+      {/if}
+      <div class="p">¥{$it.price} × {$it.num}</div>
+    </div>
+    {/foreach}
+  </div>
+  <div class="card">
+    <h3>收货信息</h3>
+    <div class="field"><label>收货人</label><input type="text" id="name" value="{$member.nickname|default=''}"></div>
+    <div class="field"><label>联系电话</label><input type="text" id="mobile" value="{$member.phone|default=''}"></div>
+    <div class="field"><label>收货地址</label><input type="text" id="address" placeholder="省市区 + 详细地址"></div>
+    <div class="field"><label>订单备注（可选）</label><textarea id="remark" placeholder="订单备注，如配送时间要求"></textarea></div>
+  </div>
+  <div class="card">
+    <h3>支付方式</h3>
+    <div class="pay-op">
+      {if $pay_wechat==1}
+      <label><input type="radio" name="pay_type" value="wechat" checked> <span class="pico">💚</span> 微信支付（模拟收银台）</label>
+      {/if}
+      {if $pay_alipay==1}
+      <label><input type="radio" name="pay_type" value="alipay" {if $pay_wechat!=1}checked{/if}> <span class="pico">💙</span> 支付宝（模拟收银台）</label>
+      {/if}
+      {if $pay_test==1}
+      <label><input type="radio" name="pay_type" value="test" {if $pay_wechat!=1 && $pay_alipay!=1}checked{/if}> <span class="pico">🧪</span> 测试支付（点击即支付成功）</label>
+      {/if}
+      {if $pay_offline==1}
+      <label><input type="radio" name="pay_type" value="offline"> <span class="pico">🏦</span> 线下转账（提交后转账，管理员确认收款）</label>
+      {/if}
+    </div>
+  </div>
+  <div class="card">
+    <div class="foot">
+      <span class="total">应付金额：<b>¥{$total}</b></span>
+      <button class="btn" onclick="submit()">提交订单</button>
+    </div>
+  </div>
+</div>
+<script>
+function submit(){
+  var err=document.getElementById('err'); err.style.display='none';
+  var pay=document.querySelector('[name=pay_type]:checked');
+  var fd=new URLSearchParams();
+  fd.set('name',document.getElementById('name').value);
+  fd.set('mobile',document.getElementById('mobile').value);
+  fd.set('address',document.getElementById('address').value);
+  fd.set('remark',document.getElementById('remark').value);
+  fd.set('pay_type',pay?pay.value:'test');
+  var specs=document.querySelectorAll('.spec-inp');
+  specs.forEach(function(s){
+    var m=s.name.match(/spec\[(\d+)\]/);
+    if(m){ fd.set('spec['+m[1]+']',s.value); }
+  });
+  fetch('/shop/submit',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:fd.toString()})
+   .then(function(r){return r.json()}).then(function(j){
+    if(j.code===1){location.href=j.url;}
+    else{err.textContent=j.msg;err.style.display='block';}
+  }).catch(function(){err.textContent='网络错误';err.style.display='block';});
+}
+</script>
+</body>
+</html>

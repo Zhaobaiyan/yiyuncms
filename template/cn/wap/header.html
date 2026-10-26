@@ -1,0 +1,102 @@
+<?php error_reporting(0); ?>
+<?php $cateparent = 0;?>
+{if $cid}
+  {yunu:catlist cid="$cid" type="parent"}
+  <?php $cateparent = $catlist['pid'] != 0 ? $catlist['pid'] : $cateparent ;?>
+  {/yunu:catlist}
+{/if} 
+<?php $navpid = $cateparent ? $cateparent : $cid;?>
+{php} $__langcode = lang_code(); $__langurl = ($__langcode && $__langcode != default_lang()) ? '/' . $__langcode : '/'; {/php}
+<!-- 顶部信息条：语言切换 + 登录状态 / 会员中心 / 购物车 / 客服 -->
+<div class="yy-topbar">
+  <div class="yy-container">
+    <div class="yy-top-left">
+      <a href="{yunu:url name='home' /}">网站首页</a>
+      {if $__langcode neq 'cn'}<a href="{$__langurl}">中文</a>{/if}
+      {if $__langcode neq 'en'}<a href="/en/">EN</a>{/if}
+      <a href="/device/set?client=mobile&back={$cur_url}" rel="nofollow">手机版</a>
+    </div>
+    <div class="yy-top-right yy-tb-user">
+      {if $sys_open.member}
+      {if $front_member}
+      <span style="color:#8fa3c8">欢迎，</span>
+      <a href="/member/center"><b style="color:#fff;font-weight:600">{$front_member.nickname ?: $front_member.username}</b></a>
+      <a href="/member/logout" rel="nofollow">退出</a>
+      {else /}
+      <a href="/member/login" rel="nofollow">登录</a>
+      <a href="/member/register" rel="nofollow">注册</a>
+      {/if}
+      {/if}
+      {if $sys_open.service}<span style="color:rgba(255,255,255,.25)">|</span>
+      <a href="/service/chat" style="color:#93c5fd">在线客服</a>{/if}
+    </div>
+  </div>
+</div>
+<!-- 主导航 -->
+<header class="yy-header" id="yyHeader">
+  <div class="yy-container">
+    <div class="yy-logo">
+      <a href="{yunu:url name='home' /}" title="{yunu:config name="site.name" /}">
+        {php} $__logo = get_config('site.logo'); {/php}
+        {if $__logo}<img src="{$__logo}" alt="{yunu:config name="site.name" /}">{else /}
+        <span class="yy-logo-text">{yunu:config name="site.name" /}</span>{/if}
+      </a>
+    </div>
+    <nav class="yy-nav">
+      <ul>
+        <li class="{if !$cid || $cid==0}active{/if}"><a href="{yunu:url name='home' /}">网站首页</a></li>
+        {yunu:nav typeid='59'}
+        <li class="{if $nav.child}yy-has-sub{/if}{eq name="nav.active_self" value="1"} active{/eq}">
+          <a href="{$nav.url}" target="{$nav.target}">{$nav.title}</a>
+          {if $nav.child}
+          <div class="yy-sub">
+            {volist name="nav.child" id="v"}
+            <a href="{$v.url}" target="{$v.target}" class="{eq name='v.active_self' value='1'}cur{/eq}">{$v.title}</a>
+            {/volist}
+          </div>
+          {/if}
+        </li>
+        {/yunu:nav}
+      </ul>
+    </nav>
+    <div class="yy-tools">
+      <div class="yy-search-box">
+        <form action="{yunu:url name='search' /}" method="get">
+          <input type="text" name="kw" placeholder="搜索标题或内容">
+          <button type="submit">搜索</button>
+        </form>
+      </div>
+      {if $sys_open.shop}
+      <a class="yy-cart-link" href="/shop/cart">
+        购物车
+        {if $cart_count > 0}<i class="yy-badge">{$cart_count}</i>{/if}
+      </a>
+      {/if}
+      {if $sys_open.member}
+      {if $front_member}
+      <div class="yy-user-menu">
+        <span class="yy-avatar">{php} $__n = session('member.nickname') ?: session('member.username'); echo mb_substr($__n,0,1,'utf-8'); {/php}</span>
+        <span class="yy-user-name">{$front_member.nickname ?: $front_member.username}</span>
+        <div class="yy-drop">
+          <a href="/member/center">会员中心</a>
+          {if $sys_open.shop}<a href="/shop/cart">购物车</a>
+          <a href="/shop/order_list">我的订单</a>{/if}
+          {if $sys_open.favorite}<a href="/member/favorite">我的收藏</a>{/if}
+          {if $sys_open.service}<a href="/service/chat">在线客服</a>{/if}
+          <a href="/member/logout" class="yy-drop-danger">退出登录</a>
+        </div>
+      </div>
+      {else /}
+      <a class="yy-btn yy-btn-primary yy-btn-sm" href="/member/login">登录</a>
+      <a class="yy-btn yy-btn-outline yy-btn-sm" href="/member/register">注册</a>
+      {/if}
+      {/if}
+    </div>
+  </div>
+</header>
+<script>
+$(function(){
+  var $h=$('#yyHeader');
+  $(window).on('scroll',function(){ $h.toggleClass('scrolled',$(window).scrollTop()>10); });
+});
+</script>

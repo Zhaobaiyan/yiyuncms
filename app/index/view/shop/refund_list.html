@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的售后 - 会员中心</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei",Arial,sans-serif;background:#f2f4f7;color:#333}
+a{color:#1e6fff;text-decoration:none}
+.top{background:#1a2744;color:#fff;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.top b{font-size:16px}
+.top a{color:#aebbe0;font-size:13px;margin-left:16px}
+.wrap{max-width:820px;margin:24px auto 40px;padding:0 16px}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(20,40,80,.06);padding:18px 20px;margin-bottom:14px}
+.head{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#98a1b3;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.head .st{font-weight:600}
+.st0{color:#b7791f}.st1{color:#16a34a}.st2{color:#d03050}.st3{color:#16a34a}
+.body{font-size:14px;line-height:1.9;border-top:1px dashed #eef1f5;padding-top:12px}
+.body b{color:#5a6579;font-weight:400}
+.empty{text-align:center;padding:70px 0;color:#98a1b3}
+.btn{padding:7px 18px;border-radius:8px;font-size:13px;background:#1e6fff;color:#fff;border:0;cursor:pointer;text-decoration:none;display:inline-block}
+.btn.line{background:#fff;border:1px solid #1e6fff;color:#1e6fff}
+</style>
+</head>
+<body>
+<div class="top"><b>我的售后</b><span>
+  <a href="/shop/order_list">我的订单</a>
+  <a href="/member/center">会员中心</a></span>
+</div>
+<div class="wrap">
+  {if count($list)>0}
+  {foreach $list as $r}
+  <div class="card">
+    <div class="head">
+      <span>订单号：{$r.order_no} · {$r.create_time|date='Y-m-d H:i'}</span>
+      <span class="st st{$r.status}">{if $r.status==0}处理中{elseif $r.status==1}已同意{elseif $r.status==2}已拒绝{else}已退款{/if}</span>
+    </div>
+    <div class="body">
+      <b>售后类型：</b>{if $r.type=='refund_only'}仅退款{else}退货退款{/if}　<b>金额：</b>¥{$r.amount}<br>
+      <b>原因：</b>{$r.reason}{if $r.desc}<br><b>描述：</b>{$r.desc}{/if}
+      {if $r.admin_reply}<br><b>客服回复：</b>{$r.admin_reply}{/if}
+      {if $r.status==2}<div style="margin-top:10px"><a class="btn line" href="/shop/order_detail?id={$r.order_id}">查看订单</a></div>{/if}
+    </div>
+  </div>
+  {/foreach}
+  {if isset($pages) && $pages}<div style="text-align:center">{$pages|raw}</div>{/if}
+  {else}
+  <div class="empty">暂无售后记录</div>
+  {/if}
+</div>
+</body>
+</html>

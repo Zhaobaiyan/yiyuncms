@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>订单详情 - 会员中心</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei",Arial,sans-serif;background:#f2f4f7;color:#333}
+a{color:#1e6fff;text-decoration:none}
+.top{background:#1a2744;color:#fff;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.top b{font-size:16px}
+.top a{color:#aebbe0;font-size:13px;margin-left:16px}
+.wrap{max-width:720px;margin:24px auto 40px;padding:0 16px}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(20,40,80,.06);padding:20px;margin-bottom:14px}
+.card h3{font-size:15px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #eef1f5}
+.kv{display:flex;flex-wrap:wrap;gap:10px 30px;font-size:14px}
+.kv b{color:#5a6579;font-weight:400;margin-right:6px}
+.st0{color:#b7791f}.st1{color:#16a34a}.st2{color:#1e6fff}.st3{color:#16a34a}.st4{color:#98a1b3}
+.row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #f5f6f8;flex-wrap:wrap}
+.row img{width:56px;height:56px;object-fit:cover;border-radius:8px}
+.row .t{flex:1;font-size:14px;min-width:180px}
+.row .p{color:#e02e24;font-weight:700}
+.row .spec{font-size:12px;color:#5a6579}
+.express{background:#eef7ff;border:1px solid #cfe6fb;border-radius:8px;padding:12px;font-size:14px;line-height:1.8}
+.ops{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+.btn{padding:8px 22px;border-radius:8px;font-size:14px;background:#1e6fff;color:#fff;border:0;cursor:pointer}
+.btn:hover{background:#0f56e0}
+.btn.green{background:#16a34a}
+.btn.green:hover{background:#128a3d}
+.btn.orange{background:#e07b00}
+.btn.orange:hover{background:#c96c00}
+.btn.line{background:#fff;border:1px solid #1e6fff;color:#1e6fff}
+.rf{background:#fdf7e6;border:1px solid #f5e3b3;border-radius:8px;padding:12px;font-size:13px;line-height:1.8;color:#8a6d1a}
+.rf b{color:#8a6d1a}
+</style>
+</head>
+<body>
+<div class="top"><b>订单详情</b><span>
+  <a href="/shop/order_list">我的订单</a>
+  <a href="/member/center">会员中心</a></span>
+</div>
+<div class="wrap">
+  <div class="card">
+    <h3>订单信息</h3>
+    <div class="kv">
+      <span><b>订单号：</b>{$order.order_no}</span>
+      <span><b>状态：</b><b class="st{$order.status}">{if $order.status==0}待支付{elseif $order.status==1}待发货{elseif $order.status==2}已发货{elseif $order.status==3}已完成{else}已取消{/if}</b></span>
+      <span><b>下单时间：</b>{$order.create_time|date='Y-m-d H:i'}</span>
+      {if $order.pay_time>0}<span><b>支付时间：</b>{$order.pay_time|date='Y-m-d H:i'}</span>{/if}
+      <span><b>支付方式：</b>{if $order.pay_type=='test'}测试支付{elseif $order.pay_type=='wechat'}微信支付{elseif $order.pay_type=='alipay'}支付宝{elseif $order.pay_type=='offline'}线下转账{else}—{/if}</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>收货信息</h3>
+    <div class="kv">
+      <span><b>收货人：</b>{$order.name}</span>
+      <span><b>电话：</b>{$order.mobile}</span>
+      <span style="width:100%"><b>地址：</b>{$order.address}</span>
+      {if $order.remark}<span style="width:100%"><b>备注：</b>{$order.remark}</span>{/if}
+    </div>
+  </div>
+  {if $order.status==2}
+  <div class="card">
+    <h3>物流信息</h3>
+    <div class="express">
+      快递公司：{$order.express_company|default='未填写'}<br>
+      快递单号：{$order.express_no|default='未填写'}<br>
+      发货时间：{if $order.ship_time>0}{$order.ship_time|date='Y-m-d H:i'}{else}—{/if}
+    </div>
+  </div>
+  {/if}
+  <div class="card">
+    <h3>商品明细</h3>
+    {foreach $products as $p}
+    <div class="row">
+      {if $p.pic}<img src="{$p.pic}" alt="{$p.title}">{/if}
+      <div class="t">{$p.title}{if $p.spec}<div class="spec">规格：{$p.spec}</div>{/if}</div>
+      <div class="p">¥{$p.price} × {$p.num}</div>
+    </div>
+    {/foreach}
+    <div style="text-align:right;margin-top:12px;font-size:15px">实付：<b style="color:#e02e24;font-size:20px">¥{$order.pay_amount}</b></div>
+  </div>
+  {if $refund}
+  <div class="card">
+    <h3>售后记录</h3>
+    <div class="rf">
+      售后类型：{if $refund.type=='refund_only'}仅退款{else}退货退款{/if}<br>
+      申请金额：¥{$refund.amount}　状态：
+      <b>{if $refund.status==0}处理中{elseif $refund.status==1}已同意{elseif $refund.status==2}已拒绝{else}已退款{/if}</b><br>
+      申请原因：{$refund.reason}{if $refund.desc}<br>问题描述：{$refund.desc}{/if}
+      {if $refund.admin_reply}<br><b>客服回复：</b>{$refund.admin_reply}{/if}
+    </div>
+  </div>
+  {/if}
+  <div class="ops">
+    {if $order.status==0}
+    <a class="btn" href="/shop/pay?id={$order.id}">去支付</a>
+    {/if}
+    {if $order.status==2}
+    <button class="btn green" onclick="confirmOrder()">确认收货</button>
+    {/if}
+    {if $order.status==3 && (!$refund || $refund.status==2)}
+    <a class="btn orange" href="/shop/refund_add?id={$order.id}">申请售后</a>
+    {/if}
+    <a class="btn line" href="{$service_url}">联系客服</a>
+    <a class="btn line" href="/shop/order_list">返回列表</a>
+  </div>
+</div>
+<script>
+function confirmOrder(){
+  if(!confirm('确认已收到货品？确认后订单完成，可申请售后。')) return;
+  var fd=new URLSearchParams(); fd.set('id','{$order.id}');
+  fetch('/shop/confirm',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:fd.toString()})
+   .then(function(r){return r.json()}).then(function(j){
+    if(j.code===1){location.href=j.url;} else {alert(j.msg);}
+  });
+}
+</script>
+</body>
+</html>

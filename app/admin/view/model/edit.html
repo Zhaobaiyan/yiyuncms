@@ -1,0 +1,38 @@
+{extend name="layout" /}
+{block name="title"}{if $info}编辑模型{else}添加模型{/if} - 易云CMS{/block}
+{block name="crumb"}内容管理 · 内容模型 · {if $info}编辑{else}添加{/if}{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">{if $info}编辑模型「{$info.title}」{else}添加模型{/if}</div>
+  <form id="m-form">
+    <div class="form-item">
+      <div class="lab">模型标识 *</div>
+      <div class="ctl">
+        <input type="text" name="name" value="{$info.name|default=''}" placeholder="如 news，字母开头，用于内容区分" required>
+        <div class="help">与栏目/内容关联，创建后不可随意改动（内置 article/product/picture 为系统保留）</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">模型名称 *</div>
+      <div class="ctl"><input type="text" name="title" value="{$info.title|default=''}" placeholder="如 新闻模型" required></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">描述</div>
+      <div class="ctl"><input type="text" name="description" value="{$info.description|default=''}"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl">
+        <button type="submit" class="btn primary">保存</button>
+        <a class="btn" href="/admin/model/index">返回</a>
+      </div>
+    </div>
+  </form>
+</div>
+<script>
+document.getElementById('m-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  yy.post('{if $info}/admin/model/edit/id/{$info.id}{else}/admin/model/edit{/if}', new FormData(this), {});
+});
+</script>
+{/block}

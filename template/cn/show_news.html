@@ -1,0 +1,163 @@
+{include file="header" /}
+
+<div class="section-sub">
+  <div class="container">
+    <div class="ct2 clearfix">
+      <div class="ct2-sd">
+        <div class="panel-sd">
+          <div class="panel-sd-tit"><span>栏目导航</span></div>
+          <div class="panel-sd-con">
+            <ul class="sd-nav">
+              {cms:category top="1" deep="2" item="nav"}
+              <li>
+                <a href="{:url_cat($nav)}" class="{if $nav.active_self}active{/if}">{$nav.name}</a>
+                {if !empty($nav.children)}
+                <div class="sd-sub">
+                  {foreach $nav.children as $v}
+                  <a href="{:url_cat($v)}" class="{if isset($cur_catid) && $cur_catid == $v.id}active{/if}">{$v.name}</a>
+                  {/foreach}
+                </div>
+                {/if}
+              </li>
+              {/cms:category}
+            </ul>
+          </div>
+        </div>
+        <div class="panel-sd mt">
+          <div class="panel-sd-tit"><span>热门资讯</span></div>
+          <div class="panel-sd-con">
+            <ul class="list-sd">
+              {cms:hot num="8" item="h"}
+              <li><a href="{:url_content($h)}" title="{$h.title}">{$h.title}</a></li>
+              {/cms:hot}
+            </ul>
+          </div>
+        </div>
+        {cms:ad name="side_ad"}
+      </div>
+      <div class="ct2-mn">
+        <div class="sub-tit">
+          <div class="curmbs"><span>您的位置：</span>
+            <a href="{:url_home()}">首页</a>
+            {cms:crumbs item="c"}
+            <span>&gt;&gt;</span><a href="{:url_cat($c)}">{$c.name}</a>
+            {/cms:crumbs}
+          </div>
+          {$category.name}
+        </div>
+        <div class="yunu-infocontent">
+          <div class="yunu-infocontent-title">
+            <h1>{$content.title}</h1>
+            <p>
+              {if $content.author}<span>作者：{$content.author}</span>{/if}
+              <span>发布时间：{$content.create_time|date='Y-m-d H:i:s'}</span>
+              <span>点击：{$content.views}</span>
+            </p>
+          </div>
+          {if $content.desc}
+          <div class="yunu-infocontent-desc">信息摘要：{$content.desc|raw}</div>
+          {/if}
+          {if $content.thumb}
+          <div style="text-align:center;margin:16px 0"><img src="{$content.thumb}" alt="{$content.title}" style="max-width:100%"></div>
+          {/if}
+          <div class="yunu-infocontent-body">
+            {$content.content|raw}
+          </div>
+          {if !empty($extend_fields)}
+          <div class="yunu-infocontent-extend" style="margin:16px 0;border-top:1px dashed #e2e8f0;padding-top:12px">
+            {foreach $extend_fields as $ef}
+            <p style="margin:6px 0"><strong>{$ef.label}：</strong>{$ef.value}</p>
+            {/foreach}
+          </div>
+          {/if}
+          {cms:prevnext}
+          <ul class="yunu-infocontent-epx">
+            <li><span>上一条</span><a href="{if $prev}{:url_content($prev)}{else}javascript:;{/if}"><em>查看详情 +</em>{if $prev}{$prev.title}{else}没有了{/if}</a></li>
+            <li><span>下一条</span><a href="{if $next}{:url_content($next)}{else}javascript:;{/if}"><em>查看详情 +</em>{if $next}{$next.title}{else}没有了{/if}</a></li>
+          </ul>
+          {/cms:prevnext}
+        </div>
+
+        {if isset($is_single) && $is_single}
+        <div class="panel-sd" style="margin-top:30px">
+          <div class="panel-sd-tit"><span>在线留言</span></div>
+          <div class="panel-sd-con">
+            <form id="msg-form" class="form-grid" style="padding:10px 0">
+              <div id="msg-fields"></div>
+              <button class="full" type="submit">提交留言</button>
+              <div class="full msg-tip" id="msg-tip"></div>
+            </form>
+          </div>
+        </div>
+        {/if}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var f = document.getElementById('msg-form');
+  if(!f) return;
+  var box = document.getElementById('msg-fields');
+  var tip = document.getElementById('msg-tip');
+  var boardId = 0, fields = [];
+
+  function esc(s){ s=s||''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function renderBoard(b){
+    boardId = b.id; fields = b.fields || [];
+    var html = '<input type="hidden" name="board_id" value="' + b.id + '">';
+    fields.forEach(function(fd){
+      var req = parseInt(fd.required||0,10);
+      var mark = req ? ' <em>*</em>' : '';
+      var lbl = '<div class="mf"><label>' + esc(fd.label) + mark + '</label>';
+      if (fd.type === 'textarea') {
+        html += lbl + '<textarea class="full" name="' + fd.name + '" placeholder="请输入' + esc(fd.label) + '" data-req="' + (req?'1':'0') + '"></textarea></div>';
+      } else if (fd.type === 'select') {
+        html += lbl + '<select class="full" name="' + fd.name + '" data-req="' + (req?'1':'0') + '"><option value="">请选择' + esc(fd.label) + '</option>' + (fd.options||[]).map(function(o){return '<option value="'+esc(o)+'">'+esc(o)+'</option>';}).join('') + '</select></div>';
+      } else if (fd.type === 'radio') {
+        html += lbl + '<div>' + (fd.options||[]).map(function(o){return '<label style="margin-right:12px;display:inline-block"><input type="radio" name="'+fd.name+'" value="'+esc(o)+'"> '+esc(o)+'</label>';}).join('') + '</div></div>';
+      } else if (fd.type === 'checkbox') {
+        html += lbl + '<div>' + (fd.options||[]).map(function(o){return '<label style="margin-right:12px;display:inline-block"><input type="checkbox" name="'+fd.name+'[]" value="'+esc(o)+'"> '+esc(o)+'</label>';}).join('') + '</div></div>';
+      } else if (fd.type === 'number') {
+        html += lbl + '<input class="full" type="number" name="' + fd.name + '" placeholder="请输入' + esc(fd.label) + '" data-req="' + (req?'1':'0') + '"></div>';
+      } else {
+        html += lbl + '<input class="full" type="text" name="' + fd.name + '" placeholder="请输入' + esc(fd.label) + '" data-req="' + (req?'1':'0') + '"></div>';
+      }
+    });
+    box.innerHTML = html;
+  }
+
+  fetch('/message/board')
+    .then(function(r){ return r.json(); })
+    .then(function(res){ if(res.code===1) renderBoard(res.board); })
+    .catch(function(){});
+
+  f.addEventListener('submit', function(e){
+    e.preventDefault();
+    // 前端必填校验
+    var miss = [];
+    box.querySelectorAll('[data-req="1"]').forEach(function(el){
+      var v = (el.value||'').trim();
+      if(!v) miss.push(el.placeholder || el.name);
+    });
+    box.querySelectorAll('input[type=radio][data-req]').forEach(function(){});
+    // radio 必填校验
+    fields.forEach(function(fd){
+      if(parseInt(fd.required||0,10) && (fd.type==='radio')){
+        var checked = box.querySelector('input[name="'+fd.name+'"]:checked');
+        if(!checked) miss.push(fd.label);
+      } else if(parseInt(fd.required||0,10) && (fd.type==='checkbox')){
+        var checked = box.querySelector('input[name="'+fd.name+'[]"]:checked');
+        if(!checked) miss.push(fd.label);
+      }
+    });
+    if(miss.length){ showMsg({code:0, msg:'请填写：' + miss.join('、')}); return; }
+    fetch('/message/submit', {method:'POST', body:new FormData(f)})
+      .then(function(r){ return r.json(); })
+      .then(function(res){ showMsg(res); if(res.code === 1){ f.reset(); box.innerHTML=''; fetch('/message/board').then(function(r){return r.json();}).then(function(r){ if(r.code===1) renderBoard(r.board); }); } });
+  });
+})();
+</script>
+
+{include file="footer" /}

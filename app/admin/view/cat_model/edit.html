@@ -1,0 +1,37 @@
+{extend name="layout" /}
+{block name="title"}{if $info}编辑栏目模型{else}添加栏目模型{/if} - 易云CMS{/block}
+{block name="crumb"}内容管理 · 栏目模型 · {if $info}编辑{else}添加{/if}{/block}
+{block name="content"}
+<div class="card" style="max-width:560px">
+  <div class="card-title">{if $info}编辑栏目模型「{$info.title}」{else}添加栏目模型{/if}</div>
+  <form id="m-form">
+    <div class="form-item">
+      <div class="lab">模型名称 *</div>
+      <div class="ctl"><input type="text" name="title" value="{$info.title|default=''}" placeholder="如 产品栏目模型" required></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">模型标识 *</div>
+      <div class="ctl">
+        <input type="text" name="name" value="{$info.name|default=''}" placeholder="如 product" required>
+        <div class="help">字母开头，字母数字下划线；创建后不建议修改</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl">
+        <button type="submit" class="btn primary">保存</button>
+        <a class="btn" href="/admin/cat_model/index">返回</a>
+        {if $info}
+        <a class="btn" href="/admin/cat_model/fields/model_id/{$info.id}">管理字段</a>
+        {/if}
+      </div>
+    </div>
+  </form>
+</div>
+<script>
+document.getElementById('m-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  yy.post('{if $info}/admin/cat_model/edit/id/{$info.id}{else}/admin/cat_model/edit{/if}', new FormData(this), {});
+});
+</script>
+{/block}

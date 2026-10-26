@@ -1,0 +1,170 @@
+{extend name="layout" /}
+{block name="title"}商品价格 - 易云CMS{/block}
+{block name="crumb"}商城管理 · 商品价格{/block}
+{block name="content"}
+<div class="toolbar">
+  <form class="inline-form" method="get" action="/admin/shop/product">
+    <select name="lang" class="ipt sm" onchange="this.form.submit()">
+      {foreach $langs as $l}
+      <option value="{$l.code}" {if $lang==$l.code}selected{/if}>{$l.name}（{$l.code}）</option>
+      {/foreach}
+    </select>
+    <select name="shop" class="ipt sm" onchange="this.form.submit()">
+      <option value="1" {if $only_shop==1}selected{/if}>仅售卖商品</option>
+      <option value="0" {if $only_shop==0}selected{/if}>全部内容</option>
+    </select>
+    <input type="text" name="keyword" class="ipt sm" value="{$keyword}" placeholder="按标题搜索">
+    <button class="btn sm primary">搜索</button>
+  </form>
+  <span class="text-sub">「售卖商品」在内容管理勾选或批量设置；列表仅显示售卖商品，可切换「全部内容」查看并配置。未配置价格的新商品直接填写价格保存即可上架。</span>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr><th style="width:50px">ID</th><th>商品标题</th><th style="width:60px">类型</th><th style="width:110px">售价(元)</th><th style="width:110px">原价(元)</th><th style="width:90px">库存</th><th style="width:80px">销量</th><th style="width:150px">规格/SKU</th><th style="width:90px">状态</th><th style="width:90px">操作</th></tr>
+    {if $list}
+    {foreach $list as $row}
+    <tr>
+      <td>{$row.id}</td>
+      <td>{$row.title}</td>
+      <td>{if $row.is_shop}<span class="tag warn">商品</span>{else/}<span class="tag">文章</span>{/if}</td>
+      <td><input type="number" step="0.01" min="0" class="ipt sm" data-f="price" data-id="{$row.id}" value="{$row.price}" style="width:100px"></td>
+      <td><input type="number" step="0.01" min="0" class="ipt sm" data-f="original_price" data-id="{$row.id}" value="{$row.original_price}" style="width:100px"></td>
+      <td><input type="number" min="0" class="ipt sm" data-f="stock" data-id="{$row.id}" value="{$row.stock}" style="width:70px"></td>
+      <td>{$row.sales}</td>
+      <td>
+        <button class="btn sm line" data-json="{$row.specs|default=''|htmlspecialchars}" onclick="openSpecs({$row.id},this)">{$row.specs ? '已设置' : '未设置'}</button>
+      </td>
+      <td>
+        <select class="ipt sm" data-f="status" data-id="{$row.id}" onchange="saveRow(this)">
+          <option value="1" {if $row.s_status==1}selected{/if}>上架</option>
+          <option value="0" {if $row.s_status!=1}selected{/if}>下架</option>
+        </select>
+      </td>
+      <td><button class="btn sm primary" onclick="saveRow(this)">保存</button></td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="10"><div class="empty">{if $only_shop==1}暂无售卖商品。请先在内容管理中勾选「售卖商品」或将内容批量设为商品，再回来配置价格。{else/}该语言暂无内容，请先在内容管理发布内容{/if}</div></td></tr>
+    {/if}
+  </table>
+  <div class="pager-bar"><div class="pagination">{$pages|raw}</div></div>
+</div>
+
+<!-- SKU 编辑弹层 -->
+<div id="sku-mask" style="display:none;position:fixed;inset:0;background:rgba(10,20,40,.45);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:10px;width:760px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column">
+    <div style="padding:14px 18px;border-bottom:1px solid #eef1f5;font-weight:600">规格 SKU 设置 <span style="color:#98a1b3;font-weight:400;font-size:12px;margin-left:8px" id="sku-title"></span></div>
+    <div style="padding:16px 18px;overflow:auto;flex:1">
+      <div style="margin-bottom:12px">
+        <label style="font-size:13px;color:#5a6579">规格模板（JSON对象，键=规格名，值=选项数组）</label>
+        <textarea id="sku-specs" rows="3" style="width:100%;border:1px solid #dde1e8;border-radius:6px;padding:8px;font-family:Consolas,monospace;font-size:13px;box-sizing:border-box" placeholder='{"颜色":["红","蓝"],"尺寸":["X","XL","XXL"]}'></textarea>
+      </div>
+      <div style="margin-bottom:12px">
+        <button type="button" class="btn sm primary" onclick="buildSku()">生成规格组合</button>
+        <span style="font-size:12px;color:#98a1b3;margin-left:10px">生成后为每个组合填写价格与库存；商品级价格/库存仍可在列表直接改（无规格商品使用）</span>
+      </div>
+      <table class="tbl" id="sku-table" style="display:none">
+        <tr><th>规格组合</th><th style="width:130px">价格(元)</th><th style="width:100px">库存</th></tr>
+      </table>
+    </div>
+    <div style="padding:12px 18px;border-top:1px solid #eef1f5;text-align:right">
+      <button type="button" class="btn sm line" onclick="closeSku()" style="margin-right:8px">取消</button>
+      <button type="button" class="btn sm primary" onclick="saveSku()">保存规格与 SKU</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var curConid = 0, curBtn = null, curSku = {};
+function decodeHtml(s){
+  var t = document.createElement('textarea');
+  t.innerHTML = s || '';
+  return t.value;
+}
+function openSpecs(conid, btn){
+  curConid = conid; curBtn = btn;
+  var raw = btn ? decodeHtml(btn.getAttribute('data-json')) : '';
+  var obj = {};
+  try { obj = JSON.parse(raw); } catch(e){ obj = {}; }
+  var sku = obj['_sku'] || [];
+  delete obj['_sku'];
+  document.getElementById('sku-specs').value = Object.keys(obj).length ? JSON.stringify(obj) : '';
+  document.getElementById('sku-title').textContent = '商品ID ' + conid;
+  // 还原 SKU 行
+  curSku = {};
+  sku.forEach(function(s){ curSku[s.spec] = { price: s.price, stock: s.stock }; });
+  buildSku();
+  document.getElementById('sku-mask').style.display = 'flex';
+}
+function closeSku(){
+  document.getElementById('sku-mask').style.display = 'none';
+}
+function buildSku(){
+  var txt = document.getElementById('sku-specs').value.trim();
+  var tpl = {};
+  if (txt !== '') { try { tpl = JSON.parse(txt); } catch(e){ alert('规格模板 JSON 格式错误'); return; } }
+  var keys = Object.keys(tpl);
+  var table = document.getElementById('sku-table');
+  table.innerHTML = '<tr><th>规格组合</th><th style="width:130px">价格(元)</th><th style="width:100px">库存</th></tr>';
+  if (!keys.length){ table.style.display='none'; return; }
+  // 笛卡尔积生成组合
+  var combos = [''];
+  keys.forEach(function(k){
+    var opts = tpl[k] || [];
+    var next = [];
+    combos.forEach(function(pre){
+      opts.forEach(function(o){ next.push(pre ? pre + ',' + k + ':' + o : k + ':' + o); });
+    });
+    combos = next;
+  });
+  combos.forEach(function(c){
+    var d = curSku[c] || { price: '', stock: '' };
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td style="font-size:13px">' + c + '</td>' +
+      '<td><input type="number" step="0.01" min="0" class="ipt sm sku-price" style="width:110px" value="' + (d.price !== undefined ? d.price : '') + '"></td>' +
+      '<td><input type="number" min="0" class="ipt sm sku-stock" style="width:80px" value="' + (d.stock !== undefined ? d.stock : '') + '"></td>';
+    table.appendChild(tr);
+  });
+  table.style.display = '';
+}
+function saveSku(){
+  var txt = document.getElementById('sku-specs').value.trim();
+  var tpl = {};
+  if (txt !== '') { try { tpl = JSON.parse(txt); } catch(e){ alert('规格模板 JSON 格式错误'); return; } }
+  var rows = document.querySelectorAll('#sku-table tr:not(:first-child)');
+  var sku = {};
+  rows.forEach(function(tr){
+    var spec = tr.children[0].textContent.trim();
+    if (!spec) return;
+    sku[spec] = { price: tr.querySelector('.sku-price').value, stock: tr.querySelector('.sku-stock').value };
+  });
+  var tr = curBtn ? curBtn.closest('tr') : null;
+  var data = {
+    lang: '{$lang}',
+    conid: curConid,
+    price: tr ? tr.querySelector('[data-f=price]').value : 0,
+    original_price: tr ? tr.querySelector('[data-f=original_price]').value : 0,
+    stock: tr ? tr.querySelector('[data-f=stock]').value : 0,
+    status: tr ? tr.querySelector('[data-f=status]').value : 1,
+    specs: txt,
+    sku: Object.keys(sku).length ? JSON.stringify(sku) : ''
+  };
+  yy.post('/admin/shop/product_save', data, { delay: 0, callback: function(){
+    if (curBtn){ curBtn.textContent = txt ? '已设置' : '未设置'; curBtn.setAttribute('data-json', JSON.stringify(Object.assign(tpl, sku ? {_sku: Object.keys(sku).map(function(k){return {spec:k,price:sku[k].price,stock:sku[k].stock}}) } : {}))); }
+    closeSku(); yy.toast('规格与SKU已保存', 'ok');
+  }});
+}
+function saveRow(el){
+  var tr = el.closest('tr');
+  var data = {
+    lang: '{$lang}',
+    conid: tr.querySelector('[data-id]').getAttribute('data-id'),
+    price: tr.querySelector('[data-f=price]').value,
+    original_price: tr.querySelector('[data-f=original_price]').value,
+    stock: tr.querySelector('[data-f=stock]').value,
+    status: tr.querySelector('[data-f=status]').value
+  };
+  yy.post('/admin/shop/product_save', data, { delay: 0, callback: function(){ yy.toast('已保存', 'ok'); } });
+}
+</script>
+{/block}

@@ -1,0 +1,44 @@
+{extend name="layout" /}
+{block name="title"}角色管理 - 易云CMS{/block}
+{block name="crumb"}扩展功能 · 角色管理{/block}
+{block name="content"}
+<div class="toolbar"><a class="btn primary" href="/admin/admin_role/edit">+ 添加角色</a><span class="text-sub">为不同管理员分类配置后台权限（如投稿员只可发布内容、留言查看只看留言、SEO优化管友情链接等）</span></div>
+<div class="card">
+  <table class="tbl">
+    <tr><th style="width:60px">ID</th><th>角色</th><th>标识</th><th>权限</th><th>发布审核</th><th>数据范围（当前语言）</th><th>使用管理员</th><th style="width:80px">状态</th><th style="width:140px">操作</th></tr>
+    {foreach $list as $row}
+    <tr>
+      <td>{$row.id}</td>
+      <td>{$row.name}{if $row.is_system==1}<span class="tag info">内置</span>{/if}</td>
+      <td><code>{$row.code}</code></td>
+      <td>
+        {if !empty($row.rules_arr) && $row.rules_arr[0]=='*'}
+          <span class="tag ok">全部权限</span>
+        {elseif count($row.rules_arr) > 0}
+          {foreach $row.rules_arr as $r}{if isset($modules[$r])}<span class="tag">{$modules[$r]}</span>{/if}{/foreach}
+        {else}
+          <span class="tag gray">仅基础</span>
+        {/if}
+      </td>
+      <td>{if $row.is_super}<span class="tag ok">免审核</span>{elseif $row.need_audit==1}<span class="tag warn">需审核</span>{else}<span class="tag ok">免审核</span>{/if}</td>
+      <td class="text-sub">
+        {if $row.is_super || ($row.scope_cats===null && $row.scope_boards===null)}
+          <span class="tag ok">全部</span>
+        {else}
+          <span class="tag">栏目 {if $row.scope_cats===null}全部{else}{:count($row.scope_cats)}{/if}</span>
+          <span class="tag">留言板 {if $row.scope_boards===null}全部{else}{:count($row.scope_boards)}{/if}</span>
+        {/if}
+      </td>
+      <td class="text-sub">{if $row.used_by}{:implode('、', $row.used_by)}{else}-{/if}</td>
+      <td>{if $row.status==1}<span class="tag ok">启用</span>{else}<span class="tag gray">停用</span>{/if}</td>
+      <td>
+        <a class="btn sm" href="/admin/admin_role/edit/id/{$row.id}">编辑</a>
+        {if $row.is_system==0}
+        <button class="btn sm danger" onclick="yy.confirm('删除角色「{$row.name}」？', function(){ yy.post('/admin/admin_role/delete/id/{$row.id}', {}, {literal}{url:'/admin/admin_role/index'}{/literal}); })">删除</button>
+        {/if}
+      </td>
+    </tr>
+    {/foreach}
+  </table>
+</div>
+{/block}

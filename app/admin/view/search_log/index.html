@@ -1,0 +1,63 @@
+{extend name="layout" /}
+{block name="title"}搜索日志 - 易云CMS{/block}
+{block name="crumb"}扩展功能 · 搜索日志{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">热门搜索词 Top20</div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;padding:4px 2px">
+    {foreach $hot as $h}
+    <span class="tag info" style="padding:4px 12px;font-size:13px">{$h.keyword}（{$h.cnt}）</span>
+    {/foreach}
+  </div>
+</div>
+<div class="toolbar">
+  <form action="/admin/search_log/index" method="get" class="filter-form">
+    <input type="text" name="keyword" value="{$keyword}" placeholder="搜索关键词" style="width:240px">
+    <button class="btn" type="submit">筛选</button>
+    <span class="fl-sp"></span>
+    <button class="btn sm danger" onclick="yy.confirm('确定清空全部搜索日志？', function(){ yy.post('/admin/search_log/clear', {}, {literal}{url:'/admin/search_log/index'}{/literal}); })">清空搜索日志</button>
+  </form>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr>
+      <th style="width:60px">ID</th>
+      <th>关键词</th>
+      <th style="width:90px">结果数</th>
+      <th style="width:140px">IP</th>
+      <th style="width:170px">时间</th>
+    </tr>
+    {if $list}
+    {foreach $list as $row}
+    <tr>
+      <td>{$row.id}</td>
+      <td>{$row.keyword}</td>
+      <td>{$row.result_count}</td>
+      <td class="text-sub">{$row.ip}</td>
+      <td class="text-sub">{$row.create_time|date='Y-m-d H:i'}</td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="5"><div class="empty">暂无搜索记录</div></td></tr>
+    {/if}
+  </table>
+  <div class="pager-bar">
+    <span class="page-size">每页
+      <select id="page-size">
+        {foreach [30,60,120] as $ps}
+        <option value="{$ps}" {if $page_size == $ps}selected{/if}>{$ps}</option>
+        {/foreach}
+      </select> 条
+    </span>
+    <div class="pagination">{$list|raw}</div>
+  </div>
+</div>
+<script>
+document.getElementById('page-size').addEventListener('change', function(){
+  var u = new URLSearchParams(location.search);
+  u.set('page_size', this.value);
+  u.delete('page'); u.delete('cb');
+  location.href = location.pathname + '?' + u.toString();
+});
+</script>
+{/block}

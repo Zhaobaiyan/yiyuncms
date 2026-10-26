@@ -1,0 +1,60 @@
+{include file="header" /}
+
+<div class="w-crumb">
+  <a href="{:url_home()}">Home</a>
+  {if $category}
+    {cms:crumbs catid="{$category.id}" item="c"} &gt; <a href="{:url_cat($c)}">{$c.name}</a>{/cms:crumbs}
+  {/if}
+</div>
+
+<div class="w-detail">
+  <h1>{$content.title}</h1>
+  <div class="m">
+    {if $content.author}Author: {$content.author}　{/if}
+    Time: {$content.create_time|date='Y-m-d H:i'}　Views: {$content.views}
+  </div>
+  <div class="content">{$content.content|raw}</div>
+
+  {if $content.thumb}
+  <img src="{$content.thumb}" alt="{$content.title}" style="max-width:100%;margin:16px 0;border-radius:10px">
+  {/if}
+
+  {cms:prevnext}
+  <div class="w-prevnext">
+    <p>Prev: {if $prev}<a href="{:url_content($prev)}">{$prev.title}</a>{else}none{/if}</p>
+    <p>Next: {if $next}<a href="{:url_content($next)}">{$next.title}</a>{else}none{/if}</p>
+  </div>
+  {/cms:prevnext}
+</div>
+
+{if $is_single}
+<div class="w-section">
+  <div class="w-h"><span>Contact Us</span></div>
+  <form id="msg-form" class="w-form">
+    <input type="text" name="name" placeholder="Your name *" required>
+    <input type="text" name="phone" placeholder="Phone">
+    <input type="text" name="title" placeholder="Subject">
+    <textarea name="content" placeholder="Message *" required></textarea>
+    <button type="submit">Submit</button>
+    <div class="msg-tip" id="msg-tip"></div>
+  </form>
+</div>
+{/if}
+
+<script>
+(function(){
+  var f = document.getElementById('msg-form');
+  if(!f) return;
+  f.addEventListener('submit', function(e){
+    e.preventDefault();
+    fetch('/index/message/submit', {method:'POST', body:new FormData(f)})
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        showMsg(res);
+        if(res.code === 1){ f.reset(); }
+      });
+  });
+})();
+</script>
+
+{include file="footer" /}

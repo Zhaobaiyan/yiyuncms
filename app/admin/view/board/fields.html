@@ -1,0 +1,35 @@
+{extend name="layout" /}
+{block name="title"}留言板字段 - 易云CMS{/block}
+{block name="crumb"}内容管理 · 留言板 · {$board.title} 字段{/block}
+{block name="content"}
+<div class="toolbar">
+  <a class="btn primary" href="/admin/board/field_edit?board_id={$board.id}">+ 添加字段</a>
+  <a class="btn" href="/admin/board/index">返回留言板</a>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr><th style="width:60px">ID</th><th>字段名</th><th>标签</th><th>类型</th><th>选项</th><th style="width:70px">必填</th><th>排序</th><th style="width:140px">操作</th></tr>
+    {foreach $board.fields as $f}
+    <tr>
+      <td>{$f.id}</td>
+      <td><code class="mono">{$f.name}</code></td>
+      <td>{$f.label}</td>
+      <td>{$f.type}</td>
+      <td>{if $f.options}{$f.options|json_encode}{else}-{/if}</td>
+      <td>{if $f.required}<span class="tag ok">必填</span>{else}<span class="tag gray">选填</span>{/if}</td>
+      <td>{$f.sort}</td>
+      <td>
+        <a class="btn sm" href="/admin/board/field_edit/id/{$f.id}?board_id={$board.id}">编辑</a>
+        <button class="btn sm danger" onclick="yy.confirm('删除字段「{$f.label}」？', function(){ yy.post('/admin/board/field_delete/board_id/{$board.id}/field_id/{$f.id}', {}, {literal}{url:'/admin/board/fields/id/{$board.id}'}{/literal}); })">删除</button>
+      </td>
+    </tr>
+    {/foreach}
+    {if !$board.fields}
+    <tr><td colspan="8"><div class="empty">暂无字段，点击右上角「添加字段」</div></td></tr>
+    {/if}
+  </table>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="help" style="padding:10px 0">必填字段：前台未填写直接提交时会即时提醒。字段类型支持 单行文本 / 多行文本 / 数字 / 下拉 / 单选 / 多选。</div>
+</div>
+{/block}

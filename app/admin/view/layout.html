@@ -1,0 +1,284 @@
+﻿{if $is_frame}
+{/* ========== iframe 内页：仅渲染内容块（无侧边栏/顶栏），保持后台框架不刷新 ========== */}
+<link rel="stylesheet" href="/static/admin/css/admin.css?v=20261012h">
+<script src="/static/admin/js/admin.js?v=20261012e"></script>
+<div class="frame-content">
+  {block name="content"}{/block}
+</div>
+{block name="script"}{/block}
+{else /}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{block name="title"}易云CMS 管理后台{/block}</title>
+<link rel="stylesheet" href="/static/admin/css/admin.css?v=20261012h">
+</head>
+<body>
+<script src="/static/admin/js/admin.js?v=20261012e"></script>
+<script>
+// v3.21 框架兜底：本页若被加载在后台 iframe 内（如内部 location.href / 表单跳转未带 frame=1），
+// 立即用 location.replace 重写为带 frame=1 的地址，避免「iframe 套完整后台」嵌套
+(function(){
+  try{
+    if(window.self !== window.top){
+      var u = location.href;
+      if(u.indexOf('frame=') === -1){
+        location.replace(u + (u.indexOf('?') !== -1 ? '&' : '?') + 'frame=1');
+      }
+    }
+  }catch(e){}
+})();
+</script>
+<div class="layout">
+  <!-- 侧边栏（独立滚动，切换菜单不刷新，滚动位置保持不变） -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">易<em>云</em>CMS</div>
+    <nav class="nav">
+      <div class="menu-toolbar">
+        <button type="button" class="mt-btn" onclick="yy.expandAllMenu()" title="展开全部菜单">一键展开</button>
+        <button type="button" class="mt-btn" onclick="yy.collapseAllMenu()" title="收起全部菜单">一键收起</button>
+      </div>
+      {foreach $admin_menus as $group}
+        {if isset($group['child']) && $group['child']}
+          <div class="nav-group{foreach $group['child'] as $item}{if $item['url'] == $active_url} open{/if}{/foreach}">
+            <div class="nav-parent" onclick="yy.toggleMenuGroup(this)">
+              <span class="ic"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>
+              <span class="gp-name">{$group.name}</span>
+              <span class="arrow">▸</span>
+            </div>
+            <div class="nav-children">
+              {foreach $group['child'] as $item}
+              <a class="nav-item {if $item['url'] == $active_url}active{/if}" target="main-frame" href="{$app_root|str_replace='index.php',''}/{$item['url']}{if strpos($item['url'], '?') !== false}&{else/}?{/if}frame=1">
+                <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/></svg></span>{$item.name}
+              </a>
+              {/foreach}
+            </div>
+          </div>
+        {else}
+          <a class="nav-item {if $group['url'] == $active_url}active{/if}" target="main-frame" href="{$app_root|str_replace='index.php',''}/{$group['url']}{if strpos($group['url'], '?') !== false}&{else/}?{/if}frame=1">
+            <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></span>{$group.name}
+          </a>
+        {/if}
+      {/foreach}
+    </nav>
+    <div class="side-foot">© 易云CMS · v1.0</div>
+  </aside>
+  <div class="sidebar-mask" onclick="yy.toggleSidebar()"></div>
+
+  <!-- 主区域 -->
+  <div class="main">
+    <header class="header">
+      <div class="header-left">
+        <button class="sidebar-toggle" onclick="yy.toggleSidebar()" aria-label="展开/收起菜单" title="菜单"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+        <div class="crumb">{block name="crumb"}控制台{/block}</div>
+      </div>
+      <div class="user">
+        <button class="btn sm bell" id="yy-bell" onclick="yy.openNotify()" title="消息通知（新客服消息/新留言）">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="bell-dot" id="yy-bell-dot"></span>
+        </button>
+        <a class="btn sm" href="{if $admin_lang == 'cn'}/{else}/{$admin_lang}/{/if}" target="_blank">预览前台</a>
+        <button class="btn sm primary" onclick="yy.buildStatic()" title="生成全部语言全站静态文件">静态生成</button>
+        <!-- 语言切换 -->
+        <div class="lang-switch">
+          <button class="btn sm" onclick="yy.langMenu()">语言：<b>{$admin_lang|strtoupper}</b> ▾</button>
+          <div class="lang-drop" id="lang-drop">
+            {foreach $admin_langs as $l}
+            <a href="javascript:;" data-code="{$l.code}" onclick="yy.setLang('{$l.code}')">{$l.name}（{$l.code}）</a>
+            {/foreach}
+          </div>
+        </div>
+        <div class="avatar">{:strtoupper(mb_substr($admin_nick, 0, 1))}</div>
+        <span class="nick">{$admin_nick}</span>
+        <a href="{$app_root|str_replace='index.php',''}/admin/login/logout" class="btn sm ghost">退出</a>
+      </div>
+    </header>
+
+    <style>
+    /* v3.24 通知铃铛 */
+    .bell{position:relative;padding:6px 10px;display:inline-flex;align-items:center;justify-content:center;gap:4px}
+    .bell-dot{position:absolute;top:2px;right:2px;min-width:8px;height:8px;border-radius:50%;background:#ef4444;display:none}
+    .bell-dot.on{display:block}
+    .bell-dot.pulse{animation:yy-bell-pulse 1s ease-in-out infinite}
+    @keyframes yy-bell-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.5)}}
+    </style>
+    <script>
+    window.yy = window.yy || {};
+    window.yy.adminLangs = [
+      {foreach $admin_langs as $l}{code:'{$l.code}', name:'{$l.name}'},{/foreach}
+    ];
+    // v3.26.1 通知中心：全局轮询新客服消息/新留言（30秒一次）。
+    // 关键行为：仅在有未读（total>0）时显示红点/闪烁/提示音；无未读时立即停止并恢复标题；
+    // 点击铃铛/打开通知中心 → notifyRead 标已读 → 红点与闪烁马上消失，不再「一直存在一直闪」。
+    (function(){
+      var dot = document.getElementById('yy-bell-dot');
+      if(!dot) return;
+      var baseTitle = document.title;
+      var hasNew = false, blinkTimer = null, beeped = false;
+      function beep(){
+        try{
+          var ctx = new (window.AudioContext || window.webkitAudioContext)();
+          var o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = 'sine'; o.frequency.value = 880;
+          g.gain.setValueAtTime(0.12, ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+          o.connect(g); g.connect(ctx.destination);
+          o.start(); o.stop(ctx.currentTime + 0.5);
+        }catch(e){}
+      }
+      function stopBlink(){
+        if(blinkTimer){ clearInterval(blinkTimer); blinkTimer = null; }
+        hasNew = false;
+        document.title = baseTitle;
+      }
+      function startBlink(total){
+        if(blinkTimer) return;               // 已在闪则不重复开
+        blinkTimer = setInterval(function(){
+          // 交替： (N) ● 标题  ↔  标题
+          if(document.title.indexOf('●') !== -1){
+            document.title = baseTitle;
+          } else {
+            document.title = '(' + total + ') ● ' + baseTitle;
+          }
+        }, 1200);
+      }
+      function tick(){
+        fetch('/admin/service/notifyCount', {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}})
+          .then(function(r){ return r.json(); })
+          .then(function(res){
+            if(res && res.code === 1 && res.total > 0){
+              dot.classList.add('on');
+              if(res.total >= 2){ dot.classList.add('pulse'); } else { dot.classList.remove('pulse'); }
+              dot.title = '客服消息 ' + res.service + ' 条，新会话 ' + res.newSession + ' 个，新留言 ' + res.guestbook + ' 条';
+              if(!hasNew){ hasNew = true; beeped = true; beep(); }
+              startBlink(res.total);
+            } else {
+              // 无未读：红点隐藏、闪烁停止、标题恢复
+              dot.classList.remove('on','pulse');
+              stopBlink();
+            }
+          }).catch(function(){});
+      }
+      tick();
+      setInterval(tick, 30000);
+      window.yy.openNotify = function(){
+        // 打开通知中心 = 已读：先清本地提醒，再通知后端标已读，最后跳转
+        dot.classList.remove('on','pulse');
+        stopBlink();
+        fetch('/admin/service/notifyRead', {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}})
+          .catch(function(){});
+        var target = '/admin/service/index?frame=1';
+        var f = document.getElementById('main-frame');
+        if(f) f.src = target;
+      };
+    })();
+    </script>
+    <script>
+    // 后台无操作自动退出（默认 60 分钟，网站设置可调 30分钟/1小时/6小时/自定义）
+    (function(){
+      var TIMEOUT_MS = parseInt('{$admin_session_timeout}', 10) * 60000;
+      if(!TIMEOUT_MS || TIMEOUT_MS <= 0) return;
+      var last = Date.now();
+      ['click','keydown','mousemove','scroll','touchstart','input'].forEach(function(ev){
+        document.addEventListener(ev, function(){ last = Date.now(); }, {passive: true});
+      });
+      setInterval(function(){
+        if(Date.now() - last > TIMEOUT_MS){
+          if(window.__sessionTimeoutDone) return;
+          window.__sessionTimeoutDone = true;
+          location.href = '/admin/login/logout?timeout=1';
+        }
+      }, 30000);
+    })();
+    // 框架加载后：iframe 内出现登录页（会话失效）→ 顶层跳转到登录页
+    (function(){
+      var f = document.getElementById('main-frame');
+      if(f){
+        f.addEventListener('load', function(){
+          try{
+            var u = f.contentWindow.location.pathname || '';
+            if(u.indexOf('/admin/login') !== -1 && top.location.pathname.indexOf('/admin/login') === -1){
+              top.location.href = '/admin/login';
+            }
+          }catch(e){}
+        });
+      }
+    })();
+    // 刷新记忆：iframe 当前页同步到 URL hash（#!路径），整页刷新后恢复该页而非回到控制台
+    (function(){
+      var syncing = false;
+      function cleanHashUrl(u){
+        if(u.indexOf('/admin/') === -1) return '';
+        u = u.split('#')[0];
+        try{
+          var p = new URL(u, location.origin);
+          p.searchParams.delete('frame');
+          p.searchParams.delete('cb');
+          return p.pathname + p.search;
+        }catch(e){
+          var q = u.indexOf('?') !== -1 ? u.slice(u.indexOf('?')) : '';
+          return u.split('?')[0] + q.replace(/([?&])(frame|cb)=[^&]*/g, '');
+        }
+      }
+      function bindFrame(){
+        var f = document.getElementById('main-frame');
+        if(!f) return;
+        // iframe 每次加载完成 → 把当前地址写入 hash
+        f.addEventListener('load', function(){
+          try{
+            var u = f.contentWindow.location.href || '';
+            var clean = cleanHashUrl(u);
+            if(!clean) return;
+            syncing = true;
+            if(location.hash !== '#!' + clean) location.hash = '#!' + clean;
+            syncing = false;
+          }catch(e){}
+        });
+        // 侧边栏菜单点击 → 立即同步 hash（iframe 由 target=main-frame 正常加载）
+        document.querySelectorAll('.nav-item[target="main-frame"]').forEach(function(a){
+          a.addEventListener('click', function(){
+            var href = a.getAttribute('href') || '';
+            if(href.indexOf('/admin/') === -1) return;
+            var clean = cleanHashUrl(location.origin + '/' + href.replace(/^\/+/, ''));
+            if(!clean) return;
+            syncing = true;
+            if(location.hash !== '#!' + clean) location.hash = '#!' + clean;
+            syncing = false;
+          });
+        });
+        // 主页面加载：hash 存在且指向后台页 → iframe 恢复该页
+        if(location.hash.indexOf('#!') === 0){
+          var t = location.hash.slice(2);
+          if(t.indexOf('/admin/') !== -1){
+            var sep = t.indexOf('?') !== -1 ? '&' : '?';
+            f.src = t + sep + 'frame=1';
+          }
+        }
+      }
+      // iframe 元素在 script 之后才渲染，等 window load 后再绑定与恢复
+      window.addEventListener('load', bindFrame);
+      // 浏览器前进/后退或手动改 hash → 同步 iframe
+      window.addEventListener('hashchange', function(){
+        if(syncing) return;
+        var h = location.hash;
+        if(h.indexOf('#!') === 0){
+          var t2 = h.slice(2);
+          if(t2.indexOf('/admin/') !== -1){
+            var sp2 = t2.indexOf('?') !== -1 ? '&' : '?';
+            var f = document.getElementById('main-frame');
+            if(f) f.src = t2 + sp2 + 'frame=1';
+          }
+        }
+      });
+    })();
+    </script>
+    <div class="frame-wrap">
+      <iframe id="main-frame" name="main-frame" src="{$iframe_src}" frameborder="0"></iframe>
+    </div>
+  </div>
+</div>
+{/if}
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="keywords" content="YouYun CMS,enterprise,website">
+<meta name="description" content="YouYun CMS is a modern enterprise website CMS built on ThinkPHP 6.">
+<title>YouYun CMS</title>
+<link rel="stylesheet" href="/template/en/css/style.css">
+</head>
+<body>
+<div class="topbar"><div class="container">
+  <span>Welcome to YouYun CMS</span>
+  <span class="top-actions">
+          <a href="/" class="">中文</a>
+          <a href="/en/index/index" class="on">EN</a>
+        <span class="sep">|</span>
+          <a href="/en/device/set?client=mobile&back=%2F">Mobile</a>
+        <span class="sep">|</span>
+    <a href="/admin">Admin</a>
+  </span>
+</div></div>
+
+<header class="header">
+  <div class="container">
+    <a class="logo" href="/en/index/index">E<em>Cloud</em>CMS</a>
+    <nav class="nav">
+      <a href="/en/index/index" >Home</a>
+              <a href="/en/about.html" >About Us</a>
+              <a href="/en/product/" >Products</a>
+              <a href="/en/contact.html" >Contact</a>
+              <a href="/en/aboutus" >公司简介</a>
+              <a href="/en/news/" >News</a>
+          </nav>
+    <form class="search" action="/en/search/index" method="get">
+      <input type="hidden" name="field" value="all">
+      <select name="catid">
+        <option value="0">All</option>
+                  <option value="1" >About Us</option>
+                  <option value="3" >Products</option>
+                  <option value="4" >Contact</option>
+                  <option value="21" >公司简介</option>
+                  <option value="2" >News</option>
+              </select>
+      <input type="text" name="kw" value="" placeholder="Search title or content">
+      <button type="submit">Search</button>
+    </form>
+  </div>
+</header>
+
+
+<div class="container">
+  <div class="crumbs">
+    <a href="/en/index/index">Home</a>
+    " item="c"}
+        &nbsp;&gt;&nbsp;<a href="/en/aboutus">公司简介</a>
+      " item="c"}
+        &nbsp;&gt;&nbsp;<a href="/en/aboutus/about.html">公司简介</a>
+            </div>
+
+  <div class="detail">
+    <h1>公司简介</h1>
+    <div class="meta">
+            Time: 2026-09-30 17:18　Views: 0    </div>
+
+    <div class="content">
+      <p>辰宏体育是一家经营体育用品、健身器材，承建体育场地工程的专业性公司。公司以“致力于体育场地建设，创造舒适的运动空间”为宗旨，本着“质量、服务为根本，诚信经营为基础，共赢互利为目标”的经营方针竭诚为社会及广大客户服务。</p><p>公司以“团结进取、开拓创新”的企业精神，并借鉴先进管理思想，逐步提高公司员工的业务水平和服务、质量意识，精心打造了一个业务精湛、服务完善的优秀团队和一支经验丰富、技术一流、设备先进的施工队伍。公司始终贯彻“质量是企业生存和发展的根本，持续改进产品及服务质量以满足广大客户的需求是公司发展的永恒主题”的质量方针，采用优质的原材料，严格执行国际、国家体育场地建造标准，为广大客户打造了一个又一个美丽舒适的运动空间。</p><p>经营范围：</p><p>承建：丙烯酸，硅PU体育场地；塑胶跑道；塑胶球场；人造草坪以及游泳池；休闲高尔夫；壁球场等体育场地；</p><p>销售：体育用品；健身器材；健身路径；塑胶跑道；人造草坪；丙烯酸球场涂料；PVC运动、商业、医疗地板；壁球馆批荡料；乳胶漆等铺设材料。</p><p>客户满意是我们工作的目标，也是衡量我们工作好坏的标准。辰宏人将一如既往地以优质的产品、良好的信誉、全面完善的服务寻求与广大客户的合作！</p>    </div>
+
+        <div class="prevnext">
+      <span>Prev: none</span>
+      <span>Next: none</span>
+    </div>
+    
+  </div>
+
+    <div class="section" style="max-width:860px;margin:0 auto">
+    <div class="section-head"><h2>Contact Us</h2><p>Leave a message and we will get back to you</p></div>
+    <form id="msg-form" class="form-grid">
+      <input type="text" name="name" placeholder="Your name *" required>
+      <input type="text" name="phone" placeholder="Phone">
+      <input type="email" name="email" placeholder="Email">
+      <input type="text" name="title" placeholder="Subject">
+      <textarea class="full" name="content" placeholder="Message *" required></textarea>
+      <button class="full" type="submit">Submit</button>
+      <div class="full msg-tip" id="msg-tip"></div>
+    </form>
+  </div>
+  </div>
+
+<script>
+(function(){
+  var f = document.getElementById('msg-form');
+  if(!f) return;
+  f.addEventListener('submit', function(e){
+    e.preventDefault();
+    fetch('/index/message/submit', {method:'POST', body:new FormData(f)})
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        showMsg(res);
+        if(res.code === 1){ f.reset(); }
+      });
+  });
+})();
+</script>
+
+<footer class="footer">
+  <div class="container">
+    <div class="grid">
+      <div>
+        <h4>About Us</h4>
+        <p>YouYun CMS is a modern enterprise website CMS built on ThinkPHP 6.</p>
+      </div>
+      <div>
+        <h4>Links</h4>
+        <div class="links">
+                      <a href="https://www.thinkphp.cn" target="_blank" rel="nofollow">ThinkPHP Official</a>
+                      <a href="https://example.com" target="_blank" rel="nofollow">Example Link</a>
+                  </div>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <div><p>Hotline: 400-000-0000</p><p>Email: contact@example.com</p></div>
+      </div>
+    </div>
+    <div class="copy">
+      Copyright © 2026 YouYun CMS All Rights Reserved.    </div>
+  </div>
+</footer>
+<script>
+function showMsg(data){
+  var box = document.getElementById('msg-tip');
+  if(box){ box.textContent = data.msg; box.style.color = data.code===1 ? '#18b566' : '#f5533d'; }
+}
+</script>
+<script>try{var p=window.location.pathname||"";if(/(^|\/)(admin|static)(\/|$)/.test(p)){}else{var b=p+(window.location.search||"");var r=document.referrer||"";if(navigator.sendBeacon){var fd=new FormData();fd.append("url",b);fd.append("referer",r);navigator.sendBeacon("/visit/track",fd)}else{var x=new XMLHttpRequest();x.open("POST","/visit/track",true);x.setRequestHeader("Content-Type","application/x-www-form-urlencoded");x.send("url="+encodeURIComponent(b)+"&referer="+encodeURIComponent(r))}}}catch(e){}</script></body>
+</html>
+

@@ -1,0 +1,51 @@
+{extend name="layout" /}
+{block name="title"}静态页生成 - 易云CMS{/block}
+{block name="crumb"}模板与样式 · 静态页生成{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">静态模式开关</div>
+  <div class="form-item">
+    <div class="lab">静态模式</div>
+    <div class="ctl">
+      <button class="btn {if $mode==1}success{else}primary{/if}" onclick="yy.post('/admin/static_page/mode', {val:'{if $mode==1}0{else}1{/if}'}, {callback:function(){location.reload();}})">
+        {if $mode==1}已开启（点击关闭）{else}当前关闭（点击开启）{/if}
+      </button>
+      <div class="help">开启后生成 .html 物理文件；cn 写入 public/，en 写入 public/en/，访问更快；发布/编辑内容会自动更新对应静态页</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">一键生成（多语言）</div>
+  <div class="form-item">
+    <div class="lab">生成范围</div>
+    <div class="ctl">
+      {foreach $langs as $l}
+      <button class="btn primary" style="margin-right:8px" onclick="yy.post('/admin/static_page/all', {lang:'{$l.code}'}, {});">生成【{$l.name}】全站</button>
+      {/foreach}
+      <button class="btn danger" onclick="yy.confirm('将生成全部语言的全站静态页，确定？', function(){ yy.post('/admin/static_page/all', {lang:'all'}, {}); })">生成全部语言全站</button>
+      <div class="help">当前后台语言为【{$admin_lang|strtoupper}】，如需对某语言单独操作，请先在顶部切换语言</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">当前语言（{$admin_lang|strtoupper}）按栏目生成</div>
+  <table class="tbl">
+    <tr><th>栏目</th><th style="width:260px">操作</th></tr>
+    {if $cats}
+    {foreach $cats as $cat}
+      <tr>
+        <td>{if $cat.depth>0}　└ {/if}{$cat.name}</td>
+        <td>
+          <button class="btn sm" onclick="yy.post('/admin/static_page/category', {id:'{$cat.id}'}, {});">生成栏目页</button>
+          <button class="btn sm" onclick="yy.post('/admin/static_page/categoryContent', {id:'{$cat.id}'}, {});">生成栏目内容</button>
+        </td>
+      </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="2"><div class="empty">当前语言暂无栏目</div></td></tr>
+    {/if}
+  </table>
+</div>
+{/block}

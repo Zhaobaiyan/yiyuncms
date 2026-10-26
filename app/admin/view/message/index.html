@@ -1,0 +1,91 @@
+{extend name="layout" /}
+{block name="title"}留言管理 - 易云CMS{/block}
+{block name="crumb"}内容管理 · 留言管理{/block}
+{block name="content"}
+<div class="toolbar">
+  <form action="/admin/message/index" method="get" style="display:flex;gap:10px;flex-wrap:wrap">
+    <select name="board_id">
+      <option value="0">全部留言板</option>
+      {foreach $boards as $b}
+      <option value="{$b.id}" {if $filter.board_id==$b.id}selected{/if}>{$b.title}</option>
+      {/foreach}
+    </select>
+    <select name="status">
+      <option value="-1">全部状态</option>
+      <option value="0" {if $filter.status==0}selected{/if}>待审核</option>
+      <option value="1" {if $filter.status==1}selected{/if}>已通过</option>
+    </select>
+    <input type="text" name="keyword" value="{$filter.keyword}" placeholder="搜索称呼/电话/内容" style="max-width:220px">
+    <button class="btn" type="submit">筛选</button>
+  </form>
+  <span class="right"><a class="btn" href="/admin/board/index" style="margin-right:10px">留言板管理</a><button class="btn sm danger" onclick="delBatch()">删除选中</button></span>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr>
+      <th style="width:36px"><input type="checkbox" id="checkAll"></th>
+      <th style="width:50px">ID</th>
+      <th style="width:110px">留言板</th>
+      <th>称呼</th>
+      <th>联系方式</th>
+      <th style="width:120px">IP地址</th>
+      <th>主题</th>
+      <th style="width:80px">状态</th>
+      <th style="width:90px">公开</th>
+      <th style="width:150px">时间</th>
+      <th style="width:200px">操作</th>
+    </tr>
+    {if $list}
+    {foreach $list as $row}
+    <tr>
+      <td><input type="checkbox" class="row-check" value="{$row.id}"></td>
+      <td>{$row.id}</td>
+      <td>{if $row.board_id}<span class="tag info">#{$row.board_id}</span>{else}<span class="tag gray">默认</span>{/if}</td>
+      <td>{$row.name}</td>
+      <td>{$row.phone}{if $row.email}<br><span class="text-sub">{$row.email}</span>{/if}</td>
+      <td class="text-sub">{$row.ip|default='—'}</td>
+      <td>{$row.title}</td>
+      <td>
+        {if $row.status==0}<span class="tag warn">待审核</span>
+        {elseif $row.status==1}<span class="tag ok">已通过</span>
+        {else}<span class="tag danger">已拒绝</span>{/if}
+      </td>
+      <td>
+        {if $row.is_public==1}
+        <button class="tag ok" data-toggle="is_public" data-id="{$row.id}" title="点击切换为不公开">公开</button>
+        {else}
+        <button class="tag gray" data-toggle="is_public" data-id="{$row.id}" title="点击切换为公开（前台展示）">不公开</button>
+        {/if}
+      </td>
+      <td class="text-sub">{$row.create_time|date='Y-m-d H:i'}</td>
+      <td class="ops">
+        <a class="btn sm" href="/admin/message/reply/id/{$row.id}">查看/回复</a>
+        <button class="btn sm danger" onclick="yy.confirm('删除该留言？', function(){ yy.post('/admin/message/delete/id/{$row.id}', {}, {literal}{url:'/admin/message/index'}{/literal}); })">删除</button>
+      </td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="10"><div class="empty">暂无留言</div></td></tr>
+    {/if}
+  </table>
+  <div class="pagination">{$list|raw}</div>
+</div>
+<script>
+document.addEventListener('click', function(e){
+  var b = e.target.closest && e.target.closest('button[data-toggle="is_public"]');
+  if(!b) return;
+  var id = b.getAttribute('data-id'), val = b.textContent.trim() === '公开' ? 0 : 1;
+  yy.post('/admin/message/toggle', {id:id, field:'is_public', val:val}, {callback:function(){ location.reload(); }});
+});
+document.getElementById('checkAll').addEventListener('change', function(){
+  document.querySelectorAll('.row-check').forEach(function(c){ c.checked = this.checked; }, this);
+});
+function delBatch(){
+  var ids = Array.from(document.querySelectorAll('.row-check:checked')).map(function(c){ return c.value; });
+  if(!ids.length) return yy.toast('请先选择留言','err');
+  yy.confirm('删除选中的 '+ids.length+' 条留言？', function(){
+    yy.post('/admin/message/delete', {ids: ids.join(',')}, {literal}{url:'/admin/message/index'}{/literal});
+  });
+}
+</script>
+{/block}

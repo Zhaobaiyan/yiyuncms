@@ -1,0 +1,109 @@
+{extend name="layout" /}
+{block name="title"}控制台 - 易云CMS{/block}
+{block name="crumb"}控制台 · 数据看板{/block}
+{block name="content"}
+<div class="stat-grid">
+  <div class="stat"><div class="bar" style="background:#2f6bff">文</div><div><div class="num">{$count.content}</div><div class="label">内容总数</div></div></div>
+  <div class="stat"><div class="bar" style="background:#18b566">栏</div><div><div class="num">{$count.category}</div><div class="label">栏目总数</div></div></div>
+  <div class="stat"><div class="bar" style="background:#f5a623">留</div><div><div class="num">{$count.message}</div><div class="label">留言总数</div></div></div>
+  <div class="stat"><div class="bar" style="background:#f5533d">新</div><div><div class="num">{$count.message_new}</div><div class="label">新留言</div></div></div>
+  <div class="stat"><div class="bar" style="background:#8b5cf6">今</div><div><div class="num">{$count.today_pv}</div><div class="label">今日浏览</div></div></div>
+  <div class="stat"><div class="bar" style="background:#06b6d4">周</div><div><div class="num">{$count.week_pv}</div><div class="label">本周浏览</div></div></div>
+  <div class="stat"><div class="bar" style="background:#ec4899">月</div><div><div class="num">{$count.month_pv}</div><div class="label">本月浏览</div></div></div>
+  <div class="stat"><div class="bar" style="background:#64748b">评</div><div><div class="num">{$count.comment_pending}</div><div class="label">评论待审</div></div></div>
+</div>
+
+{if $todo}
+<div class="card">
+  <div class="card-title">待办事项</div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    {foreach $todo as $td}
+    <a class="btn sm warn" href="{$td.url}" style="padding:6px 16px">{$td.text} →</a>
+    {/foreach}
+  </div>
+</div>
+{/if}
+
+<div class="card">
+  <div class="card-title">近 7 日浏览趋势（PV）</div>
+  <div style="display:flex;align-items:flex-end;gap:18px;height:150px;padding:10px 6px 0;border-bottom:1px solid #e6ebf1">
+    {foreach $trend as $td}
+    <div style="flex:1;text-align:center;height:100%;display:flex;flex-direction:column;justify-content:flex-end">
+      <div style="font-size:12px;color:#8892a6;margin-bottom:4px">{$td.pv}</div>
+      <div style="background:#2f6bff;border-radius:4px 4px 0 0;height:{:max(2, round($td.pv / $maxPv * 100))}%;min-height:2px"></div>
+      <div style="font-size:12px;color:#8892a6;margin-top:6px">{$td.day}</div>
+    </div>
+    {/foreach}
+  </div>
+</div>
+
+<div class="dash-row">
+  <div class="card">
+    <div class="card-title">最新留言</div>
+    {if $messages}
+    <table class="tbl">
+      <tr><th>留言板</th><th>称呼</th><th>内容</th><th style="width:150px">时间</th></tr>
+      {foreach $messages as $msg}
+      <tr>
+        <td class="text-sub">{$msg.board_name|default='-'}</td>
+        <td>{$msg.name}</td>
+        <td class="text-sub" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{$msg.content}</td>
+        <td class="text-sub">{$msg.create_time|date='Y-m-d H:i'}</td>
+      </tr>
+      {/foreach}
+    </table>
+    {else}<div class="empty">暂无留言</div>{/if}
+  </div>
+  <div class="card">
+    <div class="card-title">热门搜索</div>
+    {if $hotSearch}
+    <table class="tbl">
+      <tr><th>关键词</th><th>次数</th></tr>
+      {foreach $hotSearch as $hs}
+      <tr><td>{$hs.keyword}</td><td>{$hs.cnt}</td></tr>
+      {/foreach}
+    </table>
+    {else}<div class="empty">暂无搜索记录</div>{/if}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">最近前台访问</div>
+  {if $visits}
+  <table class="tbl">
+    <tr><th style="width:80px">IP</th><th>地区</th><th>来源</th><th>浏览器</th><th>设备</th><th>语言</th><th>页面</th><th style="width:150px">时间</th></tr>
+    {foreach $visits as $v}
+    <tr>
+      <td class="text-sub">{$v.ip}</td>
+      <td class="text-sub">{$v.area}</td>
+      <td class="text-sub">{$v.engine|default='直接访问'}</td>
+      <td class="text-sub">{$v.browser|default='-'}</td>
+      <td class="text-sub">{if $v.device=='mobile'}手机{elseif $v.device=='pc'}电脑{elseif $v.device=='tablet'}平板{elseif $v.device=='spider'}爬虫{else}-{/if}</td>
+      <td class="text-sub">{$v.lang}</td>
+      <td class="text-sub" style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{$v.page_url}</td>
+      <td class="text-sub">{$v.create_time|date='m-d H:i'}</td>
+    </tr>
+    {/foreach}
+  </table>
+  {else}<div class="empty">暂无访问记录</div>{/if}
+</div>
+
+<div class="card">
+  <div class="card-title">最近操作日志</div>
+  {if $logs}
+  <table class="tbl">
+    <tr><th style="width:60px">ID</th><th>管理员</th><th>动作</th><th>备注</th><th>IP</th><th style="width:170px">时间</th></tr>
+    {foreach $logs as $log}
+    <tr>
+      <td>{$log.id}</td>
+      <td>{$log.username}</td>
+      <td><span class="tag info">{$log.action}</span></td>
+      <td class="text-sub">{$log.remark}</td>
+      <td class="text-sub">{$log.ip}</td>
+      <td class="text-sub">{$log.create_time|date='Y-m-d H:i'}</td>
+    </tr>
+    {/foreach}
+  </table>
+  {else}<div class="empty">暂无操作日志</div>{/if}
+</div>
+{/block}

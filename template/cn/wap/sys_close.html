@@ -1,0 +1,20 @@
+{include file="header" /}
+<style>
+.yy-close-wrap{display:flex;align-items:center;justify-content:center;min-height:52vh;padding:40px 20px}
+.yy-close-box{background:#fff;border:1px solid var(--yy-line);border-radius:var(--yy-radius);box-shadow:0 10px 40px rgba(30,58,95,.08);padding:48px 56px;text-align:center;max-width:480px;width:100%}
+.yy-close-icon{width:64px;height:64px;margin:0 auto 20px;border-radius:50%;background:linear-gradient(135deg,#eff6ff,#dbeafe);display:flex;align-items:center;justify-content:center;font-size:30px}
+.yy-close-box h1{font-size:22px;color:var(--yy-text);margin:0 0 10px}
+.yy-close-box p{color:var(--yy-muted);margin:0 0 26px;font-size:14.5px;line-height:1.8}
+.yy-close-box .yy-btn{display:inline-block}
+</style>
+<div class="yy-container">
+  <div class="yy-close-wrap">
+    <div class="yy-close-box">
+      <div class="yy-close-icon">🔒</div>
+      <h1>功能未开启</h1>
+      <p>{$sys_close_name}暂未开启，如需使用请联系网站管理员。</p>
+      <a class="yy-btn yy-btn-primary" href="{yunu:url name='home' /}">返回网站首页</a>
+    </div>
+  </div>
+</div>
+{include file="footer" /}

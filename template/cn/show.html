@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta name="renderer" content="webkit|ie-comp|ie-stand" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-transform"/>
+<meta name="applicable-device" content="pc,wap">
+<title>{if strlen($content.title) neq 0}{$content.title}{else /}{yunu:config name="site_title" /}{/if}</title>
+<meta name="keywords" content="{if strlen($content.keywords) neq 0}{$content.keywords}{else /}{yunu:config name="site_keywords" /}{/if}">
+<meta name="description" content="{if strlen($content.desc) neq 0}{$content.desc|str2sub=160, true}{else /}{yunu:config name="site_description" /}{/if}">
+<link rel="Shortcut Icon" type=image/x-icon href="{yunu:config name="site_ico" /}" />
+<link rel="stylesheet" href="__PUBLIC__/css/modern.css">
+<script src="__PUBLIC__/js/jquery.min.js"></script>
+</head>
+<body>
+{include file="header" /}
+
+<div class="yy-page-head">
+  <div class="yy-container">
+    <h1>{$content.title}</h1>
+    <div class="yy-crumbs"><span>您的位置：</span><a href="{:url_home()}">首页</a>{cms:crumbs item="c"}<i>&gt;&gt;</i><a href="{:url_cat($c)}">{$c.name}</a>{/cms:crumbs}</div>
+  </div>
+</div>
+
+<div class="yy-section">
+  <div class="yy-container" style="display:grid;grid-template-columns:260px 1fr;gap:26px;align-items:start">
+    <aside style="display:flex;flex-direction:column;gap:20px">
+      <div style="background:#fff;border:1px solid var(--yy-line);border-radius:var(--yy-radius);padding:20px">
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:14px">栏目导航</h4>
+        <ul style="display:flex;flex-direction:column;gap:6px">
+          {cms:category top="1" deep="2" item="nav"}
+          <li>
+            <a href="{:url_cat($nav)}" style="display:block;padding:9px 14px;border-radius:9px;font-size:14px;{if $nav.active_self}background:#eff4ff;color:var(--yy-primary);font-weight:600{/if}">{$nav.name}</a>
+            {if !empty($nav.children)}
+            <div style="padding-left:16px;margin-top:4px;display:flex;flex-direction:column;gap:4px">
+              {foreach $nav.children as $v}
+              <a href="{:url_cat($v)}" style="display:block;padding:7px 12px;border-radius:8px;font-size:13.5px;color:var(--yy-muted);{if $v.active_self}color:var(--yy-primary);font-weight:600{/if}">{$v.name}</a>
+              {if !empty($v.children)}
+              <div style="padding-left:16px;margin-top:4px;display:flex;flex-direction:column;gap:4px">
+                {foreach $v.children as $v2}
+                <a href="{:url_cat($v2)}" style="display:block;padding:6px 12px;border-radius:8px;font-size:13px;color:var(--yy-muted);{if $v2.active_self}color:var(--yy-primary);font-weight:600{/if}">{$v2.name}</a>
+                {/foreach}
+              </div>
+              {/if}
+              {/foreach}
+            </div>
+            {/if}
+          </li>
+          {/cms:category}
+        </ul>
+      </div>
+      {if !$is_single}
+      <div style="background:#fff;border:1px solid var(--yy-line);border-radius:var(--yy-radius);padding:20px">
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:14px">热门资讯</h4>
+        <?php $__hot_i = 0;?>
+        <ul style="display:flex;flex-direction:column;gap:10px">
+          {cms:hot num="8" item="h"}
+          <?php $__hot_i++;?>
+          <li style="font-size:13.5px;color:var(--yy-muted)"><a href="{:url_content($h)}" title="{$h.title}" style="display:flex;gap:8px;align-items:center"><span style="flex:0 0 22px;height:22px;border-radius:6px;background:#eff4ff;color:var(--yy-primary);font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:600">{$__hot_i}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{$h.title}</span></a></li>
+          {/cms:hot}
+        </ul>
+      </div>
+      {/if}
+    </aside>
+
+    <div>
+      <div class="yy-detail">
+        {if !$is_single}
+        <div class="yy-detail-meta">
+          {if $content.author}<span>作者：<i>{$content.author}</i></span>{/if}
+          <span>发布时间：<i>{$content.create_time|date='Y-m-d H:i:s'}</i></span>
+          <span>点击：<i>{$content.views}</i></span>
+          {if $content.author_name}<span>发稿人：<i>{$content.author_name}</i></span>{/if}
+          {if $content.audit_name}<span>审核人：<i>{$content.audit_name}</i></span>{/if}
+        </div>
+        {/if}
+        {if $content.desc}
+        <div style="background:#f8fafc;border-left:4px solid var(--yy-primary);padding:14px 18px;border-radius:0 10px 10px 0;margin-bottom:20px;font-size:14.5px;color:var(--yy-muted)">信息摘要：{$content.desc|raw}</div>
+        {/if}
+        {if $content.thumb}
+        <div style="text-align:center;margin:16px 0"><img src="{$content.thumb}" alt="{$content.title}" style="max-width:100%;border-radius:12px"></div>
+        {/if}
+        <div class="yy-detail-body">
+          {$content.content|sitelink|raw}
+        </div>
+        {if !empty($extend_fields)}
+        <div style="margin-top:26px;border-top:1px dashed var(--yy-line);padding-top:18px">
+          <h3 style="font-size:16px;font-weight:600;margin-bottom:12px">更多信息</h3>
+          <table>
+            {foreach $extend_fields as $ef}
+            <tr><th style="text-align:left;width:140px;background:#f8fafc">{$ef.label}</th><td>{if $ef.type=='richtext'}{$ef.value|raw}{else}{$ef.value}{/if}</td></tr>
+            {/foreach}
+          </table>
+        </div>
+        {/if}
+        {if !isset($is_single) || !$is_single}
+        <div style="display:flex;justify-content:space-between;gap:20px;margin-top:26px;padding-top:18px;border-top:1px dashed var(--yy-line);flex-wrap:wrap">
+          <div style="flex:1;min-width:260px">
+            {cms:prevnext}
+            <div style="font-size:14px;color:var(--yy-muted)">上一条：<a href="{if $prev}{:url_content($prev)}{else}javascript:;{/if}" style="color:var(--yy-primary)">{if $prev}{$prev.title}{else}没有了{/if}</a></div>
+            <div style="font-size:14px;color:var(--yy-muted);margin-top:8px">下一条：<a href="{if $next}{:url_content($next)}{else}javascript:;{/if}" style="color:var(--yy-primary)">{if $next}{$next.title}{else}没有了{/if}</a></div>
+            {/cms:prevnext}
+          </div>
+          {if $content.tag}
+          <div style="font-size:14px;color:var(--yy-muted)">本文标签：{yunu:tag title="$content['tag']"}<a href="{$tag.url}" style="color:var(--yy-primary)">{$tag.title}</a>{/yunu:tag}</div>
+          {/if}
+        </div>
+        {/if}
+      </div>
+
+      {if isset($is_single) && $is_single}
+      <div style="background:#fff;border:1px solid var(--yy-line);border-radius:var(--yy-radius);padding:24px;margin-top:26px">
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px"><span style="width:5px;height:22px;background:linear-gradient(180deg,var(--yy-primary),var(--yy-accent));border-radius:3px;display:inline-block"></span>在线留言</h3>
+        <form id="msg-form" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div id="msg-fields" style="grid-column:1/-1"></div>
+          <a class="yy-btn yy-btn-primary" href="javascript:;" onclick="document.getElementById('msg-form').dispatchEvent(new Event('submit',{cancelable:true}))" style="justify-content:center">提交留言</a>
+          <div id="msg-tip" style="grid-column:1/-1;font-size:13.5px;color:var(--yy-muted)"></div>
+        </form>
+      </div>
+
+      <div style="background:#fff;border:1px solid var(--yy-line);border-radius:var(--yy-radius);padding:24px;margin-top:20px">
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:16px">查询回复</h3>
+        <p style="font-size:13.5px;color:var(--yy-muted);margin-bottom:12px">提交留言后可获得查询码，凭查询码在此查看审核与回复情况。</p>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="msgq_1-input" placeholder="输入查询码（如 A7K2M9X4）" style="flex:1;height:42px;border:1px solid var(--yy-line);border-radius:9px;padding:0 14px">
+          <a class="yy-btn yy-btn-primary yy-btn-sm" href="javascript:;" onclick="msgQuery1()">查询</a>
+        </div>
+        <div id="msgq_1-result" style="margin-top:12px;font-size:14px"></div>
+      </div>
+
+      <div style="background:#fff;border:1px solid var(--yy-line);border-radius:var(--yy-radius);padding:24px;margin-top:20px">
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:16px">最新留言</h3>
+        <ul id="msgl_1" style="display:flex;flex-direction:column;gap:10px;font-size:14px"></ul>
+      </div>
+      {/if}
+
+      {if !$is_single}
+      {if $sys_open.comment}
+      <div class="yy-comments">
+        <h2>用户评论<span class="yy-cm-count">{if isset($comments) && $comments}{:count($comments)}{else}0{/if} 条</span></h2>
+        {if isset($comments) && $comments}
+        {foreach $comments as $cm}
+        <div class="yy-comment-item">
+          <div class="yy-cm-ava">{:mb_substr($cm.username,0,1,'utf-8')}</div>
+          <div class="yy-cm-main">
+            <div class="yy-cm-head"><b>{$cm.username}</b><span>{$cm.create_time|date='Y-m-d H:i'}</span></div>
+            <div class="yy-cm-body">{$cm.content}</div>
+            {if $cm.reply}
+            <div class="yy-cm-reply"><b>官方回复：</b>{$cm.reply}</div>
+            {/if}
+          </div>
+        </div>
+        {/foreach}
+        {else}
+        <div style="color:var(--yy-muted);font-size:14px;text-align:center;padding:20px 0">暂无评论</div>
+        {/if}
+        <div class="yy-comment-form">
+          <textarea id="cmContent" placeholder="写下您的评价（2-500字）"></textarea>
+          <div class="yy-cf-row">
+            <input type="text" id="cmName" placeholder="您的称呼" style="width:180px">
+            <input type="text" id="cmCode" placeholder="验证码" style="width:120px">
+            <img src="/show/commentCaptcha" onclick="this.src='/show/commentCaptcha?'+Math.random()" title="点击刷新验证码">
+            <a class="yy-btn yy-btn-primary yy-btn-sm" href="javascript:;" onclick="yyComment()">发表评论</a>
+          </div>
+        </div>
+      </div>
+      {/if}
+      {/if}
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var f = document.getElementById('msg-form');
+  if(!f) return;
+  var box = document.getElementById('msg-fields');
+  var tip = document.getElementById('msg-tip');
+  var boardId = 0, fields = [];
+  function esc(s){ s=s||''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function renderBoard(b){
+    boardId = b.id; fields = b.fields || [];
+    var html = '<input type="hidden" name="board_id" value="' + b.id + '">';
+    fields.forEach(function(fd){
+      var req = parseInt(fd.required||0,10);
+      var mark = req ? ' <em style="color:#e02424">*</em>' : '';
+      var lbl = '<div style="display:grid;gap:6px"><label style="font-size:13.5px;color:var(--yy-muted)">' + esc(fd.label) + mark + '</label>';
+      if (fd.type === 'textarea') {
+        html += lbl + '<textarea name="' + fd.name + '" placeholder="请输入' + esc(fd.label) + '" data-req="' + (req?'1':'0') + '" style="width:100%;height:110px;border:1px solid var(--yy-line);border-radius:9px;padding:10px 12px;box-sizing:border-box"></textarea></div>';
+      } else if (fd.type === 'select') {
+        html += lbl + '<select name="' + fd.name + '" data-req="' + (req?'1':'0') + '" style="width:100%;height:42px;border:1px solid var(--yy-line);border-radius:9px;padding:0 12px"><option value="">请选择' + esc(fd.label) + '</option>' + (fd.options||[]).map(function(o){return '<option value="'+esc(o)+'">'+esc(o)+'</option>';}).join('') + '</select></div>';
+      } else if (fd.type === 'radio') {
+        html += lbl + '<div>' + (fd.options||[]).map(function(o){return '<label style="margin-right:12px;display:inline-block"><input type="radio" name="'+fd.name+'" value="'+esc(o)+'"> '+esc(o)+'</label>';}).join('') + '</div></div>';
+      } else if (fd.type === 'checkbox') {
+        html += lbl + '<div>' + (fd.options||[]).map(function(o){return '<label style="margin-right:12px;display:inline-block"><input type="checkbox" name="'+fd.name+'[]" value="'+esc(o)+'"> '+esc(o)+'</label>';}).join('') + '</div></div>';
+      } else if (fd.type === 'number') {
+        html += lbl + '<input type="number" name="' + fd.name + '" placeholder="请输入' + esc(fd.label) + '" data-req="' + (req?'1':'0') + '" style="width:100%;height:42px;border:1px solid var(--yy-line);border-radius:9px;padding:0 12px;box-sizing:border-box"></div>';
+      } else {
+        html += lbl + '<input type="text" name="' + fd.name + '" placeholder="请输入' + esc(fd.label) + '" data-req="' + (req?'1':'0') + '" style="width:100%;height:42px;border:1px solid var(--yy-line);border-radius:9px;padding:0 12px;box-sizing:border-box"></div>';
+      }
+    });
+    box.innerHTML = html;
+  }
+  fetch('/message/board').then(function(r){ return r.json(); }).then(function(res){ if(res.code===1) renderBoard(res.board); }).catch(function(){});
+  f.addEventListener('submit', function(e){
+    e.preventDefault();
+    var miss = [];
+    box.querySelectorAll('[data-req="1"]').forEach(function(el){
+      var v = (el.value||'').trim();
+      if(!v) miss.push(el.placeholder || el.name);
+    });
+    fields.forEach(function(fd){
+      if(parseInt(fd.required||0,10) && fd.type==='radio'){ var c = box.querySelector('input[name="'+fd.name+'"]:checked'); if(!c) miss.push(fd.label); }
+      else if(parseInt(fd.required||0,10) && fd.type==='checkbox'){ var c = box.querySelector('input[name="'+fd.name+'[]"]:checked'); if(!c) miss.push(fd.label); }
+    });
+    if(miss.length){ tip.innerHTML='<span style="color:#e02424">请填写：' + miss.join('、') + '</span>'; return; }
+    fetch('/message/submit', {method:'POST', body:new FormData(f)}).then(function(r){ return r.json(); }).then(function(res){
+      if(res.code===1){ tip.innerHTML='<span style="color:#059669">'+res.msg+'</span>'; f.reset(); box.innerHTML=''; fetch('/message/board').then(function(r){return r.json();}).then(function(r){ if(r.code===1) renderBoard(r.board); }); }
+      else { tip.innerHTML='<span style="color:#e02424">'+res.msg+'</span>'; }
+    });
+  });
+})();
+function msgQuery1(){
+  var inp=document.getElementById('msgq_1-input'), box=document.getElementById('msgq_1-result');
+  var code=(inp.value||'').trim().toUpperCase(); if(!code){ box.innerHTML='<span style="color:#c0392b">请输入查询码</span>'; return; }
+  var fd=new FormData(); fd.append('query_code', code);
+  fetch('/message/query',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(res){
+    if(res.code!==1){ box.innerHTML='<span style="color:#c0392b">'+res.msg+'</span>'; return; }
+    var d=res.data, html='<div style="background:#f8fafc;border-radius:10px;padding:14px"><b>'+d.name+'</b> <span style="color:#999;font-size:12px">'+d.create_time+'</span><br>'+d.content+'<br><span style="color:#888">状态：'+d.status_text+'</span>';
+    if(d.reply){ html+='<div style="margin-top:6px;padding:8px;background:#eff4ff;border-radius:6px"><b>官方回复：</b>'+d.reply+(d.reply_time?' <span style="color:#999;font-size:12px">'+d.reply_time+'</span>':'')+'</div>'; }
+    box.innerHTML=html+'</div>';
+  }).catch(function(){ box.innerHTML='<span style="color:#c0392b">查询失败，请稍后再试</span>'; });
+}
+fetch('/message/list?board_id=1&limit=10').then(function(r){return r.json();}).then(function(res){
+  var ul=document.getElementById('msgl_1'); if(!ul) return;
+  if(res.code!==1 || !res.data.length){ ul.innerHTML='<li style="color:#999">暂无公开留言</li>'; return; }
+  ul.innerHTML=res.data.map(function(m){
+    var s='<li style="padding:10px;background:#f8fafc;border-radius:10px"><b>'+m.name+'</b> <span style="color:#999;font-size:12px">'+m.create_time+'</span><br>'+m.content;
+    if(m.reply){ s+='<div style="margin-top:6px;color:#2d8cf0">官方回复：'+m.reply+'</div>'; }
+    return s+'</li>';
+  }).join('');
+}).catch(function(){});
+function yyComment(){
+  var name=$('#cmName').val().trim(), content=$('#cmContent').val().trim(), code=$('#cmCode').val().trim();
+  if(!name){ alert('请填写称呼'); return; }
+  if(content.length<2){ alert('评论内容至少2个字'); return; }
+  $.post('/show/comment', {id:{$content.id}, name:name, content:content, code:code}, function(r){
+    if(r.code==1){ alert(r.msg); $('#cmName').val(''); $('#cmContent').val(''); $('#cmCode').val(''); location.reload(); }
+    else { alert(r.msg); $('#cmCode').val(''); $('.yy-cf-row img').trigger('click'); }
+  },'json').fail(function(){ alert('网络错误'); });
+}
+</script>
+{include file="footer" /}
+</body>
+</html>

@@ -1,0 +1,27 @@
+<IfModule mod_rewrite.c>
+  Options +FollowSymlinks -Multiviews
+  RewriteEngine On
+
+  # ------------------------------------------------------------------
+  # Apache 伪静态（由易云CMS 自动生成，请勿手工修改；主语言：cn）
+  # 主语言静态页 URL 无前缀：栏目/内容/单页文件在 /cn/ 文件夹，前缀由下方规则隐藏
+  # 其他语言带前缀直接命中；未命中走 ThinkPHP 动态路由
+  # ------------------------------------------------------------------
+
+  # 主语言目录型（列表/栏目）→ {lang}/index.html（仅当静态 index.html 存在，否则回落动态）
+  RewriteCond %{REQUEST_URI} !^/$
+  RewriteCond %{REQUEST_URI} !^/(en|admin|upload|static|download|index\.php|favicon\.ico|robots\.txt|lists|show|search|tag|message|guestbook|index)/? [NC]
+  RewriteCond %{DOCUMENT_ROOT}/cn%{REQUEST_URI}/index.html -f
+  RewriteRule ^(.*)$ cn/$1/index.html [L]
+
+  # 主语言文件型（单页/内容页 .html）
+  RewriteCond %{REQUEST_URI} !^/$
+  RewriteCond %{REQUEST_URI} !^/(en|admin|upload|static|download|index\.php|favicon\.ico|robots\.txt)/? [NC]
+  RewriteCond %{DOCUMENT_ROOT}/cn%{REQUEST_URI} -f
+  RewriteRule ^(.*)$ cn/$1 [L]
+
+  # ThinkPHP 标准路由（非文件非目录）
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^(.*)$ index.php?/$1 [QSA,PT,L]
+</IfModule>

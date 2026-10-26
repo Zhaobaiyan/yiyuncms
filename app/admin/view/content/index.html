@@ -1,0 +1,443 @@
+{extend name="layout" /}
+{block name="title"}内容管理 - 易云CMS{/block}
+{block name="crumb"}内容管理 · 内容管理{/block}
+{block name="content"}
+<div class="toolbar">
+  <form action="/admin/content/index" method="get" class="filter-form">
+    <div class="filter-line">
+      <select name="catid" style="width:auto;min-width:140px">
+        <option value="0">全部分类</option>
+        {foreach $cats as $cat}
+          <option value="{$cat.id}" {if $filter.catid == $cat.id}selected{/if}>{$cat.name}</option>
+          {if isset($cat.children)}
+            {foreach $cat.children as $c}
+            <option value="{$c.id}" {if $filter.catid == $c.id}selected{/if}>&nbsp;&nbsp;└ {$c.name}</option>
+            {/foreach}
+          {/if}
+        {/foreach}
+      </select>
+      <select name="model_id" style="width:auto;min-width:130px">
+        <option value="0">全部模型</option>
+        {foreach $models as $m}
+        <option value="{$m.id}" {if $filter.model_id == $m.id}selected{/if}>{$m.title}</option>
+        {/foreach}
+      </select>
+      <select name="status" style="width:auto;min-width:110px">
+        <option value="">全部状态</option>
+        <option value="1" {if $filter.status === '1'}selected{/if}>发布</option>
+        <option value="0" {if $filter.status === '0'}selected{/if}>草稿</option>
+        {if $auditOpen}
+        <option value="audit1" {if $filter.status === 'audit1'}selected{/if}>待审核</option>
+        <option value="audit2" {if $filter.status === 'audit2'}selected{/if}>已驳回</option>
+        {/if}
+        <option value="trash" {if $filter.status === 'trash'}selected{/if}>回收站</option>
+      </select>
+      <span class="fl-sp"></span>
+      {if $is_trash}
+      <a class="btn" href="/admin/content/index">← 返回内容列表</a>
+      {else}
+      <a class="btn" href="/admin/content/index?status=trash" title="查看已删除内容，可恢复或彻底删除">回收站{if $trash_count>0}（{$trash_count}）{/if}</a>
+      <a class="btn primary" href="/admin/content/add">+ 发布内容</a>
+      {/if}
+    </div>
+    <div class="filter-line">
+      <input type="text" name="keyword" value="{$filter.keyword}" placeholder="搜索标题" style="width:260px">
+      <button class="btn" type="submit">筛选</button>
+      <span class="text-sub">勾选后可批量置顶/推荐/热门/上下架/复制/移动/删除</span>
+    </div>
+  </form>
+</div>
+<div class="card">
+  <div class="batch-line">
+    {if $is_trash}
+    <div class="batch-row">
+      <span class="batch-label">批量：</span>
+      <button class="btn sm primary" onclick="batchRestore()">恢复选中</button>
+      <button class="btn sm danger" onclick="batchPurge()">彻底删除选中</button>
+      <span class="text-sub">彻底删除不可恢复，请谨慎操作</span>
+    </div>
+    {else}
+    <div class="batch-row">
+      <span class="batch-label">批量：</span>
+      <button class="btn sm success" onclick="batchOp('top',1)">置顶</button>
+      <button class="btn sm" onclick="batchOp('top',0)">取消置顶</button>
+      <button class="btn sm success" onclick="batchOp('recommend',1)">推荐</button>
+      <button class="btn sm" onclick="batchOp('recommend',0)">取消推荐</button>
+      <button class="btn sm success" onclick="batchOp('hot',1)">热门</button>
+      <button class="btn sm" onclick="batchOp('hot',0)">取消热门</button>
+      <button class="btn sm success" onclick="batchOp('shop',1)">设为商品</button>
+      <button class="btn sm" onclick="batchOp('shop',0)">取消商品</button>
+      <button class="btn sm success" onclick="batchOp('status',1)">取消下架</button>
+      <button class="btn sm danger" onclick="batchOp('status',0)">下架</button>
+    </div>
+    <div class="batch-row">
+      <span class="batch-label">操作：</span>
+      <button class="btn sm" onclick="batchCopy()">复制</button>
+      <button class="btn sm" onclick="batchCopyLang()">跨语言复制</button>
+      <button class="btn sm" onclick="batchPushSite()">推送到站点</button>
+      <button class="btn sm" onclick="batchMove()">移动</button>
+      <button class="btn sm danger" onclick="batchDelete()">删除选中</button>
+    </div>
+    {/if}
+  </div>
+  <table class="tbl">
+    <tr>
+      <th style="width:36px"><input type="checkbox" id="checkAll"></th>
+      <th style="width:60px">ID</th>
+      <th>标题</th>
+      <th>栏目</th>
+      <th>模型</th>
+      <th style="width:70px">状态</th>
+      <th style="width:110px">发稿人/审核人</th>
+      <th style="width:80px">浏览</th>
+      <th style="width:190px">发布时间 / 定时</th>
+      {if $is_trash}<th style="width:110px">删除时间</th>{/if}
+      <th style="width:200px">操作</th>
+    </tr>
+    {if $list}
+    {foreach $list as $row}
+    <tr>
+      <td><input type="checkbox" class="row-check" value="{$row.id}"></td>
+      <td>{$row.id}</td>
+      <td>
+        <span class="editable" data-id="{$row.id}" data-field="title" title="点击修改标题">{$row.title}</span>
+        {if $row.is_shop}<span class="tag warn" title="已在商品价格中配置为售卖商品">商</span> {/if}{if $row.is_top}<span class="tag info" data-clear="top" data-id="{$row.id}" title="点击取消置顶">顶</span> {/if}{if $row.top>0}<span class="tag warn" data-clear="headline" data-id="{$row.id}" title="点击取消头条">头{$row.top}</span> {/if}{if $row.is_recommend}<span class="tag ok" data-clear="recommend" data-id="{$row.id}" title="点击取消推荐">荐</span> {/if}{if $row.is_hot}<span class="tag danger" data-clear="hot" data-id="{$row.id}" title="点击取消热门">热</span> {/if}
+        <a class="btn sm" target="_blank" href="{if lang_code() != default_lang()}/{lang_code()}{/if}/show/index?id={$row.id}" title="前台预览">预览</a>
+        {if $row.thumb}<br><img class="mini-img" src="{$row.thumb}">{/if}
+      </td>
+      <td>{$row.category.name|default='-'}</td>
+      <td class="text-sub">{$row.cmsModel.title|default='-'}</td>
+      <td class="nowrap">
+        {if $auditOpen}
+        {if $row.audit_status==1}
+          <span class="tag warn" title="等待审核">待审核</span>
+        {elseif $row.audit_status==2}
+          <span class="tag danger" title="{$row.reject_reason|default='已驳回'}" style="cursor:pointer">已驳回</span>
+        {else}
+          {if $row.status==1}<button class="tag ok" data-toggle="status" data-id="{$row.id}" title="点击切换发布/草稿">发布</button>{else}<button class="tag gray" data-toggle="status" data-id="{$row.id}" title="点击切换发布/草稿">草稿</button>{/if}
+        {/if}
+        {else}
+          {if $row.status==1}<button class="tag ok" data-toggle="status" data-id="{$row.id}" title="点击切换发布/草稿">发布</button>{else}<button class="tag gray" data-toggle="status" data-id="{$row.id}" title="点击切换发布/草稿">草稿</button>{/if}
+        {/if}
+      </td>
+      <td class="text-sub">
+        {if $row.author_uid && isset($people[$row.author_uid])}{$people[$row.author_uid]}{else}-{/if}
+        {if $auditOpen && $row.audit_uid && isset($people[$row.audit_uid])}<br>审：{$people[$row.audit_uid]}{/if}
+      </td>
+      <td><span class="editable num" data-id="{$row.id}" data-field="views" title="点击修改浏览量">{$row.views}</span></td>
+      <td class="text-sub"><span class="editable" data-id="{$row.id}" data-field="create_time" title="点击修改发布时间">{$row.create_time|date='Y-m-d H:i'}</span>{if $row.publish_time > 0}{if $row.publish_time > :time()}<br><span class="tag warn" title="定时发布：{$row.publish_time|date='Y-m-d H:i'}">定时 {$row.publish_time|date='m-d H:i'}</span>{else}<br><span class="tag ok" title="已到定时发布时间">定时已发</span>{/if}{/if}</td>
+      {if $is_trash}<td class="text-sub">{$row.delete_time|date='Y-m-d H:i'}</td>{/if}
+      <td class="ops">
+        {if $is_trash}
+        <button class="btn sm primary" onclick="restoreOne({$row.id})">恢复</button>
+        <button class="btn sm danger" onclick="purgeOne({$row.id}, '{$row.title|htmlspecialchars}')">彻底删除</button>
+        {else}
+        {if $auditOpen && $canAudit && $row.audit_status != 0}<button class="btn sm primary" data-id="{$row.id}" data-title="{$row.title|htmlspecialchars}" onclick="openAudit(this)">审核</button>{/if}
+        <a class="btn sm" href="/admin/content/edit/id/{$row.id}">编辑</a>
+        <button class="btn sm danger" onclick="yy.confirm('删除内容「{$row.title}」？', function(){ yy.post('/admin/content/delete/id/{$row.id}', {}, {literal}{url:'/admin/content/index'}{/literal}); })">删除</button>
+        {/if}
+      </td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="10"><div class="empty">暂无内容</div></td></tr>
+    {/if}
+  </table>
+  <div class="pager-bar">
+    <span class="page-size">每页
+      <select id="page-size" name="page_size">
+        {foreach [10,15,20,50,100,200,500] as $ps}
+        <option value="{$ps}" {if $page_size == $ps}selected{/if}>{$ps}</option>
+        {/foreach}
+      </select>
+      条
+    </span>
+    <div class="pagination">{$list|raw}</div>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var sel = document.getElementById('page-size');
+  if(sel){
+    sel.addEventListener('change', function(){
+      var u = new URLSearchParams(location.search);
+      u.set('page_size', this.value);
+      u.delete('page'); u.delete('cb');
+      location.href = location.pathname + '?' + u.toString();
+    });
+  }
+});
+</script>
+<script>
+var checkAll = document.getElementById('checkAll');
+checkAll.addEventListener('change', function(){
+  document.querySelectorAll('.row-check').forEach(function(c){ c.checked = checkAll.checked; });
+});
+function selected(){ return Array.from(document.querySelectorAll('.row-check:checked')).map(function(c){ return c.value; }); }
+function batchOp(type, val){
+  var ids = selected();
+  if(!ids.length) return yy.toast('请先选择内容','err');
+  yy.post('/admin/content/batch', {ids: ids.join(','), type: type, val: val}, {callback: function(){ location.reload(); }});
+}
+function batchDelete(){
+  var ids = selected();
+  if(!ids.length) return yy.toast('请先选择内容','err');
+  yy.confirm('确定删除选中的 '+ids.length+' 条内容？', function(){
+    yy.post('/admin/content/delete', {ids: ids.join(',')}, {literal}{url:'/admin/content/index'}{/literal});
+  });
+}
+// 同语言复制：本栏目克隆为副本（保留）
+function batchCopy(){
+  var ids = selected();
+  if(!ids.length) return yy.toast('请先选择内容','err');
+  yy.confirm('复制选中的 '+ids.length+' 条内容（同栏目克隆为副本）？', function(){
+    yy.post('/admin/content/batchCopy', {ids: ids.join(',')}, {callback: function(){ location.reload(); }});
+  });
+}
+function batchCopyLang(){
+  var ids = selected();
+  if(!ids.length) return yy.toast('请先选择内容','err');
+  var langs = '{foreach :lang_codes() as $lc}{if $lc != lang_code()}<option value="{$lc}">{$lc}</option>{/if}{/foreach}';
+  var mask = document.createElement('div');
+  mask.className = 'modal-mask show';
+  mask.innerHTML =
+    '<div class="modal">' +
+    '<div class="m-head">跨语言复制内容 <span data-a="close" style="float:right;cursor:pointer;opacity:.6">✕</span></div>' +
+    '<div class="m-body">' +
+      '<div class="lab">将选中的 ' + ids.length + ' 条内容复制到目标语言的栏目（原内容保留，复制后在目标语言翻译）：</div>' +
+      '<select id="bl-lang" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px"><option value="">选择目标语言</option>' + langs + '</select>' +
+      '<select id="bl-cat" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px"><option value="">先选择语言加载栏目</option></select>' +
+    '</div>' +
+    '<div class="m-foot"><button class="btn" data-a="cancel">取消</button><button class="btn primary" data-a="ok">复制</button></div></div>';
+  document.body.appendChild(mask);
+  mask.querySelector('#bl-lang').addEventListener('change', function(){
+    var lang = this.value, sel = mask.querySelector('#bl-cat');
+    if(!lang){ sel.innerHTML='<option value="">请先选择语言</option>'; return; }
+    fetch('/admin/content/langCats?lang=' + lang).then(function(r){ return r.json(); }).then(function(res){
+      var opts = '<option value="">选择目标栏目</option>';
+      (function walk(cats, d){
+        (cats || []).forEach(function(c){
+          var pad=''; for(var i=0;i<d;i++) pad+='　';
+          opts += '<option value="'+c.id+'">'+pad+'└ '+c.name+'</option>';
+          if(c.children && c.children.length) walk(c.children, d+1);
+        });
+      })(res.data || [], 0);
+      sel.innerHTML = opts;
+    }).catch(function(){ sel.innerHTML='<option value="">栏目加载失败</option>'; });
+  });
+  mask.addEventListener('click', function (e) {
+    var a = e.target.getAttribute('data-a');
+    if (a === 'close' || a === 'cancel' || e.target === mask) { mask.remove(); return; }
+    if (a === 'ok') {
+      var lang = document.getElementById('bl-lang').value;
+      var catid = document.getElementById('bl-cat').value;
+      if (!lang) { yy.toast('请选择目标语言','err'); return; }
+      if (!catid) { yy.toast('请选择目标栏目','err'); return; }
+      mask.remove();
+      yy.post('/admin/content/batchCopyLang', {ids: ids.join(','), target_lang: lang, target_catid: catid}, {callback: function(){ location.reload(); }});
+    }
+  });
+}
+  // ---------- 跨站推送（v3.20）：把内容推送到主站/分站，由目标站管理员审核或接收 ----------
+  var PUSH_SITES = {:json_encode($push_sites)};
+  function batchPushSite(){
+    var ids = selected();
+    if(!ids.length) return yy.toast('请先选择内容','err');
+    var sites = {};
+    (PUSH_SITES || []).forEach(function(s){ sites[s.key] = {key:s.key, name:s.name, lang:s.lang}; });
+    var siteOpts = '<option value="">选择目标站点</option>';
+    for(var k in sites){ siteOpts += '<option value="'+sites[k].key+'" data-lang="'+sites[k].lang+'">'+sites[k].name+'</option>'; }
+    var mask = document.createElement('div');
+    mask.className = 'modal-mask show';
+    mask.innerHTML =
+      '<div class="modal">' +
+      '<div class="m-head">推送到站点 <span data-a="close" style="float:right;cursor:pointer;opacity:.6">✕</span></div>' +
+      '<div class="m-body">' +
+        '<div class="lab">将选中的 ' + ids.length + ' 条内容推送到目标站点（原内容保留；主站需审核通过后发布，分站需接收后发布）：</div>' +
+        '<select id="ps-site" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px">' + siteOpts + '</select>' +
+        '<select id="ps-cat" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px"><option value="">先选择站点加载栏目</option></select>' +
+      '</div>' +
+      '<div class="m-foot"><button class="btn" data-a="cancel">取消</button><button class="btn primary" data-a="ok">推送</button></div></div>';
+    document.body.appendChild(mask);
+    mask.querySelector('#ps-site').addEventListener('change', function(){
+      var opt = this.options[this.selectedIndex], sel = mask.querySelector('#ps-cat');
+      if(!opt.value){ sel.innerHTML='<option value="">请先选择站点</option>'; return; }
+      fetch('/admin/push_site/cats?to_lang=' + opt.getAttribute('data-lang')).then(function(r){ return r.json(); }).then(function(res){
+        var opts = '<option value="">选择目标栏目</option>';
+        (res.data && res.data.cats || []).forEach(function(c){
+          var pad=''; for(var i=0;i<c.depth;i++) pad+='　';
+          opts += '<option value="'+c.id+'">'+pad+'└ '+c.name+'</option>';
+        });
+        sel.innerHTML = opts;
+      }).catch(function(){ sel.innerHTML='<option value="">栏目加载失败</option>'; });
+    });
+    mask.addEventListener('click', function (e) {
+      var a = e.target.getAttribute('data-a');
+      if (a === 'close' || a === 'cancel' || e.target === mask) { mask.remove(); return; }
+      if (a === 'ok') {
+        var opt = document.getElementById('ps-site').options[document.getElementById('ps-site').selectedIndex];
+        var catid = document.getElementById('ps-cat').value;
+        if (!opt || !opt.value) { yy.toast('请选择目标站点','err'); return; }
+        if (!catid) { yy.toast('请选择目标栏目','err'); return; }
+        mask.remove();
+        yy.post('/admin/content/pushToSite', {ids: ids.join(','), to_site: opt.value, to_lang: opt.getAttribute('data-lang'), to_catid: catid}, {callback: function(){ location.reload(); }});
+      }
+    });
+  }
+  // ---------- 审核对话框：查看提交历史 + 通过/驳回 ----------
+  function openAudit(btn){
+    var id = btn.getAttribute('data-id'), title = btn.getAttribute('data-title') || '';
+    var mask = document.createElement('div');
+    mask.className = 'modal-mask show';
+    mask.innerHTML =
+      '<div class="modal" style="max-width:680px">' +
+      '<div class="m-head">内容审核「' + title + '」 <span data-a="close" style="float:right;cursor:pointer;opacity:.6">✕</span></div>' +
+      '<div class="m-body" id="audit-body" style="max-height:380px;overflow:auto">加载中…</div>' +
+      '<div class="m-foot" style="display:block">' +
+        '<textarea id="audit-reason" placeholder="驳回原因（驳回时必填，投稿人可查看；多次驳回保留全部历史）" style="width:100%;height:64px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px;box-sizing:border-box;resize:vertical"></textarea>' +
+        '<button class="btn" data-a="cancel">关闭</button>' +
+        '<button class="btn danger" data-a="reject">驳回（填写原因）</button>' +
+        '<button class="btn primary" data-a="pass">审核通过</button>' +
+      '</div></div>';
+    document.body.appendChild(mask);
+    fetch('/admin/content/auditLog/id/' + id).then(function(r){ return r.json(); }).then(function(res){
+      var body = document.getElementById('audit-body');
+      if(!res || res.code !== 1){ body.innerHTML = '<div class="empty">' + ((res && res.msg) || '加载失败') + '</div>'; return; }
+      var html = '<div style="font-size:13px;color:#8892a6;margin-bottom:8px">当前为第 <b style="color:#1a5fb4">' + (res.submit_count || 0) + '</b> 次提交</div>';
+      html += '<div style="border-left:2px solid #e2e8f0;padding-left:12px">';
+      (res.data || []).forEach(function(it){
+        var color = it.type === 1 ? '#1a5fb4' : (it.type === 2 ? '#c0392b' : (it.type === 3 ? '#27ae60' : '#8892a6'));
+        var label = it.type === 1 ? '提交' : (it.type === 2 ? '驳回' : (it.type === 3 ? '审核通过' : '下架/存草稿'));
+        html += '<div style="margin-bottom:10px">' +
+          '<div style="font-weight:600;color:' + color + '">' + label + ' · ' + it.name + ' <span style="font-weight:400;color:#8892a6">' + it.time + '</span></div>' +
+          (it.note ? '<div style="color:#667;margin-top:2px;background:#f8fafc;padding:6px 8px;border-radius:6px">' + it.note + '</div>' : '') +
+        '</div>';
+      });
+      html += '</div>';
+      body.innerHTML = html;
+    }).catch(function(){ document.getElementById('audit-body').innerHTML = '<div class="empty">加载失败</div>'; });
+    mask.addEventListener('click', function (e) {
+      var a = e.target.getAttribute('data-a');
+      if (a === 'close' || a === 'cancel' || e.target === mask) { mask.remove(); return; }
+      if (a === 'pass') {
+        mask.remove();
+        yy.post('/admin/content/audit', { id: id, act: 'pass' }, { callback: function () { location.reload(); } });
+      }
+      if (a === 'reject') {
+        var reason = document.getElementById('audit-reason').value.trim();
+        if (!reason) { yy.toast('请填写驳回原因', 'err'); return; }
+        mask.remove();
+        yy.post('/admin/content/audit', { id: id, act: 'reject', reason: reason }, { callback: function () { location.reload(); } });
+      }
+    });
+  }
+  // ---------- 行内编辑：标题/浏览量/发布时间 ----------
+  document.addEventListener('click', function (e) {
+    var el = e.target;
+    if (!el.classList || !el.classList.contains('editable')) return;
+    var id = el.getAttribute('data-id'), field = el.getAttribute('data-field');
+    var original = el.textContent.trim();
+    if (field === 'create_time' || field === 'add_time') {
+      // 时间字段：点击直接弹出时间选择组件
+      var tinput = document.createElement('input');
+      tinput.type = 'datetime-local';
+      tinput.className = 'inline-input';
+      tinput.value = original.replace(' ', 'T');
+      el.replaceWith(tinput);
+      tinput.focus();
+      function commitTime(save) {
+        var val = tinput.value.replace('T', ' ');
+        if (!save || !val || val === original) {
+          tinput.replaceWith(el);
+          el.textContent = original;
+          return;
+        }
+        yy.post('/admin/content/editField/id/' + id, { field: field, value: val }, { callback: function () { tinput.replaceWith(el); el.textContent = val; } });
+      }
+      tinput.addEventListener('change', function () { commitTime(true); });
+      tinput.addEventListener('blur', function () { commitTime(true); });
+      tinput.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') commitTime(false); });
+      try { if (tinput.showPicker) tinput.showPicker(); } catch (e) {}
+      return;
+    }
+    var input = document.createElement('input');
+    input.className = 'inline-input';
+    input.value = original;
+    input.style.width = (original.length + 2) + 'em';
+    el.replaceWith(input);
+    input.focus();
+    function commit(save) {
+      var val = input.value.trim();
+      if (!save || val === original) {
+        input.replaceWith(el);
+        el.textContent = original;
+        return;
+      }
+      yy.post('/admin/content/editField/id/' + id, { field: field, value: val }, { callback: function () { input.replaceWith(el); el.textContent = val; } });
+    }
+    input.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter') { ev.preventDefault(); commit(true); }
+      if (ev.key === 'Escape') { commit(false); }
+    });
+    input.addEventListener('blur', function () { commit(true); });
+    input.addEventListener('click', function (ev) { ev.stopPropagation(); });
+  });
+  // 状态快速切换（发布/草稿）
+  document.addEventListener('click', function (e) {
+    var el = e.target;
+    if (!el.hasAttribute || !el.hasAttribute('data-toggle')) return;
+    var field = el.getAttribute('data-toggle'), id = el.getAttribute('data-id');
+    var next = el.classList.contains('ok') ? 0 : 1;
+    yy.post('/admin/content/editField/id/' + id, { field: field, value: next }, { callback: function () { location.reload(); } });
+  });
+  // 属性 tag 点击直接取消（置顶/头条/推荐/热门）
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-clear]') : null;
+    if (!el) return;
+    var id = el.getAttribute('data-id'), type = el.getAttribute('data-clear');
+    if (window.confirm('确定取消该内容的' + ({top:'置顶',headline:'头条',recommend:'推荐',hot:'热门'}[type] || '属性') + '吗？')) {
+      yy.post('/admin/content/batch', { ids: [parseInt(id, 10)], type: type, val: 0 }, { callback: function () { location.reload(); } });
+    }
+  });
+function restoreOne(id){
+  yy.confirm('确定恢复该内容吗？', function(){ yy.post('/admin/content/restore', {ids: id}, {callback: function(){ location.reload(); }}); });
+}
+function purgeOne(id, title){
+  yy.confirm('彻底删除「' + title + '」？此操作不可恢复！', function(){ yy.post('/admin/content/purge', {ids: id}, {callback: function(){ location.reload(); }}); });
+}
+function batchRestore(){
+  var ids = selected();
+  if(!ids.length) return yy.toast('请先选择内容','err');
+  yy.confirm('恢复选中的 '+ids.length+' 条内容？', function(){ yy.post('/admin/content/restore', {ids: ids.join(',')}, {callback: function(){ location.reload(); }}); });
+}
+function batchPurge(){
+  var ids = selected();
+  if(!ids.length) return yy.toast('请先选择内容','err');
+  yy.confirm('彻底删除选中的 '+ids.length+' 条内容？此操作不可恢复！', function(){ yy.post('/admin/content/purge', {ids: ids.join(',')}, {callback: function(){ location.reload(); }}); });
+}
+function batchMove(){
+  var ids = selected();
+  if(!ids.length) return yy.toast('请先选择内容','err');
+  var opts = '<option value="">请选择目标栏目</option>{foreach $cats as $cat}<option value="{$cat.id}">{$cat.name}</option>{if isset($cat.children)}{foreach $cat.children as $c}<option value="{$c.id}">&nbsp;&nbsp;└ {$c.name}</option>{/foreach}{/if}{/foreach}';
+  var mask = document.createElement('div');
+  mask.className = 'modal-mask show';
+  mask.innerHTML =
+    '<div class="modal">' +
+    '<div class="m-head">移动到栏目 <span data-a="close" style="float:right;cursor:pointer;opacity:.6">✕</span></div>' +
+    '<div class="m-body"><div class="lab">将选中的 ' + ids.length + ' 条内容移动到：</div>' +
+    '<select id="bm-cat" style="width:100%;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px">' + opts + '</select></div>' +
+    '<div class="m-foot"><button class="btn" data-a="cancel">取消</button><button class="btn primary" data-a="ok">移动</button></div></div>';
+  document.body.appendChild(mask);
+  mask.addEventListener('click', function (e) {
+    var a = e.target.getAttribute('data-a');
+    if (a === 'close' || a === 'cancel' || e.target === mask) { mask.remove(); return; }
+    if (a === 'ok') {
+      var catid = document.getElementById('bm-cat').value;
+      if (!catid) { window.yy.toast('请选择目标栏目', 'err'); return; }
+      mask.remove();
+      yy.post('/admin/content/batchMove', {ids: ids.join(','), catid: catid}, {callback: function(){ location.reload(); }});
+    }
+  });
+}
+</script>
+{/block}

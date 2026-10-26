@@ -1,0 +1,55 @@
+{extend name="layout" /}
+{block name="title"}{if $info}编辑语言{else}添加语言{/if} - 易云CMS{/block}
+{block name="crumb"}语言版本 · {if $info}编辑{else}添加{/if}{/block}
+{block name="content"}
+<div class="card" style="max-width:620px">
+  <div class="card-title">{if $info}编辑语言「{$info.name}」{else}添加语言版本{/if}</div>
+  <form id="lang-form">
+    <div class="form-item">
+      <div class="lab">语言代码 *</div>
+      <div class="ctl">
+        <input type="text" name="code" value="{$info.code|default=''}" {if $info}disabled{/if} placeholder="小写字母，如 en / ru" required>
+        <div class="help">{if $info}代码不可修改{else}将作为前台 URL 前缀（/{code}/）与数据表前缀（yy_{code}_*）{/if}</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">语言名称 *</div>
+      <div class="ctl"><input type="text" name="name" value="{$info.name|default=''}" placeholder="如 English / Русский" required></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">模板文件夹名</div>
+      <div class="ctl">
+        <input type="text" name="tpl_dir" value="{$info.tpl_dir|default=''}" placeholder="默认与代码相同">
+        <div class="help">对应前台 template/ 下的文件夹（PC），手机版为 template/该名/wap/。留空默认与语言代码一致</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">图标/旗帜标识</div>
+      <div class="ctl"><input type="text" name="flag" value="{$info.flag|default=''}" placeholder="如 CN / US / RU（可选）"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">排序</div>
+      <div class="ctl"><input type="number" name="sort" value="{$info.sort|default=100}"></div>
+    </div>
+    {if !$info}
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl"><span class="text-sub">添加后将自动创建该语言的全部数据表（克隆默认语言结构）并复制默认站点设置</span></div>
+    </div>
+    {/if}
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl">
+        <button type="submit" class="btn primary">保存</button>
+        <a class="btn" href="/admin/language/index">返回</a>
+      </div>
+    </div>
+  </form>
+</div>
+<script>
+document.getElementById('lang-form').addEventListener('submit', function (e) {
+  e.preventDefault();
+  yy.post('{if $info}/admin/language/edit/id/{$info.id}{else}/admin/language/add{/if}', new FormData(this), {literal}{url:'/admin/language/index'}{/literal});
+});
+</script>
+{/block}

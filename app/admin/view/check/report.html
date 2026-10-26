@@ -1,0 +1,28 @@
+{extend name="layout" /}
+{block name="title"}文件完整性检查结果 - 易云CMS{/block}
+{block name="crumb"}系统设置 · 文件完整性 · 结果{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">扫描结果（共扫描 {$scanned} 个文件）</div>
+  {if $hits}
+  <table class="tbl">
+    <tr><th>文件</th><th style="width:70px">行号</th><th>特征</th><th style="width:200px">说明</th></tr>
+    {foreach $hits as $h}
+    <tr>
+      <td class="mono">{$h.file}</td>
+      <td>{$h.line}</td>
+      <td><code>{$h.pat}</code></td>
+      <td><span class="tag danger">{$h.label}</span></td>
+    </tr>
+    {/foreach}
+  </table>
+  <div class="help" style="margin-top:10px">以上文件含高风险函数特征，请逐个核对是否为框架自身代码；若确认被篡改，请立即从官方副本覆盖。</div>
+  {else}
+  <div class="empty" style="padding:40px 0">
+    <div style="font-size:28px;margin-bottom:8px">✓</div>
+    未发现风险文件，文件完整性良好
+  </div>
+  {/if}
+  <div style="margin-top:14px"><a class="btn" href="/admin/check/index">返回</a></div>
+</div>
+{/block}

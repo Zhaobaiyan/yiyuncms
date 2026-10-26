@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="keywords" content="YouYun CMS,enterprise,website">
+<meta name="description" content="YouYun CMS is a modern enterprise website CMS built on ThinkPHP 6.">
+<title>YouYun CMS</title>
+<link rel="stylesheet" href="/template/en/css/style.css">
+</head>
+<body>
+<div class="topbar"><div class="container">
+  <span>Welcome to YouYun CMS</span>
+  <span class="top-actions">
+          <a href="/" class="">中文</a>
+          <a href="/en/index/index" class="on">EN</a>
+        <span class="sep">|</span>
+          <a href="/en/device/set?client=mobile&back=%2F">Mobile</a>
+        <span class="sep">|</span>
+    <a href="/admin">Admin</a>
+  </span>
+</div></div>
+
+<header class="header">
+  <div class="container">
+    <a class="logo" href="/en/index/index">E<em>Cloud</em>CMS</a>
+    <nav class="nav">
+      <a href="/en/index/index" >Home</a>
+              <a href="/en/about.html" >About Us</a>
+              <a href="/en/product/" >Products</a>
+              <a href="/en/contact.html" >Contact</a>
+              <a href="/en/aboutus" >公司简介</a>
+              <a href="/en/news/" >News</a>
+          </nav>
+    <form class="search" action="/en/search/index" method="get">
+      <input type="hidden" name="field" value="all">
+      <select name="catid">
+        <option value="0">All</option>
+                  <option value="1" >About Us</option>
+                  <option value="3" >Products</option>
+                  <option value="4" >Contact</option>
+                  <option value="21" >公司简介</option>
+                  <option value="2" >News</option>
+              </select>
+      <input type="text" name="kw" value="" placeholder="Search title or content">
+      <button type="submit">Search</button>
+    </form>
+  </div>
+</header>
+
+
+<div class="container">
+  <div class="crumbs">
+    <a href="/en/index/index">Home</a>
+          &nbsp;&gt;&nbsp;<a href="/en/solution/solution5">企业优势</a>
+          &nbsp;&gt;&nbsp;<a href="/en/solution/solution5">环境展示</a>
+      </div>
+
+  <div class="layout-2col">
+    <div>
+      <h2 style="font-size:24px;color:#1e293b;margin:22px 0 6px">环境展示</h2>
+      <div class="article-list">
+              </div>
+      <div class="pagination"></div>
+    </div>
+
+    <aside class="side">
+      <div class="card">
+        <h4>Categories</h4>
+        <ul>
+                      <li><a href="/en/about.html">About Us</a></li>
+                      <li><a href="/en/product/">Products</a></li>
+                      <li><a href="/en/contact.html">Contact</a></li>
+                      <li><a href="/en/aboutus">公司简介</a></li>
+                      <li><a href="/en/news/">News</a></li>
+                  </ul>
+      </div>
+      <div class="card">
+        <h4>Hot Articles</h4>
+        <ul>
+                  </ul>
+      </div>
+      <div class="card">
+              </div>
+    </aside>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="grid">
+      <div>
+        <h4>About Us</h4>
+        <p>YouYun CMS is a modern enterprise website CMS built on ThinkPHP 6.</p>
+      </div>
+      <div>
+        <h4>Links</h4>
+        <div class="links">
+                      <a href="https://www.thinkphp.cn" target="_blank" rel="nofollow">ThinkPHP Official</a>
+                      <a href="https://example.com" target="_blank" rel="nofollow">Example Link</a>
+                  </div>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <div><p>Hotline: 400-000-0000</p><p>Email: contact@example.com</p></div>
+      </div>
+    </div>
+    <div class="copy">
+      Copyright © 2026 YouYun CMS All Rights Reserved.    </div>
+  </div>
+</footer>
+<script>
+function showMsg(data){
+  var box = document.getElementById('msg-tip');
+  if(box){ box.textContent = data.msg; box.style.color = data.code===1 ? '#18b566' : '#f5533d'; }
+}
+</script>
+<script>try{var p=window.location.pathname||"";if(/(^|\/)(admin|static)(\/|$)/.test(p)){}else{var b=p+(window.location.search||"");var r=document.referrer||"";if(navigator.sendBeacon){var fd=new FormData();fd.append("url",b);fd.append("referer",r);navigator.sendBeacon("/visit/track",fd)}else{var x=new XMLHttpRequest();x.open("POST","/visit/track",true);x.setRequestHeader("Content-Type","application/x-www-form-urlencoded");x.send("url="+encodeURIComponent(b)+"&referer="+encodeURIComponent(r))}}}catch(e){}</script></body>
+</html>
+

@@ -1,0 +1,46 @@
+<div class="yy-footer">
+  <div class="yy-container yy-f-top">
+    <div class="yy-f-about">
+      <h4>关于我们</h4>
+      <p>{yunu:config name="site.description" /}</p>
+      <p style="margin-top:14px">{yunu:config name="site.keywords" /}</p>
+    </div>
+    <div>
+      <h4>快速导航</h4>
+      <ul class="yy-f-links">
+        {yunu:nav typeid='59' limit='6'}
+        <li><a href="{$nav.url}">{$nav.title}</a></li>
+        {/yunu:nav}
+      </ul>
+    </div>
+    <div>
+      <h4>产品中心</h4>
+      <ul class="yy-f-links">
+        {yunu:catlist cid="61" type="son" limit="6"}
+        <li><a href="{$catlist.url}">{$catlist.title}</a></li>
+        {/yunu:catlist}
+      </ul>
+    </div>
+    <div class="yy-f-contact">
+      <h4>联系我们</h4>
+      <p>咨询电话</p>
+      <b>{yunu:block name="mobile"  /}</b>
+      <p style="margin-top:10px">公司电话：{yunu:block name="tel"  /}</p>
+      <p>地址：{yunu:block name="address"  /}</p>
+      <p>网址：{yunu:block name="wz"  /}</p>
+      <div class="yy-f-qr">
+        <div class="yy-qr-item">{yunu:block name="ewm"  /}<span>微信二维码</span></div>
+        <div class="yy-qr-item">{yunu:block name="sjewm"  /}<span>手机网站</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="yy-f-bottom">
+    <div class="yy-container">
+      {yunu:config name="site.copyright" /}
+      <span style="margin:0 10px">|</span>
+      <a href="{yunu:url name='home' /}">{yunu:config name="site.name" /}</a>
+      <span style="margin:0 10px">|</span>
+      <a href="/admin/login" rel="nofollow">后台管理</a>
+    </div>
+  </div>
+</div>

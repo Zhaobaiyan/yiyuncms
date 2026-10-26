@@ -1,0 +1,75 @@
+{extend name="layout" /}
+{block name="title"}大数据量分表 - 易云CMS{/block}
+{block name="crumb"}系统设置 · 大数据量分表{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">分表设置（保留年数）</div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <span style="font-size:13px;color:#5a6579">主表只保留最近</span>
+    <input type="number" id="keep-years" value="{$keepYears}" min="0" max="10" style="width:90px">
+    <span style="font-size:13px;color:#5a6579">年（更早年份的数据自动迁入 <code>yy_{语言}_content_年份</code> 归档表；0 表示全部归档）</span>
+    <button class="btn sm primary" onclick="saveKeep()">保存</button>
+  </div>
+</div>
+
+{foreach $stats as $s}
+<div class="card" style="margin-top:16px">
+  <div class="card-title">{$s.name}（{$s.code}）——主表 <b style="color:#1e6fff">{$s.main}</b> 条</div>
+  {if $s.archs}
+  <table class="tbl">
+    <tr>
+      <th>归档表</th>
+      <th style="width:120px">记录数</th>
+      <th style="width:160px">操作</th>
+    </tr>
+    {foreach $s.archs as $tbl => $cnt}
+    <tr>
+      <td><code>{$tbl}</code></td>
+      <td>{$cnt}</td>
+      <td>
+        <button class="btn sm" onclick="mergeTable('{$s.code}', '{$tbl|substr=###,-4}')">合并回主表</button>
+      </td>
+    </tr>
+    {/foreach}
+  </table>
+  {else}
+  <div class="empty" style="padding:16px 0">暂无归档表</div>
+  {/if}
+  <div style="margin-top:14px;display:flex;gap:10px;align-items:center">
+    <button class="btn primary" onclick="runShard('{$s.code}')">执行分表（{$s.name}）</button>
+    <span class="hint">把早于保留期的内容迁移到归档表；主表变小，前台详情页仍可访问历史内容</span>
+  </div>
+</div>
+{/foreach}
+
+<div class="card" style="margin-top:16px">
+  <div class="card-title">说明</div>
+  <ul class="help-list" style="line-height:2;font-size:13px;color:#5a6579;padding:6px 18px">
+    <li>分表规则：<b>按年份归档</b>。执行后生成 <code>yy_{语言}_content_{年份}</code> 表（结构与主表一致），把保留期之前的整年数据迁入。</li>
+    <li>前台不受影响：详情页按原 URL 访问，主表未命中时自动按年份倒序查归档表（列表与搜索默认只查主表=当前数据）。</li>
+    <li>「合并回主表」把归档表数据回迁（主键冲突自动跳过），适合需要完整在线数据时。</li>
+    <li>建议数据量大后定期执行；执行前可在「数据备份」先导出一份。</li>
+  </ul>
+</div>
+<script>
+function saveKeep(){
+  yy.post('/admin/shard/setting', {keep_years: document.getElementById('keep-years').value}, {});
+}
+function runShard(lang){
+  yy.confirm('确定对 ' + lang + ' 执行分表？更早年份数据将迁入归档表。', function(){
+    yy.post('/admin/shard/run', {lang: lang, keep_years: document.getElementById('keep-years').value}, {callback:function(j){
+      yy.toast(j.msg || '完成', 'ok');
+      setTimeout(function(){ location.reload(); }, 1200);
+    }});
+  });
+}
+function mergeTable(lang, year){
+  yy.confirm('确定将 ' + lang + ' 的 ' + year + ' 归档表合并回主表？', function(){
+    yy.post('/admin/shard/merge', {lang: lang, year: year}, {callback:function(j){
+      yy.toast(j.msg || '完成', 'ok');
+      setTimeout(function(){ location.reload(); }, 1200);
+    }});
+  });
+}
+</script>
+{/block}

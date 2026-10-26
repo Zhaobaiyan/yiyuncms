@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="keywords" content="{if isset($keywords) && $keywords}{$keywords}{else}{cms:setting name="site.keywords"}{/if}">
+<meta name="description" content="{if isset($description) && $description}{$description}{else}{cms:setting name="site.description"}{/if}">
+<title>{if isset($seo_title) && $seo_title}{$seo_title}{else}{cms:setting name="site.name"}{/if}</title>
+<link rel="stylesheet" href="/template/{cms:setting name="base.template" default="default"}/css/style.css">
+</head>
+<body>
+<div class="topbar"><div class="container">
+  <span>欢迎访问 {cms:setting name="site.name"}</span>
+  <span><a href="/admin">管理后台</a></span>
+</div></div>
+
+<header class="header">
+  <div class="container">
+    <a class="logo" href="/">易<em>云</em>CMS</a>
+    <nav class="nav">
+      <a href="/" {if $cur_catid == 0}class="active"{/if}>首页</a>
+      {cms:category parent="0" item="cat"}
+        <a href="{:url_cat($cat)}" {if $cur_catid == $cat.id}class="active"{/if}>{$cat.name}</a>
+      {/cms:category}
+    </nav>
+  </div>
+</header>

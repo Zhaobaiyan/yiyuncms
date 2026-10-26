@@ -1,0 +1,45 @@
+{extend name="layout" /}
+{block name="title"}会员设置 - 易云CMS{/block}
+{block name="crumb"}内容管理 · 会员设置{/block}
+{block name="content"}
+<div class="card" style="max-width:760px">
+  <div class="card-title">会员设置</div>
+  <form id="set-form" class="s-form">
+    <div class="form-item">
+      <div class="lab">开放注册</div>
+      <div class="ctl">
+        <label class="switch"><input type="checkbox" name="reg_open" value="1" {if $reg_open==1}checked{/if}><span class="slider"></span></label>
+        <div class="help">关闭后前台注册入口将提示暂未开放注册</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">注册验证码</div>
+      <div class="ctl">
+        <label class="switch"><input type="checkbox" name="reg_captcha" value="1" {if $reg_captcha==1}checked{/if}><span class="slider"></span></label>
+        <div class="help">开启后注册页需要输入图形验证码，防止恶意注册</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">注册审核</div>
+      <div class="ctl">
+        <label class="switch"><input type="checkbox" name="audit" value="1" {if $audit==1}checked{/if}><span class="slider"></span></label>
+        <div class="help">开启后新注册会员为「待审核」状态，需在会员管理中审核通过后方可登录；关闭则注册即生效</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl"><button type="submit" class="btn primary">保存设置</button></div>
+    </div>
+  </form>
+</div>
+<script>
+document.getElementById('set-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  var fd = new FormData();
+  fd.set('reg_open', document.querySelector('[name=reg_open]').checked ? 1 : 0);
+  fd.set('reg_captcha', document.querySelector('[name=reg_captcha]').checked ? 1 : 0);
+  fd.set('audit', document.querySelector('[name=audit]').checked ? 1 : 0);
+  yy.post('/admin/member_admin/setting', fd, {literal}{url:'/admin/member_admin/setting'}{/literal});
+});
+</script>
+{/block}

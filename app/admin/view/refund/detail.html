@@ -1,0 +1,76 @@
+{extend name="layout" /}
+{block name="title"}售后详情 - 易云CMS{/block}
+{block name="crumb"}商城管理 · 售后详情{/block}
+{block name="content"}
+<div class="toolbar">
+  <a class="btn sm" href="/admin/refund/index">返回列表</a>
+  {if $refund.status==0 || $refund.status==1}
+  <button class="btn sm primary" onclick="handle('agree_refund')">同意并退款（钱包入账）</button>
+  {/if}
+  {if $refund.status==0}
+  <button class="btn sm" onclick="handle('agree')">仅同意</button>
+  <button class="btn sm danger" onclick="handle('reject')">拒绝</button>
+  {/if}
+  <a class="btn sm" href="/admin/shop/order_detail/id/{$refund.order_id}">查看订单</a>
+</div>
+<div class="card">
+  <div class="card-title">售后申请</div>
+  <table class="tbl">
+    <tr><th style="width:120px">售后类型</th><td>{if $refund.type=='refund_only'}仅退款{else}退货退款{/if}</td><th style="width:120px">申请金额</th><td><b style="color:var(--danger)">¥{$refund.amount}</b></td></tr>
+    <tr><th>订单号</th><td>{$order.order_no|default='—'}</td><th>实付金额</th><td>{$order.pay_amount|default='0.00'}</td></tr>
+    <tr><th>会员</th><td>{$member.username|default='未知'}（ID {$refund.member_id}）</td><th>申请时间</th><td>{$refund.create_time|date='Y-m-d H:i'}</td></tr>
+    <tr><th>退款原因</th><td colspan="3">{$refund.reason}</td></tr>
+    {if $refund.desc}<tr><th>问题描述</th><td colspan="3">{$refund.desc}</td></tr>{/if}
+    {if $refund.admin_reply}<tr><th>客服回复</th><td colspan="3">{$refund.admin_reply}</td></tr>{/if}
+    <tr><th>当前状态</th><td colspan="3">
+      {if $refund.status==0}<span class="tag warn">处理中</span>
+      {elseif $refund.status==1}<span class="tag warn">已同意（待退款）</span>
+      {elseif $refund.status==2}<span class="tag gray">已拒绝</span>
+      {else}<span class="tag ok">已退款到会员钱包</span>{/if}
+    </td></tr>
+  </table>
+</div>
+<div class="card">
+  <div class="card-title">订单商品</div>
+  <table class="tbl">
+    <tr><th>商品</th><th>规格</th><th>单价(元)</th><th>数量</th></tr>
+    {foreach $products as $p}
+    <tr>
+      <td>{$p.title}</td>
+      <td>{$p.spec|default='—'}</td>
+      <td>{$p.price}</td>
+      <td>{$p.num}</td>
+    </tr>
+    {/foreach}
+  </table>
+</div>
+{if $wallet}
+<div class="card">
+  <div class="card-title">会员钱包（当前）</div>
+  <table class="tbl">
+    <tr><th>可用余额</th><td><b>¥{$wallet.balance}</b></td><th>冻结</th><td>¥{$wallet.frozen}</td><th>累计收入</th><td>¥{$wallet.total_income}</td><th>累计提现</th><td>¥{$wallet.total_withdraw}</td></tr>
+  </table>
+</div>
+{/if}
+<div class="card">
+  <div class="card-title">处理回复（拒绝时必填理由）</div>
+  <div class="s-form">
+    <div class="form-item">
+      <div class="lab">回复内容</div>
+      <div class="ctl">
+        <textarea class="ipt" id="reply" rows="3" style="width:100%" placeholder="给会员的回复说明">{$refund.admin_reply}</textarea>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function handle(action){
+  var reply = document.getElementById('reply').value.trim();
+  if (action === 'reject' && reply === '') { alert('拒绝时必须填写理由'); return; }
+  var msg = action === 'agree_refund' ? '确认退款 ¥{$refund.amount} 到会员钱包？' : (action === 'agree' ? '确认仅同意（等待退货寄回）？' : '确认拒绝该售后申请？');
+  yy.confirm(msg, function(){
+    yy.post('/admin/refund/handle', { id: {$refund.id}, action: action, admin_reply: reply }, {literal}{url:'/admin/refund/detail/id/{$refund.id}'}{/literal});
+  });
+}
+</script>
+{/block}

@@ -1,0 +1,25 @@
+{extend name="layout" /}
+{block name="title"}模板管理 - 易云CMS{/block}
+{block name="crumb"}模板与样式 · 模板管理{/block}
+{block name="content"}
+<div class="toolbar">
+  <a class="btn primary" href="/admin/template/edit?tpl={:lang_tpl_dir($admin_lang)}">编辑当前语言模板文件</a>
+  <span class="text-sub">模板按语言存放：template/cn（PC）、template/cn/wap（手机版）、template/en、template/en/wap … 可自由新建并到「语言版本」中绑定</span>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr><th>语言</th><th>模板文件夹</th><th>电脑版</th><th>手机版(wap)</th><th style="width:200px">操作</th></tr>
+    {foreach $tpls as $tpl}
+    <tr>
+      <td><strong>{$tpl.name}</strong>（{$tpl.code}）</td>
+      <td class="text-sub mono">{$tpl.dir}</td>
+      <td>{if $tpl.pc}<span class="tag ok">已存在</span>{else}<span class="tag gray">缺失</span>{/if}</td>
+      <td>{if $tpl.wap}<span class="tag ok">已存在</span>{else}<span class="tag gray">缺失</span>{/if}</td>
+      <td>
+        <a class="btn sm" href="/admin/template/edit?tpl={$tpl.dir}">编辑文件</a>
+      </td>
+    </tr>
+    {/foreach}
+  </table>
+</div>
+{/block}

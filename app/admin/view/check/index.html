@@ -1,0 +1,16 @@
+{extend name="layout" /}
+{block name="title"}文件完整性 - 易云CMS{/block}
+{block name="crumb"}系统设置 · 文件完整性{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">文件完整性检查</div>
+  <div style="padding:4px 2px">
+    <button class="btn primary" onclick="window.location.href='/admin/check/scan'">开始扫描</button>
+    <div class="help" style="margin-top:10px">
+      扫描范围：app/ 与 template/ 下全部 PHP/HTML 文件。<br>
+      检测特征：eval/assert/create_function/system/exec/shell_exec/passthru/popen/proc_open/pcntl_exec/base64_decode 等危险函数与常见后门混淆写法。<br>
+      说明：ThinkPHP 框架模板引擎自身的 eval 渲染属于正常逻辑，已自动排除；命中项请人工核对该文件是否被篡改。
+    </div>
+  </div>
+</div>
+{/block}

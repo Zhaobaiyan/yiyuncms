@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>申请售后 - 会员中心</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei",Arial,sans-serif;background:#f2f4f7;color:#333}
+a{color:#1e6fff;text-decoration:none}
+.top{background:#1a2744;color:#fff;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.top b{font-size:16px}
+.top a{color:#aebbe0;font-size:13px;margin-left:16px}
+.wrap{max-width:720px;margin:24px auto 40px;padding:0 16px}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(20,40,80,.06);padding:20px;margin-bottom:14px}
+.card h3{font-size:15px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #eef1f5}
+.kv{font-size:14px;line-height:2}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;color:#5a6579;margin-bottom:6px}
+.field input,.field textarea,.field select{width:100%;border:1px solid #dde1e8;border-radius:8px;padding:0 12px;font-size:14px;outline:none}
+.field input{height:42px}
+.field select{height:42px;cursor:pointer;background:#fff}
+.field textarea{height:100px;padding:10px 12px;resize:none}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#1e6fff}
+.amount-bd{display:flex;align-items:center;gap:8px}
+.amount-bd input{flex:1}
+.btn{padding:10px 32px;border-radius:8px;font-size:15px;background:#e07b00;color:#fff;border:0;cursor:pointer}
+.btn:hover{background:#c96c00}
+.btn.line{background:#fff;border:1px solid #1e6fff;color:#1e6fff}
+.err{display:none;background:#fdecec;color:#d03050;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="top"><b>申请售后</b><span>
+  <a href="/shop/order_detail?id={$order.id}">返回订单</a>
+  <a href="/shop/refund_list">我的售后</a></span>
+</div>
+<div class="wrap">
+  <div class="err" id="err"></div>
+  <div class="card">
+    <h3>订单信息</h3>
+    <div class="kv">
+      订单号：{$order.order_no}<br>
+      实付金额：<b style="color:#e02e24">¥{$order.pay_amount}</b>
+    </div>
+  </div>
+  <div class="card">
+    <h3>商品明细</h3>
+    {foreach $products as $p}
+    <div class="kv">{$p.title}{if $p.spec}（规格：{$p.spec}）{/if} · ¥{$p.price} × {$p.num}</div>
+    {/foreach}
+  </div>
+  <div class="card">
+    <h3>售后信息</h3>
+    <div class="field"><label>售后类型</label>
+      <select id="type">
+        <option value="refund_only">仅退款（商品已退回/未寄回均可选）</option>
+        <option value="return_goods">退货退款（需寄回商品）</option>
+      </select>
+    </div>
+    <div class="field"><label>退款金额（不超过实付 ¥{$order.pay_amount}）</label>
+      <div class="amount-bd">¥ <input type="number" id="amount" value="{$order.pay_amount}" min="0.01" max="{$order.pay_amount}" step="0.01"></div>
+    </div>
+    <div class="field"><label>退款原因</label>
+      <select id="reason">
+        <option>商品质量问题</option>
+        <option>与描述不符</option>
+        <option>收到商品损坏</option>
+        <option>发错货</option>
+        <option>不想要了</option>
+        <option>其他原因</option>
+      </select>
+    </div>
+    <div class="field"><label>问题描述（选填）</label><textarea id="desc" placeholder="请描述具体问题，便于客服快速处理"></textarea></div>
+    <div style="text-align:center"><button class="btn" onclick="submit()">提交售后申请</button></div>
+  </div>
+</div>
+<script>
+function submit(){
+  var err=document.getElementById('err'); err.style.display='none';
+  var fd=new URLSearchParams();
+  fd.set('id','{$order.id}');
+  fd.set('type',document.getElementById('type').value);
+  fd.set('amount',document.getElementById('amount').value);
+  fd.set('reason',document.getElementById('reason').value);
+  fd.set('desc',document.getElementById('desc').value);
+  fetch('/shop/refund_add',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:fd.toString()})
+   .then(function(r){return r.json()}).then(function(j){
+    if(j.code===1){location.href=j.url;} else {err.textContent=j.msg;err.style.display='block';}
+  }).catch(function(){err.textContent='网络错误';err.style.display='block';});
+}
+</script>
+</body>
+</html>

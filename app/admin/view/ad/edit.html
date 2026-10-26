@@ -1,0 +1,73 @@
+{extend name="layout" /}
+{block name="title"}{if $info}编辑广告位{else}添加广告位{/if} - 易云CMS{/block}
+{block name="crumb"}模板与样式 · 广告位 / 轮播图{/block}
+{block name="content"}
+<div class="card" style="max-width:680px">
+  <div class="card-title">{if $info}编辑广告位{else}添加广告位{/if}</div>
+  <form id="a-form">
+    <div class="form-item">
+      <div class="lab">名称 *</div>
+      <div class="ctl"><input type="text" name="title" value="{$info.title|default=''}" required placeholder="中文名称，如 首页第一屏轮播、底部Banner"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">所属分类</div>
+      <div class="ctl">
+        <select name="parent_id">
+          <option value="0" {if (!$info || $info.parent_id==0) && $presetParent==0}selected{/if}>作为顶级分类</option>
+          {foreach $parents as $p}
+          <option value="{$p.id}" {if ($info && $info.parent_id==$p.id) || (!$info && $presetParent==$p.id)}selected{/if}>{$p.title}</option>
+          {/foreach}
+        </select>
+        <div class="help">选所属分类则此轮播图归入该分类；选「作为顶级分类」则为分类分组</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">标识（可选）</div>
+      <div class="ctl">
+        <input type="text" name="name" value="{$info.name|default=''}" placeholder="留空自动生成">
+        <div class="help">前台调用：{literal}{cms:ad name="这里填标识" /}{/literal}</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">轮播图片</div>
+      <div class="ctl">
+        <div style="display:flex;gap:10px;align-items:center">
+          <input type="text" name="image" id="ad-img" value="{$info.image|default=''}" placeholder="点击右侧选择/上传图片" style="flex:1">
+          <button type="button" class="btn sm" id="ad-img-btn">选择图片</button>
+        </div>
+        <div id="ad-preview" style="margin-top:8px">{if $info && $info.image}<img src="{$info.image}" style="max-height:90px;border-radius:6px">{/if}</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">跳转链接</div>
+      <div class="ctl"><input type="text" name="url" value="{$info.url|default=''}" placeholder="https:// 或内部链接（可选）"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">排序</div>
+      <div class="ctl"><input type="number" name="sort" value="{$info.sort|default=100}"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">状态</div>
+      <div class="ctl">
+        <label><input type="radio" name="status" value="1" {if !isset($info.status) || $info.status == 1}checked{/if}> 启用</label>
+        &nbsp;&nbsp;
+        <label><input type="radio" name="status" value="0" {if isset($info.status) && $info.status == 0}checked{/if}> 停用</label>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl">
+        <button type="submit" class="btn primary">保存</button>
+        <a class="btn" href="/admin/ad/index">返回</a>
+      </div>
+    </div>
+  </form>
+</div>
+<script>
+yy.bindImagePicker(document.getElementById('ad-img'), document.getElementById('ad-img-btn'), document.getElementById('ad-preview'));
+document.getElementById('a-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  yy.post('{if $info}/admin/ad/edit/id/{$info.id}{else}/admin/ad/edit{/if}', new FormData(this), {});
+});
+</script>
+{/block}

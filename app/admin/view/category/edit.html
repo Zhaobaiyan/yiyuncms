@@ -1,0 +1,347 @@
+{extend name="layout" /}
+{block name="title"}{if $info}编辑栏目{else}添加栏目{/if} - 易云CMS{/block}
+{block name="crumb"}栏目管理 · {if $info}编辑{else}添加{/if}{/block}
+{block name="content"}
+<div class="card" style="max-width:860px">
+  <div class="card-title">{if $info}编辑栏目「{$info.name}」{else}添加栏目{/if}</div>
+  <form id="cat-form">
+    <div class="form-item">
+      <div class="lab">栏目名称 *</div>
+      <div class="ctl"><input type="text" name="name" value="{$info.name|default=''}" required></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">副标题</div>
+      <div class="ctl"><input type="text" name="subtitle" value="{$info.subtitle|default=''}" placeholder="栏目副标题（云优 subtitle）"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">英文别名</div>
+      <div class="ctl">
+        <input type="text" name="ename" value="{$info.ename|default=''}" placeholder="用于URL目录，如 news">
+        <div class="help">静态页模式下将作为生成目录，如 /news/index.html</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">父栏目</div>
+      <div class="ctl">
+        <select name="parent_id">
+          <option value="0">顶级栏目</option>
+          {foreach $parents as $cat}
+            {if !$info || $cat.id != $info.id}
+            <option value="{$cat.id}" {if $info && $info.parent_id == $cat.id}selected{/if}>{$cat.name}</option>
+              {if isset($cat.children)}
+                {foreach $cat.children as $c}
+                <option value="{$c.id}" {if $info && $info.parent_id == $c.id}selected{/if}>&nbsp;&nbsp;└ {$c.name}</option>
+                {/foreach}
+              {/if}
+            {/if}
+          {/foreach}
+        </select>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">栏目类型</div>
+      <div class="ctl">
+        <select name="type">
+          <option value="list" {if !isset($info.type) || $info.type == 'list'}selected{/if}>列表（下有内容）</option>
+          <option value="single" {if isset($info.type) && $info.type == 'single'}selected{/if}>单页（直接显示内容）</option>
+          <option value="external" {if isset($info.type) && $info.type == 'external'}selected{/if}>外链跳转</option>
+          <option value="redirect" {if isset($info.type) && $info.type == 'redirect'}selected{/if}>跳转到其他栏目/列表</option>
+        </select>
+        <div class="help">默认「列表」。跳转：填 @2 或 @company_intro（目标栏目ID/别名），也支持外链 https://</div>
+      </div>
+    </div>
+    <div class="form-item" id="external-box" style="display:none">
+      <div class="lab">外链 / 跳转目标</div>
+      <div class="ctl">
+        <input type="text" name="external_url" value="{$info.external_url|default=''}" placeholder="https:// 或 @栏目ID 或 @栏目别名">
+        <div class="help">外链填 https://；内部跳转填 @栏目ID 或 @栏目别名（ename）</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">内容模型</div>
+      <div class="ctl">
+        <select name="model_id">
+          {foreach $models as $m}
+          <option value="{$m.id}" {if !isset($info.model_id) && $m.id == 1}selected{elseif isset($info.model_id) && $info.model_id == $m.id}selected{/if}>{$m.title}</option>
+          {/foreach}
+        </select>
+        <div class="help">新增栏目默认使用「文章模型」，可改</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">栏目模型</div>
+      <div class="ctl">
+        <select name="cat_model_id">
+          <option value="0">不使用栏目模型</option>
+          {foreach $catModels as $cm}
+          <option value="{$cm.id}" {if isset($info.cat_model_id) && $info.cat_model_id == $cm.id}selected{/if}>{$cm.title}</option>
+          {/foreach}
+        </select>
+        <div class="help">选择后自动继承该栏目模型的模板字段（如「副图片」），各栏目填写各自的值，无需逐栏目重复添加；模板字段在「内容管理 → 栏目模型」中维护</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">列表模板</div>
+      <div class="ctl">
+        <select name="template">
+          {foreach $tpls.lists as $t}
+          <option value="{$t}" {if !isset($info.template) && $t == 'list'}selected{elseif isset($info.template) && $info.template == $t}selected{/if}>{$t}.html</option>
+          {/foreach}
+        </select>
+        <div class="help">栏目列表页模板，自动识别模板目录下 list_xxx.html；默认 list</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">内容模板</div>
+      <div class="ctl">
+        <select name="content_template">
+          {foreach $tpls.shows as $t}
+          <option value="{$t}" {if !isset($info.content_template) && $t == 'show'}selected{elseif isset($info.content_template) && $info.content_template == $t}selected{/if}>{$t}.html</option>
+          {/foreach}
+        </select>
+        <div class="help">单页/内容详情模板，自动识别模板目录下 show_xxx.html；默认 show</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">分页调取列表数目</div>
+      <div class="ctl">
+        <input type="number" min="1" name="pagesize" value="{if isset($info.pagesize)}{$info.pagesize}{else}10{/if}">
+        <div class="help">该栏目列表页每页显示的条数，默认 10 条；模板中 {cms:list num="N"} 若写明 N 则以代码为准</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">栏目封面图</div>
+      <div class="ctl">
+        <div style="display:flex;gap:10px;align-items:center">
+          <input type="text" name="image" id="cat-img" value="{$info.image|default=''}" placeholder="点击右侧选择图片" style="flex:1">
+          <button type="button" class="btn sm" id="cat-img-btn">选择图片</button>
+          {if $info && $info.image}<img src="{$info.image}" style="max-height:60px;border-radius:6px">{/if}
+        </div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">SEO标题</div>
+      <div class="ctl"><input type="text" name="seo_title" value="{$info.seo_title|default=''}"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">关键词</div>
+      <div class="ctl"><input type="text" name="keywords" value="{$info.keywords|default=''}"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">描述（简易富文本）</div>
+      <div class="ctl">
+        <script id="catdesc" name="description" type="text/plain">{$info.description|default=''|raw}</script>
+      </div>
+    </div>
+    <div class="form-item" id="content-box">
+      <div class="lab">内容（富文本）</div>
+      <div class="ctl">
+        <script id="catcontent" name="content" type="text/plain">{$info.content|default=''|raw}</script>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">自定义字段</div>
+      <div class="ctl">
+        <div id="catfield-list"></div>
+        <div id="catfield-addbar" style="display:none;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
+          <input type="text" id="cf-new-name" placeholder="字段名称（如 联系电话）" style="width:150px">
+          <input type="text" id="cf-new-key" placeholder="字段标识（如 tel）" style="width:130px">
+          <select id="cf-new-type" style="width:130px">
+            <option value="text">单行文本</option>
+            <option value="image">图片</option>
+            <option value="textarea">多行文本</option>
+            <option value="richtext">富文本</option>
+            <option value="select">下拉选择</option>
+            <option value="radio">单选</option>
+            <option value="checkbox">多选</option>
+          </select>
+          <input type="text" id="cf-new-options" placeholder="选项（英文逗号分隔）" style="width:170px;display:none">
+          <button type="button" class="btn sm primary" id="cf-add-ok">确定</button>
+          <button type="button" class="btn sm" id="cf-add-cancel">取消</button>
+        </div>
+        <button type="button" class="btn sm" id="catfield-add" style="margin-top:8px">+ 添加字段</button>
+        <input type="hidden" name="extend" id="catfield-extend" value="">
+        <div class="help" style="margin-top:6px">可自由增加栏目字段：文字、图片、单选、多选、下拉、多行文本（富文本）等；前台用 {literal}{cms:catfield name="字段标识"}{/literal} 调用。带「模板字段」角标的来自所选栏目模型，自动继承，仅填值；其他字段点击「+ 添加字段」在当前位置直接填写即可添加，无需弹窗</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">排序</div>
+      <div class="ctl"><input type="number" name="sort" value="{$info.sort|default=100}"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">导航显示</div>
+      <div class="ctl">
+        <label><input type="radio" name="is_nav" value="1" {if !isset($info.is_nav) || $info.is_nav == 1}checked{/if}> 是</label>
+        &nbsp;&nbsp;
+        <label><input type="radio" name="is_nav" value="0" {if isset($info.is_nav) && $info.is_nav == 0}checked{/if}> 否</label>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">是否显示</div>
+      <div class="ctl">
+        <label><input type="radio" name="is_show" value="1" {if !isset($info.is_show) || $info.is_show == 1}checked{/if}> 显示</label>
+        &nbsp;&nbsp;
+        <label><input type="radio" name="is_show" value="0" {if isset($info.is_show) && $info.is_show == 0}checked{/if}> 隐藏</label>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">新窗口打开</div>
+      <div class="ctl">
+        <label><input type="radio" name="target" value="1" {if isset($info.target) && $info.target == 1}checked{/if}> 是</label>
+        &nbsp;&nbsp;
+        <label><input type="radio" name="target" value="0" {if !isset($info.target) || $info.target == 0}checked{/if}> 否</label>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl">
+        <button type="submit" class="btn primary">保存</button>
+        <a class="btn" href="/admin/category/index">返回</a>
+      </div>
+    </div>
+  </form>
+</div>
+<script type="text/javascript" src="__UEDITOR__/ueditor.config.js"></script>
+<script type="text/javascript" src="__UEDITOR__/ueditor.all.min.js"></script>
+<script>
+(function(){
+  var ueContent = UE.getEditor('catcontent', { serverUrl: '/admin/ueditor/index', initialFrameWidth: '100%', initialFrameHeight: 320, autoHeightEnabled: false });
+  var ueDesc = UE.getEditor('catdesc', { serverUrl: '/admin/ueditor/index', initialFrameWidth: '100%', initialFrameHeight: 120, autoHeightEnabled: false, toolbars: [['source','|','undo','redo','|','bold','italic','underline','strikethrough','|','forecolor','backcolor','|','fontsize','fontfamily','|','paragraph','formatmatch','removeformat','|','blockquote','justifyleft','justifycenter','justifyright','|','insertorderedlist','insertunorderedlist','|','link','unlink','|','insertimage','emotion','insertvideo','|','inserttable','deletetable','|','lineheight','date','time','|','preview']] });
+
+  yy.bindImagePicker(document.getElementById('cat-img'), document.getElementById('cat-img-btn'));
+
+  var t = document.querySelector('[name=type]');
+  var box = document.getElementById('external-box');
+  function toggle(){
+    var v = t.value;
+    box.style.display = (v === 'external' || v === 'redirect') ? '' : 'none';
+  }
+  t.addEventListener('change', toggle); toggle();
+  // ---- 栏目自定义字段 ----
+  function escCF(s){ s = s || ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  var CF_LIST = document.getElementById('catfield-list');
+  var CF_DATA = {:json_encode($catExtend)};
+  function cfControl(type, value, options, name){
+    value = value || ''; options = (options||'').split(',').filter(Boolean);
+    if(type==='image') return '<div style="display:flex;gap:8px;align-items:center"><input type="text" class="cf-val" value="'+escCF(value)+'" style="flex:1"><button type="button" class="btn sm cf-img">选择图片</button></div>';
+    if(type==='textarea'||type==='richtext'||type==='simpletext') return '<textarea class="cf-val" rows="4">'+escCF(value)+'</textarea>';
+    if(type==='select') return '<select class="cf-val"><option value="">请选择</option>'+options.map(function(o){return '<option value="'+escCF(o)+'"'+(String(value)===o?' selected':'')+'>'+escCF(o)+'</option>';}).join('')+'</select>';
+    if(type==='radio') return options.map(function(o){return '<label style="margin-right:10px"><input type="radio" class="cf-val" name="cf_'+name+'" value="'+escCF(o)+'"'+(String(value)===o?' checked':'')+'> '+escCF(o)+'</label>';}).join('');
+    if(type==='checkbox') return options.map(function(o){return '<label style="margin-right:10px"><input type="checkbox" class="cf-val" name="cf_'+name+'" value="'+escCF(o)+'"'+(String(value).split(',').indexOf(o)>=0?' checked':'')+'> '+escCF(o)+'</label>';}).join('');
+    return '<input type="text" class="cf-val" value="'+escCF(value)+'">';
+  }
+  function cfRow(key, f){
+    var div=document.createElement('div');
+    div.className='cf-row';
+    div.setAttribute('data-name', key);
+    div.setAttribute('data-label', f.label||key);
+    div.setAttribute('data-type', f.type||'text');
+    div.setAttribute('data-options', f.options||'');
+    if(f.is_tpl){ div.setAttribute('data-tpl','1'); }
+    var ops = '<span class="cf-edit" style="margin-left:10px;cursor:pointer;color:#2563eb">修改</span><span class="cf-del" style="margin-left:8px;cursor:pointer;color:#dc2626">删除</span>';
+    if(f.is_tpl){ ops = '<span class="tag gray" style="margin-left:8px">模板字段</span>'; }
+    div.innerHTML='<div class="cf-head"><b>'+escCF(f.label||key)+'</b><span class="cf-key" style="margin-left:8px;color:#999">['+escCF(key)+']</span>'+ops+'</div><div class="cf-body" style="margin-top:6px">'+cfControl(f.type||'text', f.value, f.options||'', key)+'</div>';
+    CF_LIST.appendChild(div);
+  }
+  Object.keys(CF_DATA).forEach(function(k){ cfRow(k, CF_DATA[k]); });
+  CF_LIST.addEventListener('click', function(e){
+    var btn=e.target;
+    if(btn && btn.classList && btn.classList.contains('cf-img')){
+      var inp = btn.previousElementSibling;
+      window.yy.pickImage(function(url){ inp.value = url; inp.dispatchEvent(new Event('change')); });
+      return;
+    }
+    var row = btn.closest ? btn.closest('.cf-row') : null;
+    if(!row) return;
+    if(btn.classList.contains('cf-del')){ row.remove(); return; }
+    if(btn.classList.contains('cf-edit')){
+      editKey = row.getAttribute('data-name');
+      N_NAME.value = row.getAttribute('data-label');
+      N_KEY.value = editKey;
+      N_TYPE.value = row.getAttribute('data-type') || 'text';
+      N_OPTS.value = row.getAttribute('data-options') || '';
+      cfTypeChanged();
+      cfShowBar();
+      N_NAME.focus();
+      return;
+    }
+  });
+  // ---- 内联添加 / 编辑字段（v3.6.6，不用弹窗） ----
+  var ADD_BTN = document.getElementById('catfield-add');
+  var ADD_BAR = document.getElementById('catfield-addbar');
+  var N_NAME = document.getElementById('cf-new-name');
+  var N_KEY  = document.getElementById('cf-new-key');
+  var N_TYPE = document.getElementById('cf-new-type');
+  var N_OPTS = document.getElementById('cf-new-options');
+  var editKey = null;
+  function cfTypeChanged(){
+    N_OPTS.style.display = (['select','radio','checkbox'].indexOf(N_TYPE.value) >= 0) ? '' : 'none';
+  }
+  function cfClearBar(){ N_NAME.value=''; N_KEY.value=''; N_TYPE.value='text'; N_OPTS.value=''; cfTypeChanged(); }
+  function cfShowBar(){ ADD_BTN.style.display='none'; ADD_BAR.style.display='flex'; }
+  function cfHideBar(){ ADD_BTN.style.display=''; ADD_BAR.style.display='none'; }
+  N_TYPE.addEventListener('change', cfTypeChanged);
+  ADD_BTN.addEventListener('click', function(){ editKey=null; cfClearBar(); cfShowBar(); N_KEY.focus(); });
+  // 栏目模型切换：实时加载模板字段（v3.6.7）
+  var CM_SEL = document.querySelector('[name=cat_model_id]');
+  if(CM_SEL){
+    CM_SEL.addEventListener('change', function(){
+      var mid = parseInt(this.value || '0', 10);
+      CF_LIST.querySelectorAll('.cf-row').forEach(function(r){
+        if(r.getAttribute('data-tpl') === '1'){ var k = r.getAttribute('data-name'); delete CF_DATA[k]; r.remove(); }
+      });
+      if(!mid) return;
+      yy.post('/admin/cat_model/fieldsJson/model_id/' + mid, {}, {callback: function(res){
+        if(!res || res.code !== 1 || !res.data) return;
+        res.data.forEach(function(tf){
+          if(CF_DATA.hasOwnProperty(tf.name)) return;
+          CF_DATA[tf.name] = {label: tf.title, type: tf.type, options: tf.options || '', value: '', is_tpl: 1};
+          cfRow(tf.name, CF_DATA[tf.name]);
+        });
+      }});
+    });
+  }
+  document.getElementById('cf-add-cancel').addEventListener('click', cfHideBar);
+  document.getElementById('cf-add-ok').addEventListener('click', function(){
+    var key = N_KEY.value.trim();
+    var label = N_NAME.value.trim();
+    var type = N_TYPE.value;
+    var options = N_OPTS.value.trim();
+    if(!label){ yy.toast('请填写字段名称','err'); N_NAME.focus(); return; }
+    if(!key){ yy.toast('请填写字段标识','err'); N_KEY.focus(); return; }
+    if(!/^[A-Za-z][A-Za-z0-9_]*$/.test(key)){ yy.toast('标识只能字母开头，含字母数字下划线','err'); return; }
+    if(CF_DATA.hasOwnProperty(key) && key !== editKey){ yy.toast('标识「'+key+'」已存在','err'); return; }
+    var val = '';
+    if(editKey){
+      var oldRow = CF_LIST.querySelector('[data-name="'+editKey+'"]');
+      if(oldRow){ var v = oldRow.querySelector('.cf-val'); val = v ? v.value : ''; }
+      if(key !== editKey){ delete CF_DATA[editKey]; }
+      if(oldRow) oldRow.remove();
+    }
+    CF_DATA[key] = {label:label, type:type, options:options, value:val};
+    cfRow(key, CF_DATA[key]);
+    cfHideBar(); cfClearBar();
+  });
+  function collectCatFields(){
+    var out = {};
+    CF_LIST.querySelectorAll('.cf-row').forEach(function(row){
+      var key = row.getAttribute('data-name');
+      var f = {label: row.getAttribute('data-label'), type: row.getAttribute('data-type'), options: row.getAttribute('data-options')};
+      var type = f.type;
+      if(type==='radio'){ var r = row.querySelector('input[type=radio]:checked'); f.value = r?r.value:''; }
+      else if(type==='checkbox'){ var a=[]; row.querySelectorAll('input[type=checkbox]:checked').forEach(function(i){a.push(i.value);}); f.value=a.join(','); }
+      else if(type==='select'){ f.value = row.querySelector('select.cf-val').value; }
+      else { var v = row.querySelector('.cf-val'); f.value = v?v.value:''; }
+      out[key] = f;
+    });
+    document.getElementById('catfield-extend').value = JSON.stringify(out);
+  }
+  document.getElementById('cat-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    ueContent.sync(); ueDesc.sync();
+    collectCatFields();
+    yy.post('{if $info}/admin/category/edit/id/{$info.id}{else}/admin/category/add{/if}', new FormData(this), {});
+  });
+})();
+</script>
+{/block}

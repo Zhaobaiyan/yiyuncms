@@ -1,0 +1,51 @@
+{extend name="layout" /}
+{block name="title"}日志管理 - 易云CMS{/block}
+{block name="crumb"}系统设置 · 日志管理{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">操作日志</div>
+  <div class="toolbar">
+    <span style="line-height:32px;color:#667;">共 <b>{$total}</b> 条日志</span>
+    <span style="flex:1"></span>
+    <button class="btn danger" onclick="yy.confirm('确定清空全部操作日志？清空后不可恢复！', function(){ yy.post('/admin/log/clear', {}, {literal}{url:'/admin/log/index'}{/literal}); })">一键清理日志</button>
+  </div>
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th style="width:70px">ID</th>
+        <th style="width:120px">操作人</th>
+        <th style="width:180px">操作类型</th>
+        <th>操作内容</th>
+        <th style="width:130px">IP</th>
+        <th style="width:170px">时间</th>
+      </tr>
+    </thead>
+    <tbody>
+      {if $logs}
+      {foreach $logs as $row}
+      <tr>
+        <td>{$row.id}</td>
+        <td>{$row.username|default='-'}</td>
+        <td><span class="tag info">{$row.action}</span></td>
+        <td>{$row.remark|default=''}</td>
+        <td class="text-sub">{$row.ip|default='-'}</td>
+        <td class="text-sub">{$row.create_time|date='Y-m-d H:i:s'}</td>
+      </tr>
+      {/foreach}
+      {else}
+      <tr><td colspan="6" style="text-align:center;color:#999;padding:30px 0">暂无日志记录</td></tr>
+      {/if}
+    </tbody>
+  </table>
+  {if $pages > 1}
+  <div class="pagination" style="justify-content:center">
+    {if $page > 1}<a href="/admin/log/index?page={$page-1}">‹ 上一页</a>{/if}
+    {for start="1" end="$pages"}
+    <a class="{if $i == $page}active{/if}" href="/admin/log/index?page={$i}">{$i}</a>
+    {/for}
+    {if $page < $pages}<a href="/admin/log/index?page={$page+1}">下一页 ›</a>{/if}
+    <span style="color:#889;font-size:12px;margin-left:8px">共 {$total} 条 · 第 {$page} / {$pages} 页</span>
+  </div>
+  {/if}
+</div>
+{/block}

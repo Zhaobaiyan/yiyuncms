@@ -1,0 +1,21 @@
+#!/usr/bin/env php
+<?php
+// +----------------------------------------------------------------------
+// | 命令行入口（ThinkPHP6 CLI）
+// | 用法：php think [命令]，例如 php think list、php think route:list
+// +----------------------------------------------------------------------
+namespace think;
+
+// 加载基础文件
+require __DIR__ . '/vendor/autoload.php';
+
+// 应用初始化
+$app = new App();
+
+$http = $app->console;
+
+$response = $http->run();
+
+$response->send();
+
+$http->end($response);

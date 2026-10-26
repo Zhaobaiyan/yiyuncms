@@ -1,0 +1,120 @@
+{extend name="layout" /}
+{block name="title"}{if $id > 0}编辑采集规则{else}新增采集规则{/if} - 易云CMS{/block}
+{block name="crumb"}扩展功能 · 采集器 · {if $id > 0}编辑{else}新增{/if}{/block}
+{block name="content"}
+<form id="c-form">
+<div class="card">
+  <div class="card-title">基础设置</div>
+  <table class="frm">
+    <tr><td class="lab" style="width:150px">规则名称 *</td><td><input type="text" name="name" value="{$row.name|default=''}" placeholder="如：xx资讯采集" style="width:360px" required></td></tr>
+    <tr>
+      <td class="lab">目标语言</td>
+      <td>
+        <select name="lang" style="width:200px">
+          {foreach $langs as $l}
+          <option value="{$l.code}" {if $row.lang == $l.code}selected{/if}>{$l.name}（{$l.code}）</option>
+          {/foreach}
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td class="lab">目标栏目 *</td>
+      <td>
+        <select name="catid" style="width:320px" required>
+          <option value="0">— 请选择栏目 —</option>
+          {foreach $cats as $c}
+          <option value="{$c.id}" {if $row.catid == $c.id}selected{/if}>{$c.name}</option>
+          {/foreach}
+        </select>
+        <span class="hint">采集到的内容将发布到该栏目</span>
+      </td>
+    </tr>
+    <tr>
+      <td class="lab">目标站编码</td>
+      <td><input type="text" name="charset" value="{$row.charset|default='UTF-8'}" style="width:200px" placeholder="UTF-8 / GBK"></td>
+    </tr>
+  </table>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <div class="card-title">列表页与链接提取</div>
+  <table class="frm">
+    <tr>
+      <td class="lab">列表页地址 *</td>
+      <td>
+        <input type="text" name="list_url" value="{$row.list_url|default=''}" style="width:560px" placeholder="https://xxx.com/news/list_{page}.html" required>
+        <span class="hint">支持 {page} 占位符翻页</span>
+      </td>
+    </tr>
+    <tr>
+      <td class="lab">列表区域起始标记</td>
+      <td><input type="text" name="list_start" value="{$row.list_start|default=''}" style="width:560px" placeholder="如：&lt;ul class=&#39;news-list&#39;&gt;"></td>
+    </tr>
+    <tr>
+      <td class="lab">列表区域结束标记</td>
+      <td><input type="text" name="list_end" value="{$row.list_end|default=''}" style="width:560px" placeholder="如：&lt;/ul&gt;"></td>
+    </tr>
+    <tr>
+      <td class="lab">链接正则</td>
+      <td>
+        <input type="text" name="link_preg" value="{$row.link_preg|default=''}" style="width:560px" placeholder="留空使用默认 &lt;a href=&quot;...&quot;&gt;">
+        <span class="hint">自定义正则时第 1 捕获组必须为 URL</span>
+      </td>
+    </tr>
+    <tr>
+      <td class="lab">采集页数</td>
+      <td><input type="number" name="max_page" value="{$row.max_page|default=1}" min="1" max="20" style="width:120px"> <span class="hint">单次最多抓 50 条详情</span></td>
+    </tr>
+  </table>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <div class="card-title">详情页内容提取（起止标记模式）</div>
+  <table class="frm">
+    <tr>
+      <td class="lab">标题起始 / 结束</td>
+      <td><input type="text" name="title_start" value="{$row.title_start|default=''}" style="width:260px" placeholder="起始"> <input type="text" name="title_end" value="{$row.title_end|default=''}" style="width:260px" placeholder="结束"></td>
+    </tr>
+    <tr>
+      <td class="lab">正文起始 / 结束</td>
+      <td><input type="text" name="content_start" value="{$row.content_start|default=''}" style="width:260px" placeholder="起始"> <input type="text" name="content_end" value="{$row.content_end|default=''}" style="width:260px" placeholder="结束"></td>
+    </tr>
+    <tr>
+      <td class="lab">摘要长度</td>
+      <td><input type="number" name="desc_len" value="{$row.desc_len|default=200}" min="0" max="500" style="width:120px"> <span class="hint">从正文前 N 字生成摘要</span></td>
+    </tr>
+    <tr>
+      <td class="lab">下载图片到本地</td>
+      <td>
+        <label class="switch"><input type="checkbox" name="img_switch" value="1" {if $row.img_switch == 1}checked{/if}><span class="slider"></span></label>
+        <span class="hint">正文图片下载到 public/upload/image/，第一张作缩略图</span>
+      </td>
+    </tr>
+    <tr>
+      <td class="lab">过滤词</td>
+      <td><input type="text" name="filter_words" value="{$row.filter_words|default=''}" style="width:560px" placeholder="广告,推广（逗号分隔，标题含则跳过）"></td>
+    </tr>
+    <tr>
+      <td class="lab">状态</td>
+      <td>
+        <label class="switch"><input type="checkbox" name="status" value="1" {if $row.status == 1}checked{/if}><span class="slider"></span></label>
+        <span class="hint">停用后不可执行</span>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <div style="display:flex;gap:10px;align-items:center">
+    <button type="submit" class="btn primary">保存规则</button>
+    <a class="btn" href="/admin/collect/index">返回列表</a>
+  </div>
+</div>
+</form>
+<script>
+document.getElementById('c-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  yy.post('{if $id > 0}/admin/collect/edit?id={$row.id}{else}/admin/collect/edit{/if}', new FormData(this), {});
+});
+</script>
+{/block}

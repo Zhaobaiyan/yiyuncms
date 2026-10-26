@@ -1,0 +1,41 @@
+{include file="header" /}
+
+<div class="w-crumb"><a href="{:url_home()}">Home</a> &gt; Search</div>
+
+<div class="w-section">
+  <div class="w-h"><span>Results for "{$kw}": {$total}</span></div>
+
+  <div class="w-tabs">
+    <a href="{:site_url('search','index',['kw'=>$kw,'catid'=>$catid,'field'=>'all'])}" class="{if !isset($field) || $field=='all'}on{/if}">T+C</a>
+    <a href="{:site_url('search','index',['kw'=>$kw,'catid'=>$catid,'field'=>'title'])}" class="{if isset($field) && $field=='title'}on{/if}">Title</a>
+    <a href="{:site_url('search','index',['kw'=>$kw,'catid'=>$catid,'field'=>'content'])}" class="{if isset($field) && $field=='content'}on{/if}">Content</a>
+  </div>
+
+  <form action="{:site_url('search','index')}" method="get" style="display:flex;gap:6px;margin-bottom:12px">
+    <input type="hidden" name="field" value="{if isset($field)}{$field}{else}all{/if}">
+    <select name="catid" style="flex:1">
+      <option value="0">All</option>
+      {foreach $cats as $cat}
+        <option value="{$cat.id}" {if $catid == $cat.id}selected{/if}>{$cat.name}</option>
+      {/foreach}
+    </select>
+    <input type="text" name="kw" value="{if isset($kw)}{$kw}{/if}" placeholder="Keyword" style="flex:2">
+    <button type="submit">Search</button>
+  </form>
+
+  <div class="w-list">
+    {if $list && count($list)}
+    {foreach $list as $vo}
+    <div class="w-item">
+      <h3><a href="{:url_content($vo)}">{$vo.title}</a></h3>
+      <div class="m">{$vo.create_time|date='Y-m-d H:i'}　Views: {$vo.views}</div>
+    </div>
+    {/foreach}
+    {else}
+    <div style="text-align:center;color:#94a3b8;padding:30px 0">{if $kw}No results found{else}Enter keywords to search{/if}</div>
+    {/if}
+  </div>
+  <div class="w-page">{$list|raw}</div>
+</div>
+
+{include file="footer" /}

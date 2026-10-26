@@ -1,0 +1,102 @@
+{extend name="layout" /}
+{block name="title"}站群管理 - 易云CMS{/block}
+{block name="crumb"}系统设置 · 站群管理{/block}
+{block name="content"}
+<style>
+.tip{background:#f6f8fb;border:1px solid #e3e8ef;border-radius:8px;padding:10px 14px;font-size:13px;color:#5a6472;margin-bottom:14px;line-height:1.8}
+.tip b{color:var(--primary)}
+</style>
+<div class="toolbar">
+  <a class="btn primary" href="/admin/site/edit">添加站点</a>
+  <a class="btn" href="/admin/language/index">语言版本</a>
+  <span class="text-sub" style="margin-left:10px">
+    {if $site_multi==1}
+    <span style="color:var(--success)">● 站群模式已开启</span> —— 路径模式：本域名+别名（/shenyang/）；域名模式：按域名命中
+    {else}
+    <span style="color:#c00">○ 站群模式未开启</span> —— 网站设置 → 站群开关 开启后站点才生效
+    {/if}
+  </span>
+</div>
+<div class="tip">
+  <b>路径模式（推荐）</b>：无需绑定二级域名，访问 <code>/别名/</code> 即进入对应站点（如 newcms.com/shenyang/ 为沈阳站）。新建站点时自动：① 注册语言版本（code=别名）② 复制整套数据库表（含数据，id 独立从 1 开始）③ 复制模板文件夹（PC+手机版）。<br>
+  <b>域名模式</b>：站点 = 域名入口 + 默认语言 + 语言白名单，同一语言数据多站共享；域名支持通配 <b>*.example.com</b>。
+</div>
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>站点名称</th>
+        <th>模式 / 访问入口</th>
+        <th>默认语言</th>
+        <th>启用语言</th>
+        <th>排序</th>
+        <th>状态</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {foreach $rows as $r}
+      <tr data-id="{$r.id}">
+        <td>{$r.id}</td>
+        <td><b>{$r.name}</b></td>
+        <td>
+          <span class="tag">{if $r.mode=='path'}路径{else}域名{/if}</span>
+          <span class="mono">{$r.entry|default='-'}</span>
+        </td>
+        <td><span class="tag">{if $r.default_lang_name}{$r.default_lang_name}{else}{$r.default_lang}{/if}</span></td>
+        <td>
+          {if $r.lang_names}
+            {foreach $r.lang_names as $ln}<span class="tag">{:htmlspecialchars($ln)}</span>{/foreach}
+          {else}<span class="text-sub">全部语言</span>{/if}
+        </td>
+        <td><input type="text" class="ipt sm sort-input" style="width:56px" value="{$r.sort}"></td>
+        <td>
+          <label class="switch">
+            <input type="checkbox" class="st-switch" {if $r.status==1}checked{/if}>
+            <span class="slider"></span>
+          </label>
+        </td>
+        <td>
+          <a class="btn sm" href="/admin/site/edit/id/{$r.id}">编辑</a>
+          {if $r.mode=='path' && $r.alias}
+          <a class="btn sm line" target="_blank" href="/{$r.alias}/" title="访问该站点前台">访问</a>
+          <a class="btn sm line" href="javascript:;" onclick="copyTpl('{$r.alias}')">复制模板</a>
+          {/if}
+          <a class="btn sm danger" href="javascript:;" onclick="delSite({$r.id},'{$r.name}')">删除</a>
+        </td>
+      </tr>
+      {/foreach}
+      {if empty($rows)}
+      <tr><td colspan="8" class="empty">还没有站点，点击右上角「添加站点」创建（先到 网站设置 开启站群开关）</td></tr>
+      {/if}
+    </tbody>
+  </table>
+</div>
+<script>
+function delSite(id, name){
+  yy.confirm('确定删除站点「' + name + '」？路径模式站点将同时停用其同名语言版本（数据表保留，不会误删）。', function(){
+    yy.post('/admin/site/delete', { id: id }, { delay: 0, callback: function(){ location.reload(); } });
+  });
+}
+function copyTpl(lang){
+  var src = prompt('从哪个语言/站点复制模板文件夹？\n（填语言代码，如 cn / en）\n将复制 template/源 → template/' + lang + '，覆盖同名文件。', 'cn');
+  if(!src) return;
+  yy.confirm('确定从 template/' + src + ' 复制模板到 template/' + lang + '？', function(){
+    yy.post('/admin/site/copyTpl', { lang: lang, src: src }, { delay: 0, callback: function(){ location.reload(); } });
+  });
+}
+// 排序失焦保存
+document.querySelectorAll('.sort-input').forEach(function(i){
+  i.addEventListener('change', function(){
+    yy.post('/admin/site/sort', { id: this.closest('tr').dataset.id, val: this.value }, { delay: 0 });
+  });
+});
+// 状态开关切换
+document.querySelectorAll('.st-switch').forEach(function(c){
+  c.addEventListener('change', function(){
+    yy.post('/admin/site/status', { id: this.closest('tr').dataset.id, status: this.checked ? 1 : 0 }, { delay: 0 });
+  });
+});
+</script>
+{/block}

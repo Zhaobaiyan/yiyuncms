@@ -1,0 +1,79 @@
+{extend name="layout" /}
+{block name="title"}自定义块 - 易云CMS{/block}
+{block name="crumb"}模板与样式 · 自定义块{/block}
+{block name="content"}
+{if $parentId > 0}
+<div class="toolbar">
+  <a class="btn" href="/admin/block/index">← 返回板块</a>
+  <a class="btn primary" href="/admin/block/edit?parent_id={$parentId}">+ 添加自定义块</a>
+  <span class="text-sub">当前板块：<b>{$parent.title}</b>，前台用 {literal}{cms:block name="标识" /}{/literal} 调用该板块下的自定义块</span>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr><th style="width:60px">ID</th><th>标识</th><th>名称</th><th>类型</th><th>调用代码</th><th style="width:90px">状态</th><th style="width:170px">操作</th></tr>
+    {if $list}
+    {foreach $list as $row}
+    <tr>
+      <td>{$row.id}</td>
+      <td><code class="mono">{$row.name}</code></td>
+      <td>{$row.title}</td>
+      <td><span class="tag">{if $row.type=='image'}图片{elseif $row.type=='rich'}富文本{elseif $row.type=='textarea'}多行文本{elseif $row.type=='html'}HTML{else}单行文本{/if}</span></td>
+      <td><code class="mono">{$row.call_code|raw}</code> <button class="btn sm" data-code="{$row.call_code}" onclick="copyBlockCode(this)">复制</button></td>
+      <td>{if $row.status==1}<span class="tag ok">启用</span>{else}<span class="tag gray">停用</span>{/if}</td>
+      <td class="ops">
+        <a class="btn sm" href="/admin/block/edit/id/{$row.id}">编辑</a>
+        <button class="btn sm danger" onclick="yy.confirm('删除自定义块？', function(){ yy.post('/admin/block/delete/id/{$row.id}', {}, {literal}{url:'/admin/block/index?parent_id={$parentId}'}{/literal}); })">删除</button>
+      </td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="7"><div class="empty">该板块下还没有自定义块，点击「添加自定义块」</div></td></tr>
+    {/if}
+  </table>
+</div>
+<script>
+function copyBlockCode(btn){
+  var code = btn.getAttribute('data-code');
+  function done(){ yy.toast ? yy.toast('已复制：' + code) : alert('已复制：' + code); }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(done).catch(function(){ fallbackCopy(code, done); });
+  } else { fallbackCopy(code, done); }
+}
+function fallbackCopy(code, done){
+  var ta = document.createElement('textarea');
+  ta.value = code; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch(e){ prompt('请手动复制：', code); }
+  document.body.removeChild(ta);
+}
+</script>
+{else}
+<div class="toolbar">
+  <a class="btn primary" href="/admin/block/edit">+ 添加板块</a>
+  <span class="text-sub">板块用于组织自定义块（如首页板块、顶部、底部、联系、内页）；点击「子块管理」进入该板块下添加自定义块</span>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr><th style="width:60px">ID</th><th>板块名称</th><th>子块数</th><th>排序</th><th style="width:90px">状态</th><th style="width:240px">操作</th></tr>
+    {if $list}
+    {foreach $list as $row}
+    <tr>
+      <td>{$row.id}</td>
+      <td><b>{$row.title}</b>{if $row.name}<span class="text-sub mono"> /{$row.name}</span>{/if}</td>
+      <td>{$row.child_count} 个</td>
+      <td>{$row.sort}</td>
+      <td>{if $row.status==1}<span class="tag ok">启用</span>{else}<span class="tag gray">停用</span>{/if}</td>
+      <td class="ops">
+        <a class="btn sm" href="/admin/block/index?parent_id={$row.id}">子块管理</a>
+        <a class="btn sm" href="/admin/block/edit/id/{$row.id}">编辑</a>
+        <button class="btn sm danger" onclick="yy.confirm('删除板块？其下自定义块将转为顶级板块。', function(){ yy.post('/admin/block/delete/id/{$row.id}', {}, {literal}{url:'/admin/block/index'}{/literal}); })">删除</button>
+      </td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="6"><div class="empty">还没有板块，点击「添加板块」开始（如首页板块、顶部、底部、联系）</div></td></tr>
+    {/if}
+  </table>
+</div>
+{/if}
+{/block}

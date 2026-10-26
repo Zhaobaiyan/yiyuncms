@@ -1,0 +1,29 @@
+{extend name="layout" /}
+{block name="title"}栏目模型 - 易云CMS{/block}
+{block name="crumb"}内容管理 · 栏目模型{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">栏目模型（栏目字段模板）</div>
+  <div class="help" style="padding:4px 0 10px">在栏目模型中定义一组栏目自定义字段（如"副图片"），创建栏目时选择该栏目模型，该栏目的"自定义字段"就自动带上模板字段，无需逐栏目重复添加。模板字段的值在每个栏目里单独填写。</div>
+  <table class="tbl">
+    <tr><th style="width:60px">ID</th><th>模型标识</th><th>名称</th><th>字段数</th><th>使用栏目数</th><th style="width:200px">操作</th></tr>
+    {foreach $models as $m}
+    <tr>
+      <td>{$m.id}</td>
+      <td><code class="mono">{$m.name}</code></td>
+      <td>{$m.title}{if $m.id == 1} <span class="tag gray">默认</span>{/if}</td>
+      <td><a href="/admin/cat_model/fields/model_id/{$m.id}"><b>{$m.field_count}</b> 个字段</a></td>
+      <td>{$m.used_count}</td>
+      <td>
+        <a class="btn sm" href="/admin/cat_model/fields/model_id/{$m.id}">字段</a>
+        <a class="btn sm" href="/admin/cat_model/edit/id/{$m.id}">编辑</a>
+        {if $m.id != 1}
+        <button class="btn sm danger" onclick="yy.confirm('确定删除栏目模型「{$m.title}」？', function(){ yy.post('/admin/cat_model/delete/id/{$m.id}', {}, {literal}{url:'/admin/cat_model/index'}{/literal}); })">删除</button>
+        {/if}
+      </td>
+    </tr>
+    {/foreach}
+  </table>
+  <div style="margin-top:12px"><a class="btn primary" href="/admin/cat_model/edit">+ 添加栏目模型</a></div>
+</div>
+{/block}

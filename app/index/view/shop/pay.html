@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>订单支付 - 会员中心</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei",Arial,sans-serif;background:#f2f4f7;color:#333}
+a{color:#1e6fff;text-decoration:none}
+.top{background:#1a2744;color:#fff;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.top b{font-size:16px}
+.top a{color:#aebbe0;font-size:13px;margin-left:16px}
+.wrap{max-width:720px;margin:40px auto;padding:0 16px}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(20,40,80,.06);padding:28px;text-align:center}
+.order-no{color:#98a1b3;font-size:13px;margin-bottom:10px}
+.amount{font-size:30px;font-weight:700;color:#e02e24;margin:14px 0}
+.tip{background:#fdf7e6;border:1px solid #f5e3b3;color:#8a6d1a;border-radius:8px;padding:12px 16px;font-size:13px;text-align:left;margin:18px 0;line-height:1.8}
+.qr{width:180px;height:180px;border:1px dashed #dde1e8;border-radius:10px;margin:16px auto;display:flex;align-items:center;justify-content:center;color:#98a1b3;font-size:12px;background:#fafbfc}
+.qr .logo{font-size:34px;margin-bottom:6px}
+.btn{display:inline-block;padding:11px 36px;border-radius:8px;font-size:15px;background:#1e6fff;color:#fff;border:0;cursor:pointer}
+.btn:hover{background:#0f56e0}
+.btn.wechat{background:#07c160}
+.btn.wechat:hover{background:#05ad56}
+.btn.alipay{background:#1677ff}
+.btn.alipay:hover{background:#0e68e8}
+.btn.line{background:#fff;border:1px solid #1e6fff;color:#1e6fff;margin-right:10px}
+</style>
+</head>
+<body>
+<div class="top"><b>订单支付</b><span>
+  <a href="/shop/order_list">我的订单</a>
+  <a href="/member/center">会员中心</a></span>
+</div>
+<div class="wrap">
+  <div class="card">
+    <div class="order-no">订单号：{$order.order_no}</div>
+    <div class="amount">¥{$order.pay_amount}</div>
+    {if $order.status==0}
+    {if $order.pay_type=='wechat' && $pay_wechat==1}
+      {if $qr}
+      <div class="tip" style="background:#f0f9f0;border-color:#cdebd0;color:#206a2e">请使用<B>微信扫一扫</B>扫描下方二维码完成支付（订单号 {$order.order_no}）</div>
+      <div class="qr" id="qr-wrap" style="width:220px;height:220px;position:relative"><div id="qr-box" style="width:200px;height:200px"></div></div>
+      <div class="tip" style="text-align:center">支付完成后本页会自动跳转，无需手动操作。<br>（如支付成功未跳转，可点击「我已完成支付」刷新状态）</div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:14px">
+        <button class="btn wechat" onclick="refreshQr()">刷新二维码</button>
+        <button class="btn line" onclick="checkPaid()">我已完成支付</button>
+      </div>
+      <div id="qr-fallback" style="display:none;font-size:12px;color:#5a6579;word-break:break-all;text-align:left;margin-top:10px"></div>
+      {else}
+      <div class="qr"><div><div class="logo">💚</div>微信支付<br>模拟收银台</div></div>
+      <div class="tip">本地测试模式（未配置真实商户号）：点击下方按钮模拟「微信扫码支付成功」，订单将自动变为待发货。</div>
+      <button class="btn wechat" onclick="payOnline('wechat')">模拟微信支付成功 ¥{$order.pay_amount}</button>
+      {if $real_err}<div class="tip" style="color:#d03050">真实支付下单失败：{$real_err}</div>{/if}
+      {/if}
+    {elseif $order.pay_type=='alipay' && $pay_alipay==1}
+      {if $qr}
+      <div class="tip" style="background:#f0f7ff;border-color:#cfe3fb;color:#1a5ca8">请使用<B>支付宝扫一扫</B>扫描下方二维码完成支付（订单号 {$order.order_no}）</div>
+      <div class="qr" id="qr-wrap" style="width:220px;height:220px;position:relative"><div id="qr-box" style="width:200px;height:200px"></div></div>
+      <div class="tip" style="text-align:center">支付完成后本页会自动跳转，无需手动操作。<br>（如支付成功未跳转，可点击「我已完成支付」刷新状态）</div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:14px">
+        <button class="btn alipay" onclick="refreshQr()">刷新二维码</button>
+        <button class="btn line" onclick="checkPaid()">我已完成支付</button>
+      </div>
+      <div id="qr-fallback" style="display:none;font-size:12px;color:#5a6579;word-break:break-all;text-align:left;margin-top:10px"></div>
+      {else}
+      <div class="qr"><div><div class="logo">💙</div>支付宝<br>模拟收银台</div></div>
+      <div class="tip">本地测试模式（未配置真实商户号）：点击下方按钮模拟「支付宝支付成功」，订单将自动变为待发货。</div>
+      <button class="btn alipay" onclick="payOnline('alipay')">模拟支付宝支付成功 ¥{$order.pay_amount}</button>
+      {if $real_err}<div class="tip" style="color:#d03050">真实支付下单失败：{$real_err}</div>{/if}
+      {/if}
+    {elseif $order.pay_type=='test' && $pay_test==1}
+    <div class="tip">当前使用<B>模拟支付</B>（测试环境），点击下方按钮即完成支付。</div>
+    <button class="btn" onclick="payNow()">模拟支付 ¥{$order.pay_amount}</button>
+    {elseif $order.pay_type=='offline' && $pay_offline==1}
+    <div class="tip">当前使用<B>线下转账</B>：请按订单金额转账至网站指定收款账户，转账时备注订单号，管理员确认收款后订单自动完成。<br>
+      <span style="color:#5a6579">（线下转账账号信息请联系网站管理员获取）</span></div>
+    <button class="btn line" onclick="location.href='/shop/order_list'">我已转账，等待确认</button>
+    <button class="btn line" onclick="location.href='/shop/index'">返回商城</button>
+    {else}
+    <div class="tip" style="color:#d03050">该支付方式已关闭，请联系网站管理员更换支付方式。</div>
+    <a class="btn line" href="/shop/order_list">返回我的订单</a>
+    {/if}
+    {else}
+    <div style="color:#16a34a;font-size:15px;margin-bottom:16px">该订单已支付（{if $order.pay_time>0}{$order.pay_time|date='Y-m-d H:i'}{/if}）</div>
+    <a class="btn" href="/shop/order_detail?id={$order.id}">查看订单</a>
+    {/if}
+  </div>
+</div>
+<script>
+var qrCode = {if $qr}'{$qr}'{else}''{/if};
+var orderId = '{$order.id}';
+var payTimer = null;
+function drawQr(){
+  if(!qrCode) return;
+  var box = document.getElementById('qr-box');
+  if(typeof QRCode === 'function'){
+    box.innerHTML = '';
+    new QRCode(box, { text: qrCode, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
+    document.getElementById('qr-wrap').style.display = '';
+  } else {
+    // 库未加载：显示链接文本兜底
+    var fb = document.getElementById('qr-fallback');
+    fb.style.display = '';
+    fb.textContent = '二维码组件加载失败，请复制以下内容到微信/支付宝生成二维码：' + qrCode;
+  }
+}
+function loadQrLib(){
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
+  s.onload = function(){ drawQr(); };
+  s.onerror = function(){ drawQr(); };
+  document.head.appendChild(s);
+}
+function refreshQr(){ location.reload(); }
+function checkPaid(){
+  fetch('/shop/pay_status?id=' + orderId)
+   .then(function(r){return r.json()}).then(function(j){
+    if(j.code===1 && j.status===1){ clearInterval(payTimer); location.href='/shop/order_detail?id=' + orderId; }
+    else { alert('暂未检测到支付完成，请确认已扫码付款后重试'); }
+  });
+}
+if(qrCode){ loadQrLib(); payTimer = setInterval(checkPaid, 5000); }
+function payNow(){
+  var fd=new URLSearchParams(); fd.set('id', orderId);
+  fetch('/shop/pay_test',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:fd.toString()})
+   .then(function(r){return r.json()}).then(function(j){
+    if(j.code===1){location.href=j.url;} else {alert(j.msg);}
+  });
+}
+function payOnline(channel){
+  var fd=new URLSearchParams(); fd.set('id', orderId); fd.set('channel',channel);
+  fetch('/shop/pay_online',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:fd.toString()})
+   .then(function(r){return r.json()}).then(function(j){
+    if(j.code===1){location.href=j.url;} else {alert(j.msg);}
+  });
+}
+</script>
+</body>
+</html>

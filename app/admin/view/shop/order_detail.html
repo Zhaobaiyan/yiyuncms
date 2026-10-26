@@ -1,0 +1,84 @@
+{extend name="layout" /}
+{block name="title"}订单详情 - 易云CMS{/block}
+{block name="crumb"}商城管理 · 订单详情{/block}
+{block name="content"}
+<div class="toolbar">
+  <a class="btn sm" href="/admin/shop/order">返回列表</a>
+  {if $order.status==0}<button class="btn sm primary" onclick="setStatus(1)">确认收款</button>{/if}
+  {if $order.status==1}<button class="btn sm primary" onclick="openShip()">确认发货</button>{/if}
+  {if $order.status==2}<button class="btn sm primary" onclick="setStatus(3)">确认完成</button>{/if}
+  {if $order.status!=4}<button class="btn sm danger" onclick="setStatus(4)">取消订单</button>{/if}
+</div>
+<div class="card">
+  <div class="card-title">订单信息</div>
+  <table class="tbl">
+    <tr><th style="width:120px">订单号</th><td>{$order.order_no}</td><th style="width:120px">会员</th><td>{$member.username|default='未知'}（ID {$order.member_id}）</td></tr>
+    <tr><th>语言</th><td>{$order.lang}</td><th>订单状态</th><td>
+      {if $order.status==0}<span class="tag warn">待支付</span>
+      {elseif $order.status==1}<span class="tag">待发货</span>
+      {elseif $order.status==2}<span class="tag ok">已发货</span>
+      {elseif $order.status==3}<span class="tag ok">已完成</span>
+      {else}<span class="tag gray">已取消</span>{/if}
+    </td></tr>
+    <tr><th>总额</th><td><b>{$order.total_amount}</b> 元</td><th>应付</th><td><b style="color:var(--danger)">{$order.pay_amount}</b> 元</td></tr>
+    <tr><th>支付方式</th><td>{if $order.pay_type=='test'}测试支付{elseif $order.pay_type=='wechat'}微信支付{elseif $order.pay_type=='alipay'}支付宝{elseif $order.pay_type=='offline'}线下转账{else}—{/if}</td><th>支付时间</th><td>{if $order.pay_time>0}{$order.pay_time|date='Y-m-d H:i'}{else}—{/if}</td></tr>
+    <tr><th>收货人</th><td>{$order.name}</td><th>联系电话</th><td>{$order.mobile}</td></tr>
+    <tr><th>收货地址</th><td colspan="3">{$order.address}</td></tr>
+    <tr><th>备注</th><td colspan="3">{$order.remark|default='—'}</td></tr>
+    <tr><th>下单时间</th><td>{$order.create_time|date='Y-m-d H:i'}</td><th>最近更新</th><td>{$order.update_time|date='Y-m-d H:i'}</td></tr>
+    {if $order.status==2 || $order.express_no}
+    <tr><th>快递信息</th><td colspan="3">公司：{$order.express_company|default='—'}　单号：{$order.express_no|default='—'}　发货时间：{if $order.ship_time>0}{$order.ship_time|date='Y-m-d H:i'}{else}—{/if}</td></tr>
+    {/if}
+    <tr><th>售后状态</th><td colspan="3">
+      {if $order.refund_status==0}<span class="text-sub">无售后</span>
+      {elseif $order.refund_status==1}<span class="tag warn">售后处理中</span>
+      {elseif $order.refund_status==2}<span class="tag warn">已同意退款</span>
+      {elseif $order.refund_status==3}<span class="tag ok">已退款</span>
+      {else}<span class="tag gray">已拒绝</span>{/if}
+    </td></tr>
+  </table>
+</div>
+<div class="card">
+  <div class="card-title">商品明细</div>
+  <table class="tbl">
+    <tr><th style="width:50px">ID</th><th>商品</th><th>规格</th><th>单价(元)</th><th>数量</th><th>小计(元)</th></tr>
+    {foreach $products as $p}
+    <tr>
+      <td>{$p.conid}</td>
+      <td>{if $p.pic}<img src="{$p.pic}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:8px">{/if}{$p.title}</td>
+      <td>{$p.spec|default='—'}</td>
+      <td>{$p.price}</td>
+      <td>{$p.num}</td>
+      <td>{:sprintf('%.2f', $p.price * $p.num)}</td>
+    </tr>
+    {/foreach}
+  </table>
+</div>
+{if $refund}
+<div class="card">
+  <div class="card-title">售后记录（<a href="/admin/refund/detail/id/{$refund.id}">查看处理</a>）</div>
+  <table class="tbl">
+    <tr><th style="width:120px">类型</th><td>{if $refund.type=='refund_only'}仅退款{else}退货退款{/if}</td><th style="width:120px">申请金额</th><td><b>¥{$refund.amount}</b></td><th style="width:120px">状态</th><td>
+      {if $refund.status==0}<span class="tag warn">处理中</span>{elseif $refund.status==1}<span class="tag warn">已同意</span>{elseif $refund.status==2}<span class="tag gray">已拒绝</span>{else}<span class="tag ok">已退款</span>{/if}
+    </td></tr>
+    <tr><th>原因</th><td colspan="5">{$refund.reason}{if $refund.desc}　—　{$refund.desc}{/if}</td></tr>
+    {if $refund.admin_reply}<tr><th>客服回复</th><td colspan="5">{$refund.admin_reply}</td></tr>{/if}
+  </table>
+</div>
+{/if}
+<script>
+function setStatus(status){
+  yy.confirm('确认执行该操作？', function(){
+    yy.post('/admin/shop/order_set', { id: {$order.id}, status: status }, {literal}{url:'/admin/shop/order_detail/id/{$order.id}'}{/literal});
+  });
+}
+function openShip(){
+  var company = prompt('快递公司（如 顺丰/中通/圆通）：', '{$order.express_company}');
+  if (company === null) return;
+  var no = prompt('快递单号：', '{$order.express_no}');
+  if (no === null) return;
+  if (!company.trim() || !no.trim()) { alert('请填写完整快递信息'); return; }
+  yy.post('/admin/shop/order_ship', { id: {$order.id}, express_company: company.trim(), express_no: no.trim() }, {literal}{url:'/admin/shop/order_detail/id/{$order.id}'}{/literal});
+}
+</script>
+{/block}

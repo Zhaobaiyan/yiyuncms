@@ -1,0 +1,36 @@
+<div class="ct2-sd">
+    <div class="panel-sd">
+      {if isset($category)}
+      {yunu:type typeid="($category['id'] ?? '')" type="parent"}
+      <div class="tit"><span>{$type.title}</span>{$type.subtitle}</div>
+      {/yunu:type}
+      {else /}
+      <div class="tit"><span>网站栏目</span>Webiste</div>
+      {/if}
+      <ul class="lanmu">
+          {yunu:catlist cid="($category['id'] ?? '')" limit="20" type="parent" orderby="sort desc"}
+          <li class="{if $catlist.id eq $cid || $catlist.id eq $category.pid}active open{/if}">{if $catlist.child}<i class="arr"></i>{/if}<a href="{$catlist.url}">{$catlist.title}</a>
+            {if $catlist.child}
+            <div class="lanmu-box">
+              {volist name="catlist.child" id="v"}
+              <p><a href="{$v.url}">{$v.title}</a></p>
+              {/volist} 
+            </div>
+            {/if}
+          </li>
+          {/yunu:catlist}
+      </ul>
+    </div>
+    <div class="panel-sd">
+      <div class="tit"><i>联系我们</i>Contact us</div>
+      <div class="contact-sd">
+          <div class="tel">全国咨询热线<strong>{yunu:block name='mobile'  /}</strong></div>
+          <div class="cont">
+              <p><b>{yunu:config name="site_title" /}</b></p>
+              <p>公司地址：{yunu:block name='address'  /}</p>
+              <p>联系电话：{yunu:block name='tel'  /}</p>
+              <p>公司邮箱：{yunu:block name='email'  /}</p>
+          </div>
+      </div>
+    </div>
+  </div>

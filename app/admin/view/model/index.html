@@ -1,0 +1,27 @@
+{extend name="layout" /}
+{block name="title"}内容模型 - 易云CMS{/block}
+{block name="crumb"}内容管理 · 内容模型{/block}
+{block name="content"}
+<div class="toolbar"><a class="btn primary" href="/admin/model/edit">+ 添加模型</a></div>
+<div class="card">
+  <table class="tbl">
+    <tr><th style="width:60px">ID</th><th>模型标识</th><th>名称</th><th>描述</th><th>字段数</th><th style="width:190px">操作</th></tr>
+    {foreach $models as $m}
+    <tr>
+      <td>{$m.id}</td>
+      <td><code class="mono">{$m.name}</code></td>
+      <td>{$m.title}{if $m.id <= 3} <span class="tag">内置</span>{/if}</td>
+      <td>{$m.description}</td>
+      <td><a href="/admin/model/fields/model_id/{$m.id}"><b>{$m.field_count}</b> 个字段<span class="text-sub">（内置 {$m.default_count} + 扩展 {$m.field_extra}）</span></a></td>
+      <td>
+        <a class="btn sm" href="/admin/model/fields/model_id/{$m.id}">字段</a>
+        <a class="btn sm" href="/admin/model/edit/id/{$m.id}">编辑</a>
+        {if $m.id > 3}
+        <button class="btn sm danger" onclick="yy.confirm('确定删除模型「{$m.title}」？', function(){ yy.post('/admin/model/delete/id/{$m.id}', {}, {literal}{url:'/admin/model/index'}{/literal}); })">删除</button>
+        {/if}
+      </td>
+    </tr>
+    {/foreach}
+  </table>
+</div>
+{/block}

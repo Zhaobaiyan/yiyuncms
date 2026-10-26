@@ -1,0 +1,159 @@
+{extend name="layout" /}
+{block name="title"}添加/编辑站点 - 易云CMS{/block}
+{block name="crumb"}系统设置 · 站群管理 · {if $row.id}编辑站点{else}添加站点{/if}{/block}
+{block name="content"}
+<div class="card" style="max-width:780px">
+  <form onsubmit="return saveSite()">
+    <div class="form-item">
+      <label>站点名称 <em>*</em></label>
+      <input type="text" class="ipt" id="name" value="{$row.name|default=''}" placeholder="如：沈阳站 / 上海站">
+    </div>
+    <div class="form-item">
+      <label>站点模式 <em>*</em></label>
+      <div style="display:flex;gap:24px;padding:4px 0">
+        <label class="ck">
+          <input type="radio" name="mode" value="path" {if $row.mode=='path'}checked{/if} onchange="toggleMode()"> 路径模式（推荐）
+        </label>
+        <label class="ck">
+          <input type="radio" name="mode" value="domain" {if $row.mode=='domain'}checked{/if} onchange="toggleMode()"> 域名模式
+        </label>
+      </div>
+      <div class="form-tip">路径模式：本域名 + 英文别名（如 newcms.com/shenyang/），无需绑定二级域名；新建时自动复制模板与数据库。</div>
+    </div>
+
+    <div class="form-item" id="row-alias">
+      <label>路径别名 <em>*</em></label>
+      <input type="text" class="ipt" id="alias" value="{$row.alias|default=''}" placeholder="如：shenyang（2~20位小写字母）" style="max-width:220px" {if $row.id}disabled title="编辑时不可修改（已注册为语言版本并克隆数据）"{/if}>
+      <div class="form-tip">{if $row.id}编辑时不可修改。{/if}访问入口为 <code>http://你的域名/别名/</code>（如 /shenyang/）。同时自动注册为语言版本（code=别名，模板文件夹=别名）。</div>
+    </div>
+    <div class="form-item" id="row-domain">
+      <label>域名 <em>*</em></label>
+      <input type="text" class="ipt" id="domain" value="{$row.domain|default=''}" placeholder="如：www.example.com 或 *.example.com 或 newcms.com:8080">
+      <div class="form-tip">访问该域名时自动命中此站点；支持通配 <code>*.example.com</code>。不带协议与路径，可带端口。</div>
+    </div>
+
+    <div class="form-item" id="row-copy">
+      <label>复制来源（新建时）</label>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <select class="ipt" id="copy_source" style="max-width:240px">
+          <option value="">请选择源语言（默认当前主语言）</option>
+          {foreach $langs as $l}
+          {if $l.code != $row.alias}
+          <option value="{$l.code}">{$l.name}（{$l.code}）</option>
+          {/if}
+          {/foreach}
+        </select>
+        <label class="ck"><input type="checkbox" id="copy_data" checked> 复制数据库（整套表含数据）</label>
+        <label class="ck"><input type="checkbox" id="copy_tpl" checked> 复制模板文件夹（PC+手机版）</label>
+      </div>
+      <div class="form-tip">仅新建时生效：数据库表（栏目/内容/留言/块/广告/链接/模型/设置…）与模板文件夹 <code>template/源 → template/别名</code> 整体复制，站点数据完全独立（id 各自从 1 开始）。</div>
+    </div>
+
+    <div class="form-item">
+      <label>默认语言 <em>*</em></label>
+      <select class="ipt" id="default_lang">
+        {foreach $langs as $l}
+        <option value="{$l.code}" {if $row.default_lang==$l.code}selected{/if}>{$l.name}（{$l.code}）</option>
+        {/foreach}
+      </select>
+      <div class="form-tip">路径模式站点固定为自身别名语言，此处仅域名模式生效。</div>
+    </div>
+    <div class="form-item">
+      <label>启用语言</label>
+      <div class="lang-check">
+        {foreach $langs as $l}
+        <label class="ck">
+          <input type="checkbox" name="langs[]" value="{$l.code}" {if in_array($l.code,$row.langs)}checked{/if}> {$l.name}（{$l.code}）
+        </label>
+        {/foreach}
+      </div>
+      <div class="form-tip">不勾选 = 全部已启用语言。勾选后该站点前台只能访问勾选的语言。</div>
+    </div>
+    <div class="form-item">
+      <label>排序</label>
+      <input type="text" class="ipt sm" id="sort" value="{$row.sort|default='0'}" style="width:100px">
+    </div>
+    <div class="form-item">
+      <label>状态</label>
+      <label class="switch">
+        <input type="checkbox" id="status" {if $row.status==1}checked{/if}>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="form-item">
+      <label>备注</label>
+      <input type="text" class="ipt" id="remark" value="{$row.remark|default=''}" placeholder="选填，如站点用途">
+    </div>
+    <div class="form-item">
+      <button type="submit" class="btn primary">保存</button>
+      <a class="btn" href="/admin/site/index" style="margin-left:8px">返回</a>
+    </div>
+  </form>
+</div>
+<style>
+.lang-check{display:flex;flex-wrap:wrap;gap:6px 18px;padding:6px 0}
+.lang-check .ck{font-size:14px;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.form-tip{font-size:12px;color:var(--text-sub);margin-top:4px;line-height:1.7}
+.form-tip code{background:#f0f2f5;padding:1px 5px;border-radius:4px}
+</style>
+<script>
+function currentMode(){
+  var m = document.querySelector('input[name=mode]:checked');
+  return m ? m.value : 'path';
+}
+function toggleMode(){
+  var path = currentMode() === 'path';
+  document.getElementById('row-alias').style.display = path ? '' : 'none';
+  document.getElementById('row-domain').style.display = path ? 'none' : '';
+  document.getElementById('row-copy').style.display = path && {$row.id} == 0 ? '' : 'none';
+  var dl = document.getElementById('default_lang');
+  if (path) {
+    dl.disabled = true;
+    // 路径模式默认语言固定为别名，若别名已在语言列表则选中
+    var alias = document.getElementById('alias').value.trim();
+    var opts = dl.options;
+    for (var i=0;i<opts.length;i++){ if(opts[i].value === alias){ dl.selectedIndex = i; break; } }
+  } else {
+    dl.disabled = false;
+  }
+}
+function saveSite(){
+  var name = document.getElementById('name').value.trim();
+  var mode = currentMode();
+  var alias = document.getElementById('alias').value.trim().toLowerCase();
+  var domain = document.getElementById('domain').value.trim();
+  var defLang = document.getElementById('default_lang').value;
+  var sort = document.getElementById('sort').value || 0;
+  var remark = document.getElementById('remark').value.trim();
+  if(!name){ yy.alert('请填写站点名称'); return false; }
+  if(mode === 'path' && !/^[a-z]{2,20}$/.test(alias)){ yy.alert('路径别名需为 2~20 位小写字母（如 shenyang）'); return false; }
+  if(mode === 'domain' && !domain){ yy.alert('请填写域名'); return false; }
+  if(mode === 'domain' && !defLang){ yy.alert('请选择默认语言'); return false; }
+  var langs = [];
+  document.querySelectorAll('input[name="langs[]"]:checked').forEach(function(c){ langs.push(c.value); });
+  var fd = new URLSearchParams();
+  fd.set('id', '{$row.id}');
+  fd.set('name', name);
+  fd.set('mode', mode);
+  fd.set('alias', alias);
+  fd.set('domain', domain);
+  fd.set('default_lang', mode === 'path' ? (alias || defLang) : defLang);
+  langs.forEach(function(v){ fd.append('langs[]', v); });
+  fd.set('status', document.getElementById('status').checked ? 1 : 0);
+  fd.set('sort', sort);
+  fd.set('remark', remark);
+  fd.set('copy_source', document.getElementById('copy_source').value);
+  fd.set('copy_data', document.getElementById('copy_data').checked ? 1 : 0);
+  fd.set('copy_tpl', document.getElementById('copy_tpl').checked ? 1 : 0);
+  fetch('/admin/site/save', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: fd.toString() })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if(j.code === 1){ location.href = j.url || '/admin/site/index'; }
+      else { yy.alert(j.msg || '保存失败'); }
+    });
+  return false;
+}
+// 初始显示
+toggleMode();
+</script>
+{/block}

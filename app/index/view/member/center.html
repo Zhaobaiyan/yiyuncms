@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的中心 - 会员中心</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei",Arial,sans-serif;background:#f2f4f7;color:#333;min-height:100vh}
+a{color:#1e6fff;text-decoration:none}
+.top{background:#1a2744;color:#fff;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.top b{font-size:16px}
+.top a{color:#aebbe0;font-size:13px;margin-left:16px}
+.wrap{max-width:960px;margin:24px auto 40px;padding:0 16px}
+.card{background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(20,40,80,.06);padding:24px;margin-bottom:20px}
+.card h2{font-size:16px;color:#1a2744;margin-bottom:16px;padding-left:10px;border-left:3px solid #1e6fff}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.tag{background:#f0f4ff;color:#1e6fff;border-radius:6px;padding:6px 12px;font-size:13px}
+.fav-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.fav{background:#fafbfd;border:1px solid #eef1f5;border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.fav img{width:100%;height:120px;object-fit:cover;background:#eef1f5}
+.fav .t{padding:10px 12px;font-size:13px;line-height:1.5;flex:1}
+.fav .m{padding:0 12px 10px;font-size:12px;color:#98a1b3}
+.empty{color:#98a1b3;font-size:13px;padding:20px 0;text-align:center}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:10px 8px;border-bottom:1px solid #eef1f5;text-align:left}
+th{color:#5a6579;font-weight:600;background:#fafbfd}
+.st{padding:3px 10px;border-radius:10px;font-size:12px}
+.st0{background:#fff7e6;color:#d48806}.st1{background:#e8f7ee;color:#25a35a}.st2{background:#fdecec;color:#d03050}
+.forms{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:720px){.forms{grid-template-columns:1fr}.fav-grid{grid-template-columns:1fr 1fr}}
+.form .field{margin-bottom:12px}
+.form label{display:block;font-size:13px;color:#5a6579;margin-bottom:6px}
+.form input{width:100%;height:40px;border:1px solid #dde1e8;border-radius:8px;padding:0 12px;font-size:14px;outline:none}
+.form input:focus{border-color:#1e6fff}
+.btn{display:inline-block;height:40px;padding:0 22px;border:0;border-radius:8px;background:#1e6fff;color:#fff;font-size:14px;cursor:pointer}
+.btn:hover{background:#0f56e0}
+.err{display:none;background:#fdecec;color:#d03050;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+.ok{display:none;background:#e8f7ee;color:#25a35a;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="top"><b>会员中心</b><span>
+  <a href="/shop/index">商城</a>
+  <a href="/shop/order_list">我的订单</a>
+  <a href="/shop/cart">购物车</a>
+  <a href="/member/wallet">我的钱包</a>
+  <a href="/service/chat">在线客服</a>
+  <a href="/">返回首页</a>
+  <a href="/member/logout">退出登录</a>
+</span></div>
+<div class="wrap">
+  <div class="card">
+    <h2>我的资料</h2>
+    <div class="meta">
+      <span class="tag">账号：{$member.username ?? ''}</span>
+      <span class="tag">昵称：{$member.nickname ?? ''}</span>
+      <span class="tag">邮箱：{$member.email ?? '未填写'}</span>
+      <span class="tag">手机：{$member.phone ?? '未填写'}</span>
+    </div>
+    <div class="forms">
+      <div class="form">
+        <div class="field"><label>昵称</label><input type="text" id="nickname" value="{$member.nickname ?? ''}"></div>
+        <div class="field"><label>邮箱</label><input type="text" id="email" value="{$member.email ?? ''}"></div>
+        <div class="field"><label>手机</label><input type="text" id="phone" value="{$member.phone ?? ''}"></div>
+        <button class="btn" onclick="saveInfo()">保存资料</button>
+      </div>
+      <div class="form">
+        <div class="field"><label>原密码</label><input type="password" id="old_password" placeholder="修改密码时填写"></div>
+        <div class="field"><label>新密码（至少 6 位）</label><input type="password" id="new_password" placeholder="留空则不修改"></div>
+        <button class="btn" onclick="savePwd()">修改密码</button>
+      </div>
+    </div>
+    <div class="err" id="err"></div>
+    <div class="ok" id="ok"></div>
+  </div>
+
+  <div class="card">
+    <h2>我的收藏（{$favs|count=###}）</h2>
+    {if condition="!empty($favs)"}
+    <div class="fav-grid">
+      {volist name="favs" id="f"}
+      <div class="fav">
+        {if condition="$f.thumb"}<img src="{$f.thumb}" alt="{$f.title}">{else}<img src="" alt="">{/if}
+        <div class="t"><a href="{$f.url}" target="_blank">{$f.title}</a></div>
+        <div class="m">{$f.time} · 浏览 {$f.views}</div>
+      </div>
+      {/volist}
+    </div>
+    {else /}
+    <div class="empty">暂无收藏，去 <a href="/">首页</a> 逛逛吧</div>
+    {/if}
+  </div>
+
+  <div class="card">
+    <h2>我的留言（{$msgs|count=###}）</h2>
+    {if condition="!empty($msgs)"}
+    <table>
+      <tr><th>标题</th><th>内容</th><th>状态</th><th>提交时间</th><th>回复</th><th>查询码</th></tr>
+      {volist name="msgs" id="m"}
+      <tr>
+        <td>{$m.title ?: '（无标题）'}</td>
+        <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{$m.content}</td>
+        <td><span class="st st{$m.status}">{$m._status_text}</span></td>
+        <td>{$m._ct}</td>
+        <td>{if condition="$m.reply"}<a href="/message.html" target="_blank">查看回复</a>{else /}—{/if}</td>
+        <td>{$m.query_code}</td>
+      </tr>
+      {/volist}
+    </table>
+    {else /}
+    <div class="empty">暂无留言</div>
+    {/if}
+  </div>
+</div>
+<script>
+function post(fd, cb){
+  var err=document.getElementById('err'),ok=document.getElementById('ok');
+  err.style.display='none';ok.style.display='none';
+  fetch('/member/save',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:fd.toString()})
+   .then(function(r){return r.json()}).then(function(j){
+    if(j.code===1){ok.textContent=j.msg;ok.style.display='block';setTimeout(function(){location.reload()},800);}
+    else{err.textContent=j.msg;err.style.display='block';}
+  }).catch(function(){err.textContent='网络错误';err.style.display='block';});
+}
+function saveInfo(){
+  var fd=new URLSearchParams();
+  fd.set('nickname',document.getElementById('nickname').value);
+  fd.set('email',document.getElementById('email').value);
+  fd.set('phone',document.getElementById('phone').value);
+  post(fd);
+}
+function savePwd(){
+  var fd=new URLSearchParams();
+  fd.set('old_password',document.getElementById('old_password').value);
+  fd.set('new_password',document.getElementById('new_password').value);
+  post(fd);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+{extend name="layout" /}
+{block name="title"}钱包明细 - 易云CMS{/block}
+{block name="crumb"}商城管理 · 钱包明细{/block}
+{block name="content"}
+<div class="toolbar">
+  <a class="btn sm" href="/admin/wallet/index">返回列表</a>
+</div>
+<div class="card">
+  <div class="card-title">会员钱包：{$member.nickname|default=''}{if $member.username}（{$member.username}）{/if}</div>
+  <table class="tbl">
+    <tr><th>可用余额</th><td><b>¥{$wallet.balance}</b></td><th>冻结中</th><td>¥{$wallet.frozen}</td><th>累计收入</th><td>¥{$wallet.total_income}</td><th>累计提现</th><td>¥{$wallet.total_withdraw}</td></tr>
+  </table>
+</div>
+<div class="card">
+  <div class="card-title">余额调整</div>
+  <div class="s-form">
+    <div class="form-item">
+      <div class="lab">调整金额</div>
+      <div class="ctl"><input type="number" step="0.01" id="adj-amount" class="ipt" placeholder="正数增加，负数扣减"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">调整原因</div>
+      <div class="ctl"><input type="text" id="adj-note" class="ipt" placeholder="如：订单补偿 / 误退款纠正"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl"><button class="btn sm primary" onclick="adjust()">确认调整</button></div>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">钱包流水</div>
+  <table class="tbl">
+    <tr><th>时间</th><th>类型</th><th>金额</th><th>变动后余额</th><th>备注</th></tr>
+    {if count($logs)>0}
+    {foreach $logs as $l}
+    <tr>
+      <td>{$l.create_time|date='Y-m-d H:i'}</td>
+      <td>{$l._type}</td>
+      <td style="color:{if $l.amount>=0}var(--ok){else}var(--danger){/if}">{if $l.amount>=0}+{/if}¥{$l.amount}</td>
+      <td>¥{$l.balance_after}</td>
+      <td>{$l.note}</td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="5"><div class="empty">暂无流水</div></td></tr>
+    {/if}
+  </table>
+</div>
+<div class="card">
+  <div class="card-title">提现记录</div>
+  <table class="tbl">
+    <tr><th>申请时间</th><th>金额</th><th>渠道</th><th>收款账号</th><th>姓名</th><th>状态</th><th>备注</th></tr>
+    {if count($withdraws)>0}
+    {foreach $withdraws as $w}
+    <tr>
+      <td>{$w.create_time|date='Y-m-d H:i'}</td>
+      <td>¥{$w.amount}</td>
+      <td>{if $w.channel=='wechat'}微信{else}支付宝{/if}</td>
+      <td>{$w.account}</td>
+      <td>{$w.real_name}</td>
+      <td>{if $w.status==0}<span class="tag warn">处理中</span>{elseif $w.status==1}<span class="tag ok">已打款</span>{else}<span class="tag gray">已拒绝</span>{/if}</td>
+      <td>{$w.admin_note|default='—'}</td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="7"><div class="empty">暂无提现记录</div></td></tr>
+    {/if}
+  </table>
+</div>
+<script>
+function adjust(){
+  var amount = parseFloat(document.getElementById('adj-amount').value);
+  if (!amount || amount === 0) { alert('请输入调整金额'); return; }
+  var note = document.getElementById('adj-note').value.trim() || '后台调整';
+  yy.confirm('确认调整 ¥' + amount + '？', function(){
+    yy.post('/admin/wallet/adjust', { member_id: {$wallet.member_id}, amount: amount, note: note }, {literal}{url:'/admin/wallet/detail/member_id/{$wallet.member_id}'}{/literal});
+  });
+}
+</script>
+{/block}

@@ -1,0 +1,126 @@
+{extend name="layout" /}
+{block name="title"}评论管理 - 易云CMS{/block}
+{block name="crumb"}内容管理 · 评论管理{/block}
+{block name="content"}
+<div class="toolbar">
+  <form action="/admin/comment/index" method="get" class="filter-form">
+    <select name="status" style="width:auto;min-width:110px">
+      <option value="">全部状态</option>
+      <option value="1" {if $status === '1'}selected{/if}>已通过</option>
+      <option value="0" {if $status === '0'}selected{/if}>待审核</option>
+      <option value="2" {if $status === '2'}selected{/if}>已隐藏</option>
+    </select>
+    <input type="text" name="keyword" value="{$keyword}" placeholder="搜索称呼或内容" style="width:220px">
+    {if $content_id > 0}<input type="hidden" name="content_id" value="{$content_id}">{/if}
+    <button class="btn" type="submit">筛选</button>
+  </form>
+</div>
+<div class="card">
+  <div class="batch-line">
+    <div class="batch-row">
+      <span class="batch-label">批量：</span>
+      <button class="btn sm success" onclick="batchOp(1)">通过</button>
+      <button class="btn sm" onclick="batchOp(2)">隐藏</button>
+      <button class="btn sm danger" onclick="batchDel()">彻底删除</button>
+    </div>
+  </div>
+  <table class="tbl">
+    <tr>
+      <th style="width:36px"><input type="checkbox" id="checkAll"></th>
+      <th style="width:60px">ID</th>
+      <th>内容</th>
+      <th style="width:100px">称呼</th>
+      <th>评论内容</th>
+      <th style="width:140px">回复</th>
+      <th style="width:80px">状态</th>
+      <th style="width:160px">时间</th>
+      <th style="width:180px">操作</th>
+    </tr>
+    {if $list}
+    {foreach $list as $row}
+    <tr>
+      <td><input type="checkbox" class="row-check" value="{$row.id}"></td>
+      <td>{$row.id}</td>
+      <td class="text-sub" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+        <a href="/admin/content/edit/id/{$row.content_id}" title="{$contentMap[$row.content_id]|default=''}" target="_blank">{if isset($contentMap[$row.content_id])}{$contentMap[$row.content_id]}{else}内容#{$row.content_id}{/if}</a>
+      </td>
+      <td>{$row.username}</td>
+      <td class="text-sub" style="max-width:260px">{$row.content}</td>
+      <td class="text-sub" style="max-width:140px">{$row.reply|default='-'}</td>
+      <td>
+        {if $row.status==1}<span class="tag ok">已通过</span>
+        {elseif $row.status==2}<span class="tag gray">已隐藏</span>
+        {else}<span class="tag warn">待审核</span>{/if}
+      </td>
+      <td class="text-sub">{$row.create_time|date='Y-m-d H:i'}</td>
+      <td class="ops">
+        {if $row.status != 1}<button class="btn sm success" onclick="yy.post('/admin/comment/audit', {ids: {$row.id}, status: 1}, {callback: function(){ location.reload(); }})">通过</button>{/if}
+        <button class="btn sm" onclick="openReply({$row.id})">回复</button>
+        <button class="btn sm danger" onclick="yy.confirm('彻底删除该评论？不可恢复', function(){ yy.post('/admin/comment/delete/id/{$row.id}', {}, {literal}{url:'/admin/comment/index'}{/literal}); })">删除</button>
+      </td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="9"><div class="empty">暂无评论</div></td></tr>
+    {/if}
+  </table>
+  <div class="pager-bar">
+    <span class="page-size">每页
+      <select id="page-size">
+        {foreach [10,20,50,100,200] as $ps}
+        <option value="{$ps}" {if $page_size == $ps}selected{/if}>{$ps}</option>
+        {/foreach}
+      </select> 条
+    </span>
+    <div class="pagination">{$list|raw}</div>
+  </div>
+</div>
+<script>
+document.getElementById('checkAll').addEventListener('change', function(){
+  document.querySelectorAll('.row-check').forEach(function(c){ c.checked = this.checked; }, this);
+});
+function selected(){ return Array.from(document.querySelectorAll('.row-check:checked')).map(function(c){ return c.value; }); }
+function batchOp(status){
+  var ids = selected();
+  if(!ids.length) return yy.toast('请先选择评论','err');
+  yy.post('/admin/comment/audit', {ids: ids.join(','), status: status}, {callback: function(){ location.reload(); }});
+}
+function batchDel(){
+  var ids = selected();
+  if(!ids.length) return yy.toast('请先选择评论','err');
+  yy.confirm('彻底删除选中的 '+ids.length+' 条评论？不可恢复', function(){
+    var i = 0;
+    (function next(){
+      if(i >= ids.length){ location.reload(); return; }
+      yy.post('/admin/comment/delete/id/' + ids[i++], {}, {callback: next});
+    })();
+  });
+}
+function openReply(id){
+  var mask = document.createElement('div');
+  mask.className = 'modal-mask show';
+  mask.innerHTML =
+    '<div class="modal">' +
+    '<div class="m-head">回复评论 <span data-a="close" style="float:right;cursor:pointer;opacity:.6">✕</span></div>' +
+    '<div class="m-body"><textarea id="cm-reply" placeholder="填写回复内容（回复后评论自动通过并展示在前台）" style="width:100%;height:90px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;box-sizing:border-box;resize:vertical"></textarea></div>' +
+    '<div class="m-foot"><button class="btn" data-a="cancel">取消</button><button class="btn primary" data-a="ok">回复</button></div></div>';
+  document.body.appendChild(mask);
+  mask.addEventListener('click', function (e) {
+    var a = e.target.getAttribute('data-a');
+    if (a === 'close' || a === 'cancel' || e.target === mask) { mask.remove(); return; }
+    if (a === 'ok') {
+      var reply = document.getElementById('cm-reply').value.trim();
+      if (!reply) { yy.toast('请输入回复内容','err'); return; }
+      mask.remove();
+      yy.post('/admin/comment/reply/id/' + id, {reply: reply}, {callback: function(){ location.reload(); }});
+    }
+  });
+}
+document.getElementById('page-size').addEventListener('change', function(){
+  var u = new URLSearchParams(location.search);
+  u.set('page_size', this.value);
+  u.delete('page'); u.delete('cb');
+  location.href = location.pathname + '?' + u.toString();
+});
+</script>
+{/block}

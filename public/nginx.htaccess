@@ -1,0 +1,15 @@
+# ============================================================
+# Nginx 伪静态规则（由易云CMS 自动生成，请勿手工修改）
+# 主语言：cn
+# 1) 主语言静态页 URL 无前缀：栏目/内容/单页文件在 /cn/ 文件夹，
+#    URL 由下方规则隐藏 cn 前缀（访问 /news 实际读取 /cn/news/index.html）
+# 2) 其他语言静态页带前缀（/en/news 等）直接命中 public/ 对应文件夹
+# 3) 未命中静态则走 ThinkPHP 入口动态路由
+# ============================================================
+
+# 无斜杠的一级栏目（如 /pro）→ 主语言 /cn/pro/index.html（内部，不泄露前缀）
+# 动态控制器名单（lists/show/search/tag/message/guestbook/index 等）不参与静态重写
+rewrite ^/((?!en|admin/|upload/|static/|download|index\.php|favicon\.ico|robots\.txt|lists|show|search|tag|message|guestbook|index)[A-Za-z0-9_\-]+)$ /cn/$1/index.html last;
+
+# 栏目/内容/单页 + 其他语言 + 动态 统一走 try_files
+try_files $uri $uri/ /cn$uri /cn$uri/ /index.php?s=$uri&$args;

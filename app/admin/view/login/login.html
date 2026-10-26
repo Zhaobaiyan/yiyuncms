@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>登录 - 易云CMS 管理后台</title>
+<link rel="stylesheet" href="/static/admin/css/admin.css">
+</head>
+<body>
+<div class="login-page">
+  <div class="deco d1"></div>
+  <div class="deco d2"></div>
+  {if !empty($timeout_tip)}
+  <div style="background:#fff7e6;border:1px solid #ffd591;color:#ad6800;padding:10px 16px;border-radius:8px;margin-bottom:14px;font-size:13px;text-align:center">长时间无操作，已自动退出登录，请重新登录</div>
+  {/if}
+  <div class="login-card">
+    <div class="logo">易<em>云</em>CMS</div>
+    <div class="sub">现代化企业建站内容管理系统</div>
+    <form id="login-form">
+      <div class="form-item">
+        <label class="lab">账号</label>
+        <div class="ctl"><input type="text" name="username" placeholder="请输入管理员账号" autocomplete="username"></div>
+      </div>
+      <div class="form-item">
+        <label class="lab">密码</label>
+        <div class="ctl"><input type="password" name="password" placeholder="请输入密码" autocomplete="current-password"></div>
+      </div>
+      <div class="form-item">
+        <label class="lab">验证码</label>
+        <div class="ctl code-row">
+          <input type="text" name="code" placeholder="验证码" autocomplete="off">
+          <img src="/admin/login/captcha" onclick="this.src='/admin/login/captcha?t='+Date.now()" title="点击刷新">
+        </div>
+      </div>
+      <button type="submit" class="btn primary">登 录</button>
+    </form>
+  </div>
+</div>
+<script src="/static/admin/js/admin.js?v=20260928b"></script>
+<script>
+(function () {
+  var form = document.getElementById('login-form');
+  function tip(msg, type) {
+    if (window.yy && window.yy.toast) { window.yy.toast(msg, type || 'err'); }
+    else { alert(msg); }
+  }
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var fd = new FormData(form);
+    var btn = form.querySelector('button[type=submit]');
+    if (btn) { btn.disabled = true; btn.textContent = '登录中...'; }
+    fetch('/admin/login/login', { method: 'POST', body: fd })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res.code === 1) {
+          // 成功立即跳转，不依赖 toast
+          location.href = res.url || '/admin/index';
+          return;
+        }
+        tip(res.msg || '登录失败');
+        var img = document.querySelector('.code-row img');
+        if (img) img.src = '/admin/login/captcha?t=' + Date.now();
+        if (btn) { btn.disabled = false; btn.textContent = '登 录'; }
+      })
+      .catch(function () {
+        tip('网络错误，请重试');
+        if (btn) { btn.disabled = false; btn.textContent = '登 录'; }
+      });
+  });
+})();
+</script>
+</body>
+</html>

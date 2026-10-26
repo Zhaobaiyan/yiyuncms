@@ -1,0 +1,53 @@
+{extend name="layout" /}
+{block name="title"}收录推送 - 易云CMS{/block}
+{block name="crumb"}扩展功能 · 收录推送{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">百度主动推送设置</div>
+  <form id="token-form" class="inline-form">
+    <div class="form-item" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div class="lab" style="width:auto;min-width:90px">百度 Token</div>
+      <div class="ctl" style="flex:1;min-width:260px"><input type="text" name="baidu_token" value="{$token}" placeholder="百度站长平台 → 普通收录 → API 推送接口 Token"></div>
+      <button type="submit" class="btn primary">保存 Token</button>
+    </div>
+  </form>
+  <div class="help" style="margin-top:6px">站点地址：{$site}；推送接口为 data.zz.baidu.com 普通收录（每日额度与网站收录量相关）。也支持 Google 收录：配合 sitemap.xml 在 Google Search Console 提交即可。</div>
+</div>
+<div class="card">
+  <div class="card-title">最新内容（{count($list)} 条，勾选后推送到百度）</div>
+  {if $list}
+  <table class="tbl">
+    <tr><th style="width:36px"><input type="checkbox" id="checkAll"></th><th style="width:60px">ID</th><th>标题</th><th style="width:80px">栏目</th><th style="width:150px">发布时间</th></tr>
+    {foreach $list as $row}
+    <tr>
+      <td><input type="checkbox" class="row-check" value="{$row.id}"></td>
+      <td>{$row.id}</td>
+      <td>{$row.title}</td>
+      <td class="text-sub">{$row.catid}</td>
+      <td class="text-sub">{$row.create_time|date='Y-m-d H:i'}</td>
+    </tr>
+    {/foreach}
+  </table>
+  <div style="margin-top:12px">
+    <button class="btn primary" onclick="doPush()">推送选中内容</button>
+    <span class="text-sub">建议每日推送后新发布内容；重复推送不影响</span>
+  </div>
+  {else}
+  <div class="empty">暂无已发布内容</div>
+  {/if}
+</div>
+<script>
+document.getElementById('checkAll').addEventListener('change', function(){
+  document.querySelectorAll('.row-check').forEach(function(c){ c.checked = this.checked; }, this);
+});
+document.getElementById('token-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  yy.post('/admin/push/index', new FormData(this), {literal}{url:'/admin/push/index'}{/literal});
+});
+function doPush(){
+  var ids = Array.from(document.querySelectorAll('.row-check:checked')).map(function(c){ return c.value; });
+  if(!ids.length) return yy.toast('请先勾选要推送的内容','err');
+  yy.post('/admin/push/push', {ids: ids.join(',')}, {literal}{url:'/admin/push/index'}{/literal});
+}
+</script>
+{/block}

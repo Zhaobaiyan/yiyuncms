@@ -1,0 +1,424 @@
+{extend name="layout" /}
+{block name="title"}{if $info}编辑内容{else}发布内容{/if} - 易云CMS{/block}
+{block name="crumb"}内容管理 · {if $info}编辑{else}发布{/if}{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">{if $info}编辑内容「{$info.title}」{else}发布新内容{/if}</div>
+  {if $info && isset($people)}
+  <div style="margin:0 0 16px;padding:10px 14px;background:#f6f8fb;border:1px dashed #d9e1ec;border-radius:6px;color:#556;font-size:13px;line-height:2;">
+    发稿人：<b>{$people[$info.author_uid]|default='-'}</b>
+    {if $auditOpen}
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    {if $info.audit_uid > 0}
+    审核人：<b>{$people[$info.audit_uid]|default='-'}</b>（{$info.audit_time|date='Y-m-d H:i'}）
+    {else}
+    审核人：<span style="color:#c0392b;">待审核</span>
+    {/if}
+    <br>
+    {if $info.audit_status == 1}
+      <span style="color:#e67e22;">● 待审核</span>（第 {$info.submit_count|default=1} 次提交，等待管理员审核）
+    {elseif $info.audit_status == 2}
+      <span style="color:#c0392b;">● 已驳回</span>（第 {$info.submit_count|default=1} 次提交）<br>
+      驳回原因：<span style="color:#c0392b;">{$info.reject_reason|default=''}</span><br>
+      <span style="color:#888;">请修改内容后重新提交，并填写下方「修改说明」告知审核人。</span>
+    {else}
+      <span style="color:#27ae60;">● 审核正常</span>{if $info.status == 0}<span style="color:#888;">（当前为草稿/下架状态，变化见下方操作记录）</span>{/if}
+    {/if}
+    {/if}
+  </div>
+  {if $auditOpen && !$needAudit && $info}
+  <div style="margin:0 0 16px;padding:10px 14px;background:#fff8f0;border:1px solid #f0d9b4;border-radius:6px;font-size:13px;">
+    <div style="font-weight:600;margin-bottom:8px;color:#8a5a1a">
+      审核操作
+      {if $info.audit_status == 1}（当前内容<span style="color:#e67e22">待审核</span>）
+      {elseif $info.audit_status == 2}（当前内容<span style="color:#c0392b">已驳回</span>）
+      {elseif $info.status == 1}（当前内容<span style="color:#27ae60">已发布</span>，驳回后前台不可见）
+      {else}（当前内容为草稿）{/if}
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap">
+      <textarea id="audit-reason-edit" placeholder="驳回原因（驳回时必填，投稿人可查看；多次驳回保留历史）" style="flex:1;min-width:260px;height:56px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;box-sizing:border-box;resize:vertical"></textarea>
+      {if $info.audit_status != 0}<button type="button" class="btn primary" onclick="auditAction('pass')">审核通过</button>{/if}
+      <button type="button" class="btn danger" onclick="auditAction('reject')">驳回（填原因）</button>
+    </div>
+    <div class="help" style="color:#8a5a1a;margin-top:6px">已发布 / 草稿内容也可在此驳回：驳回后内容标记「已驳回」并记录原因，前台立即不可见，投稿人可见原因并可修改重提。</div>
+  </div>
+  {/if}
+  {if $auditOpen && isset($auditLogs) && $auditLogs}
+  <div style="margin:0 0 16px;padding:10px 14px;background:#fafbfc;border:1px solid #e6ebf1;border-radius:6px;font-size:13px;">
+    <div style="font-weight:600;margin-bottom:8px;color:#556">操作记录（审核/提交/驳回/下架时间线）</div>
+    <div style="border-left:2px solid #e2e8f0;padding-left:12px;max-height:220px;overflow:auto">
+      {foreach $auditLogs as $al}
+      <div style="margin-bottom:8px">
+        <div style="font-weight:600;color:{if $al.type==2}#c0392b{elseif $al.type==3}#27ae60{elseif $al.type==4}#8892a6{else}#1a5fb4{/if}">
+          {if $al.type==1}提交{elseif $al.type==2}驳回{elseif $al.type==3}审核通过{elseif $al.type==4}下架/存草稿{/if}
+          · {$al.name} <span style="font-weight:400;color:#8892a6">{$al.time}</span>
+        </div>
+        {if $al.note}<div style="color:#667;margin-top:2px;background:#f8fafc;padding:6px 8px;border-radius:6px">{$al.note}</div>{/if}
+      </div>
+      {/foreach}
+    </div>
+  </div>
+  {/if}
+  {/if}
+  {if $info && isset($commentCount) && $commentCount > 0}
+  <div style="margin:0 0 16px;padding:10px 14px;background:#f0f7ff;border:1px solid #cfe3ff;border-radius:6px;font-size:13px;color:#1a5fb4">
+    该内容收到 <b>{$commentCount}</b> 条评论，<a href="/admin/comment/index?content_id={$info.id}" style="color:#1a5fb4;text-decoration:underline">前往评论管理</a>
+  </div>
+  {/if}
+  {if $info && isset($contentLogs) && $contentLogs}
+  <div style="margin:0 0 16px;padding:10px 14px;background:#fafbfc;border:1px solid #e6ebf1;border-radius:6px;font-size:13px;">
+    <div style="font-weight:600;margin-bottom:4px;color:#556;cursor:pointer" onclick="var el=document.getElementById('ver-log'); el.style.display = el.style.display==='none' ? 'block' : 'none';">版本历史（{$contentLogs->count()} 条，点击展开/收起）</div>
+    <div id="ver-log" style="display:none;border-left:2px solid #e2e8f0;padding-left:12px;max-height:260px;overflow:auto">
+      {foreach $contentLogs as $cl}
+      <div style="margin-bottom:8px">
+        <div style="font-weight:600;color:#556">{if $cl.action=='save'}保存{elseif $cl.action=='rollback'}回滚{else}{$cl.action}{/if} <span style="font-weight:400;color:#8892a6">{$cl.create_time|date='Y-m-d H:i'}</span>{if $cl.log}<span style="color:#8892a6">（{$cl.log}）</span>{/if}</div>
+        <div style="margin-top:4px"><button type="button" class="btn sm" onclick="yy.confirm('确定回滚到该版本？当前标题/描述/正文/缩略图将被覆盖', function(){ yy.post('/admin/content/rollback/id/{$info.id}', {log_id: {$cl.id}}, {callback: function(){ location.reload(); }}); })">回滚到此版本</button></div>
+      </div>
+      {/foreach}
+    </div>
+  </div>
+  {/if}
+  <form id="ct-form">
+    <div class="form-item">
+      <div class="lab">所属栏目 *</div>
+      <div class="ctl">
+        <select name="catid" required>
+          <option value="">请选择栏目</option>
+          {foreach $cats as $cat}
+            {if $cat.type == 'list'}
+            <option value="{$cat.id}" {if $selCat == $cat.id}selected{/if}>{$cat.name}</option>
+              {if isset($cat.children)}
+                {foreach $cat.children as $c}
+                <option value="{$c.id}" {if $selCat == $c.id}selected{/if}>&nbsp;&nbsp;└ {$c.name}</option>
+                {/foreach}
+              {/if}
+            {/if}
+          {/foreach}
+        </select>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">内容模型</div>
+      <div class="ctl">
+        <select name="model_id" id="model-select">
+          {foreach $models as $m}
+          <option value="{$m.id}" {if !isset($info.model_id) || $info.model_id == $m.id}selected{/if}>{$m.title}</option>
+          {/foreach}
+        </select>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">标题 *</div>
+      <div class="ctl"><input type="text" name="title" value="{$info.title|default=''}" required></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">副标题</div>
+      <div class="ctl"><input type="text" name="ftitle" value="{$info.short_title|default=''}"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">作者 / 来源</div>
+      <div class="ctl" style="display:flex;gap:10px">
+        <input type="text" name="author" value="{$info.author|default=''}" placeholder="作者" style="flex:1">
+        <input type="text" name="source" value="{$info.source|default=''}" placeholder="来源" style="flex:1">
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">缩略图</div>
+      <div class="ctl">
+        <div style="display:flex;gap:10px;align-items:center">
+          <input type="text" name="pic" id="thumb-input" value="{$info.thumb|default=''}" placeholder="点击右侧按钮选择/上传图片" style="flex:1">
+          <button type="button" class="btn sm" id="thumb-btn">选择图片</button>
+          {if $info && $info.thumb}<img src="{$info.thumb}" style="max-height:60px;border-radius:6px">{/if}
+        </div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">图片集(多图)</div>
+      <div class="ctl">
+        <div class="ex-imglist" id="gallery-list" style="margin-bottom:6px">
+          {if $info}{foreach $imageList as $u}{if $u}<span class="ex-img-item" data-url="{$u}" style="position:relative;display:inline-block;margin:0 6px 6px 0"><img src="{$u}" style="width:70px;height:70px;object-fit:cover;border:1px solid #e5e7eb;border-radius:4px"><i class="ex-img-del" style="position:absolute;top:0;right:0;background:#dc2626;color:#fff;cursor:pointer;padding:0 4px;font-style:normal">×</i></span>{/if}{/foreach}{/if}
+        </div>
+        <button type="button" class="btn sm" id="gallery-add">添加图片</button>
+        <input type="hidden" name="piclist" id="gallery-hidden" value="{:implode('***', $imageList)}">
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">关键词 / 标签</div>
+      <div class="ctl" style="display:flex;gap:10px">
+        <input type="text" name="keywords" value="{$info.keywords|default=''}" placeholder="SEO关键词" style="flex:1">
+        <input type="text" name="tag" value="{$info.tag|default=''}" placeholder="标签（逗号分隔）" style="flex:1">
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">发布时间</div>
+      <div class="ctl">
+        <input type="datetime-local" name="create_time_dt" id="create-dt" onclick="this.showPicker && this.showPicker()" value="{if $info && $info.create_time}{$info.create_time|date='Y-m-d'}T{$info.create_time|date='H:i'}{else}{:date('Y-m-d')}T{:date('H:i')}{/if}">
+        <div class="help">点击时间框任意位置选择时间，可预约发布</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">定时发布</div>
+      <div class="ctl">
+        <input type="datetime-local" name="publish_time_dt" id="publish-dt" onclick="this.showPicker && this.showPicker()" value="{if $info && $info.publish_time > 0}{$info.publish_time|date='Y-m-d'}T{$info.publish_time|date='H:i'}{/if}">
+        <div class="help">留空 = 立即发布；填写时间后，内容在到达该时间后才在前台可见（后台编辑/预览不受影响）。列表中将显示「定时」标签。</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">建立时间</div>
+      <div class="ctl">
+        <input type="datetime-local" name="add_time_dt" id="add-dt" onclick="this.showPicker && this.showPicker()" value="{if $info && $info.add_time}{$info.add_time|date='Y-m-d'}T{$info.add_time|date='H:i'}{else}{:date('Y-m-d')}T{:date('H:i')}{/if}">
+        <div class="help">内容创建时间（点击时间框任意位置修改）</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">头条 / 推荐</div>
+      <div class="ctl" style="display:flex;gap:12px;align-items:center">
+        <select name="top" style="width:150px">
+          <option value="0" {if !isset($info.top) || $info.top == 0}selected{/if}>非头条</option>
+          <option value="1" {if isset($info.top) && $info.top == 1}selected{/if}>一级头条</option>
+          <option value="2" {if isset($info.top) && $info.top == 2}selected{/if}>二级头条</option>
+          <option value="3" {if isset($info.top) && $info.top == 3}selected{/if}>三级头条</option>
+          <option value="4" {if isset($info.top) && $info.top == 4}selected{/if}>四级头条</option>
+          <option value="5" {if isset($info.top) && $info.top == 5}selected{/if}>五级头条</option>
+        </select>
+        <label><input type="checkbox" name="is_recommend" value="1" {if isset($info.is_recommend) && $info.is_recommend}checked{/if}> 推荐</label>
+        <label><input type="checkbox" name="is_top" value="1" {if isset($info.is_top) && $info.is_top}checked{/if}> 置顶</label>
+        <label><input type="checkbox" name="is_hot" value="1" {if isset($info.is_hot) && $info.is_hot}checked{/if}> 热门</label>
+        <label><input type="checkbox" name="is_shop" value="1" {if isset($info.is_shop) && $info.is_shop}checked{/if} title="勾选后该内容可在「商城管理·商品价格」中配置为售卖商品"> 售卖商品</label>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">描述</div>
+      <div class="ctl">
+        <script id="contentdesc" name="desc" type="text/plain">{$info.description|default=''|raw}</script>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">正文</div>
+      <div class="ctl">
+        <script id="content" name="content" type="text/plain">{$info.content|default=''|raw}</script>
+        <div class="help">支持富文本、图片与视频上传（UEditor）</div>
+      </div>
+    </div>
+
+    <div id="extend-box"></div>
+
+    <div class="form-item">
+      <div class="lab">状态</div>
+      <div class="ctl">
+        <label><input type="radio" name="status" value="1" {if !isset($info.status) || $info.status == 1}checked{/if}> 发布</label>
+        &nbsp;&nbsp;
+        <label><input type="radio" name="status" value="0" {if isset($info.status) && $info.status == 0}checked{/if}> 草稿</label>
+        {if $auditOpen && $needAudit}<div class="help" style="color:#e67e22;">当前角色发布内容需审核：保存后将进入「待审核」，由管理员审核通过后才前台可见</div>{/if}
+      </div>
+    </div>
+    {if $auditOpen && $needAudit && $info}
+    <div class="form-item">
+      <div class="lab">修改说明</div>
+      <div class="ctl">
+        <textarea name="audit_note" rows="3" placeholder="提交给审核人的修改说明（可选）：如修改了哪些内容、对驳回原因的回应等；保存后内容重新进入待审核"></textarea>
+        <div class="help">重新提交（保存）后，审核人可在审核对话框中看到你的说明与第几次提交。</div>
+      </div>
+    </div>
+    {/if}
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl">
+        <button type="submit" class="btn primary">保存</button>
+        <a class="btn" href="/admin/content/index">返回</a>
+      </div>
+    </div>
+  </form>
+</div>
+<script type="text/javascript" src="__UEDITOR__/ueditor.config.js"></script>
+<script type="text/javascript" src="__UEDITOR__/ueditor.all.min.js"></script>
+<script>
+var ue = UE.getEditor('content', { serverUrl: '/admin/ueditor/index', initialFrameWidth: '100%', initialFrameHeight: 400, autoHeightEnabled: false });
+var ueDesc = UE.getEditor('contentdesc', { serverUrl: '/admin/ueditor/index', initialFrameWidth: '100%', initialFrameHeight: 120, autoHeightEnabled: false, toolbars: [['source','|','undo','redo','|','bold','italic','underline','strikethrough','|','forecolor','backcolor','|','fontsize','fontfamily','|','paragraph','formatmatch','removeformat','|','blockquote','justifyleft','justifycenter','justifyright','|','insertorderedlist','insertunorderedlist','|','link','unlink','|','insertimage','emotion','insertvideo','|','inserttable','deletetable','|','lineheight','date','time','|','preview']] });
+
+// 缩略图选择（admin.js 在 body 末尾加载，此处可能尚未就绪 → 等待 yy 后绑定；即使绑定失败也不影响保存流程）
+(function(){
+  function bindThumb(){
+    if (window.yy && window.yy.bindImagePicker) {
+      yy.bindImagePicker(document.getElementById('thumb-input'), document.getElementById('thumb-btn'));
+      return true;
+    }
+    return false;
+  }
+  if (!bindThumb()) {
+    var tries = 0;
+    var t = setInterval(function(){
+      if (bindThumb() || ++tries > 100) clearInterval(t);
+    }, 50);
+  }
+})();
+
+// 图片集(多图)选择：支持本地多选批量上传 + 已传图片多选
+(function(){
+  var list = document.getElementById('gallery-list');
+  var hid = document.getElementById('gallery-hidden');
+  document.getElementById('gallery-add').addEventListener('click', function(){
+    yy.pickImages(function(urls){
+      urls.forEach(function(url){
+        var arr = hid.value ? hid.value.split(',') : [];
+        if (arr.indexOf(url) >= 0) return;
+        arr.push(url); hid.value = arr.join(',');
+        var span = document.createElement('span');
+        span.className='ex-img-item'; span.setAttribute('data-url', url);
+        span.style.cssText='position:relative;display:inline-block;margin:0 6px 6px 0';
+        var img=document.createElement('img'); img.src=url; img.style.cssText='width:70px;height:70px;object-fit:cover;border:1px solid #e5e7eb;border-radius:4px'; span.appendChild(img);
+        var del=document.createElement('i'); del.textContent='×'; del.className='ex-img-del'; del.style.cssText='position:absolute;top:0;right:0;background:#dc2626;color:#fff;cursor:pointer;padding:0 4px;font-style:normal';
+        span.appendChild(del); list.appendChild(span);
+      });
+    });
+  });
+  list.addEventListener('click', function(e){
+    if (e.target && e.target.className === 'ex-img-del') {
+      var span = e.target.parentNode;
+      var url = span.getAttribute('data-url');
+      span.remove();
+      var arr = hid.value ? hid.value.split(',') : [];
+      var i = arr.indexOf(url); if(i>=0) arr.splice(i,1);
+      hid.value = arr.join(',');
+    }
+  });
+})();
+
+// ---- 扩展字段动态渲染 ----
+var ALL_FIELDS = {:json_encode($all_fields, JSON_HEX_QUOT|JSON_HEX_APOS|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)};
+var EXTEND = {if $info && $info.extend}{:json_encode($info.extend, JSON_HEX_QUOT|JSON_HEX_APOS|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)}{else}{}{/if};
+function esc(s){ s = s || ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function dtToTs(v){ if(!v) return ''; var d=new Date(v.replace('T',' ')); return Math.floor(d.getTime()/1000); }
+// 栏目 -> 内容模型映射（选栏目时自动切换模型）
+var CAT_MODEL = {};
+{foreach $cats as $cat}{if $cat.type == 'list'}CAT_MODEL[{$cat.id}] = {$cat.model_id};{if isset($cat.children)}{foreach $cat.children as $cc}CAT_MODEL[{$cc.id}] = {$cc.model_id};{/foreach}{/if}{/if}{/foreach}
+// 收集当前已输入字段值到 EXTEND（模型切换时按字段名保留）
+function collectExtendInputs(){
+  document.querySelectorAll('#extend-box [name^="extend_"]').forEach(function(el){
+    var name = el.getAttribute('name').replace(/^extend_/,'').replace('[]','');
+    if(el.type==='checkbox'){ var arr=(EXTEND[name]&&typeof EXTEND[name]==='string'?EXTEND[name].split(','):[])||[]; if(el.checked&&arr.indexOf(el.value)<0)arr.push(el.value); if(!el.checked&&arr.indexOf(el.value)>=0)arr.splice(arr.indexOf(el.value),1); EXTEND[name]=arr.join(','); }
+    else if(el.type==='radio'){ if(el.checked) EXTEND[name]=el.value; }
+    else { EXTEND[name]=el.value; }
+  });
+}
+function renderExtend(){
+  collectExtendInputs();
+  var mid = document.getElementById('model-select').value;
+  var fields = ALL_FIELDS[mid] || [];
+  var box = document.getElementById('extend-box');
+  if (!fields.length) { box.innerHTML = ''; return; }
+  var html = '<div class="page-title" style="margin:18px 0 4px;color:var(--primary)">模型扩展字段</div>';
+  fields.forEach(function(f){
+    var val = EXTEND[f.name] || '';
+    html += '<div class="form-item"><div class="lab">' + esc(f.label) + (f.required ? ' *' : '') + '</div><div class="ctl">';
+    if (f.type === 'textarea') {
+      html += '<textarea name="extend_' + f.name + '" rows="3">' + esc(val) + '</textarea>';
+    } else if (f.type === 'number') {
+      html += '<input type="number" name="extend_' + f.name + '" value="' + esc(val) + '">';
+    } else if (f.type === 'image') {
+      html += '<div style="display:flex;gap:10px;align-items:center"><input type="text" name="extend_' + f.name + '" value="' + esc(val) + '" data-img class="ex-img-in" style="flex:1"><button type="button" class="btn sm ex-img-btn">选择图片</button></div>';
+    } else if (f.type === 'gallery') {
+      var imgs = val ? (typeof val === 'string' ? val.split(',') : val) : [];
+      html += '<div class="ex-imglist" style="margin-bottom:6px">';
+      imgs.forEach(function(u){ if(!u) return;
+        html += '<span class="ex-img-item" data-url="' + esc(u) + '" style="position:relative;display:inline-block;margin:0 6px 6px 0"><img src="' + esc(u) + '" style="width:70px;height:70px;object-fit:cover;border:1px solid #e5e7eb;border-radius:4px"><i class="ex-img-del" style="position:absolute;top:0;right:0;background:#dc2626;color:#fff;cursor:pointer;padding:0 4px;font-style:normal">×</i></span>';
+      });
+      html += '</div><button type="button" class="btn sm ex-img-add">添加图片</button><input type="hidden" name="extend_' + f.name + '" value="' + esc(val) + '">';
+    } else if (f.type === 'select') {
+      html += '<select name="extend_' + f.name + '"><option value="">请选择</option>';
+      (f.options||[]).forEach(function(o){ html += '<option value="' + esc(o) + '"' + (String(val)===String(o)?' selected':'') + '>' + esc(o) + '</option>'; });
+      html += '</select>';
+    } else if (f.type === 'radio') {
+      (f.options||[]).forEach(function(o){ html += '<label style="margin-right:12px"><input type="radio" name="extend_' + f.name + '" value="' + esc(o) + '"' + (String(val)===String(o)?' checked':'') + '> ' + esc(o) + '</label>'; });
+    } else if (f.type === 'checkbox') {
+      var arr = val ? (typeof val === 'string' ? val.split(',') : val) : [];
+      (f.options||[]).forEach(function(o){ html += '<label style="margin-right:12px"><input type="checkbox" name="extend_' + f.name + '[]" value="' + esc(o) + '"' + (arr.indexOf(String(o))>=0?' checked':'') + '> ' + esc(o) + '</label>'; });
+    } else if (f.type === 'rich') {
+      html += '<textarea name="extend_' + f.name + '" rows="5">' + esc(val) + '</textarea>';
+    } else {
+      html += '<input type="text" name="extend_' + f.name + '" value="' + esc(val) + '">';
+    }
+    html += '</div></div>';
+  });
+  box.innerHTML = html;
+  box.querySelectorAll('.ex-img-btn').forEach(function(btn){
+    var inp = btn.previousElementSibling;
+    yy.bindImagePicker(inp, btn);
+  });
+  box.querySelectorAll('.ex-img-add').forEach(function(btn){
+    var hid = btn.nextElementSibling;
+    var list = btn.previousElementSibling;
+    btn.addEventListener('click', function(){
+      yy.pickImages(function(urls){
+        urls.forEach(function(url){
+          var arr = hid.value ? hid.value.split(',') : [];
+          if (arr.indexOf(url) >= 0) return;
+          arr.push(url); hid.value = arr.join(',');
+          var span = document.createElement('span');
+          span.setAttribute('class','ex-img-item'); span.setAttribute('data-url', url);
+          span.style.cssText='position:relative;display:inline-block;margin:0 6px 6px 0';
+          var img=document.createElement('img'); img.src=url; img.style.cssText='width:70px;height:70px;object-fit:cover;border:1px solid #e5e7eb;border-radius:4px'; span.appendChild(img);
+          var del=document.createElement('i'); del.textContent='×'; del.className='ex-img-del'; del.style.cssText='position:absolute;top:0;right:0;background:#dc2626;color:#fff;cursor:pointer;padding:0 4px;font-style:normal';
+          del.addEventListener('click',function(){ span.remove(); var a2=hid.value?hid.value.split(','):[]; var i=a2.indexOf(url); if(i>=0)a2.splice(i,1); hid.value=a2.join(','); });
+          span.appendChild(del); list.appendChild(span);
+        });
+      });
+    });
+  });
+  box.querySelectorAll('.ex-img-del').forEach(function(del){
+    del.addEventListener('click', function(){
+      var span = del.parentNode;
+      var list = span.parentNode;
+      var hid = list.nextElementSibling.nextElementSibling;
+      var url = span.getAttribute('data-url');
+      span.remove();
+      var arr = hid.value ? hid.value.split(',') : [];
+      var i = arr.indexOf(url); if(i>=0) arr.splice(i,1);
+      hid.value = arr.join(',');
+    });
+  });
+}
+document.getElementById('model-select').addEventListener('change', renderExtend);
+// 选择栏目自动切换为该栏目设置的内容模型
+document.querySelector('[name=catid]').addEventListener('change', function(){
+  var cid = this.value;
+  if (CAT_MODEL[cid]) {
+    var ms = document.getElementById('model-select');
+    if (ms.value != CAT_MODEL[cid]) { ms.value = CAT_MODEL[cid]; renderExtend(); }
+  }
+});
+// 预选栏目进入时（URL 带 catid）联动内容模型
+(function(){
+  var cid = document.querySelector('[name=catid]').value;
+  if (cid && CAT_MODEL[cid]) {
+    document.getElementById('model-select').value = CAT_MODEL[cid];
+  }
+})();
+renderExtend();
+
+// 审核操作（编辑页）：通过 / 驳回（填原因）
+function auditAction(act){
+  var id = {$info.id|default=0};
+  if (act === 'reject') {
+    var reason = document.getElementById('audit-reason-edit').value.trim();
+    if (!reason) { yy.toast('请填写驳回原因', 'err'); return; }
+    if (!confirm('确定驳回该内容？投稿人将看到原因，可修改后重新提交')) return;
+    yy.post('/admin/content/audit', { id: id, act: 'reject', reason: reason }, { callback: function () { location.reload(); } });
+  } else {
+    if (!confirm('确定审核通过？内容将立即在前台可见')) return;
+    yy.post('/admin/content/audit', { id: id, act: 'pass' }, { callback: function () { location.reload(); } });
+  }
+}
+document.getElementById('ct-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  ue.sync();
+  ueDesc.sync();
+  var fd = new FormData(this);
+  // 未勾选的开关类字段补默认值（避免取消勾选后保存仍保留旧值）
+  ['is_shop','is_top','is_recommend','is_hot'].forEach(function(n){ if(!fd.has(n)) fd.set(n,'0'); });
+  fd.set('create_time', dtToTs(document.getElementById('create-dt').value) || 0);
+  fd.set('add_time', dtToTs(document.getElementById('add-dt').value) || 0);
+  yy.post('{if $info}/admin/content/edit/id/{$info.id}{else}/admin/content/add{/if}', fd, {});
+});
+</script>
+{/block}

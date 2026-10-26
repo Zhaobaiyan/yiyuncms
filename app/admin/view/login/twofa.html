@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>二次验证 - 易云CMS 管理后台</title>
+<link rel="stylesheet" href="/static/admin/css/admin.css">
+</head>
+<body>
+<div class="login-page">
+  <div class="deco d1"></div>
+  <div class="deco d2"></div>
+  <div class="login-card">
+    <div class="logo">易<em>云</em>CMS</div>
+    <div class="sub">该账号已开启两步验证，请输入二次验证码</div>
+    <form id="twofa-form">
+      <div class="form-item">
+        <label class="lab">二次验证码（PIN）</label>
+        <div class="ctl"><input type="password" name="pin" placeholder="请输入管理员设置的 6 位二次验证码" autocomplete="off"></div>
+      </div>
+      <button type="submit" class="btn primary">验 证</button>
+    </form>
+  </div>
+</div>
+<script src="/static/admin/js/admin.js?v=20260928b"></script>
+<script>
+(function () {
+  var form = document.getElementById('twofa-form');
+  function tip(msg, type) {
+    if (window.yy && window.yy.toast) { window.yy.toast(msg, type || 'err'); }
+    else { alert(msg); }
+  }
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var fd = new FormData(form);
+    var btn = form.querySelector('button[type=submit]');
+    if (btn) { btn.disabled = true; btn.textContent = '验证中...'; }
+    fetch('/admin/login/twofa', { method: 'POST', body: fd })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res.code === 1) {
+          location.href = res.url || '/admin/index';
+          return;
+        }
+        tip(res.msg || '验证失败');
+        if (btn) { btn.disabled = false; btn.textContent = '验 证'; }
+      })
+      .catch(function () {
+        tip('网络错误，请重试');
+        if (btn) { btn.disabled = false; btn.textContent = '验 证'; }
+      });
+  });
+})();
+</script>
+</body>
+</html>

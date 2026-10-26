@@ -1,0 +1,58 @@
+{extend name="layout" /}
+{block name="title"}语言版本 - 易云CMS{/block}
+{block name="crumb"}系统设置 · 语言版本{/block}
+{block name="content"}
+<div class="toolbar">
+  <a class="btn primary" href="/admin/language/add">+ 添加语言版本</a>
+  <span class="text-sub">新增语言后系统会自动为其创建数据表（yy_{code}_*），只需到「模板管理」确认模板文件夹即可联动前台</span>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr>
+      <th style="width:60px">ID</th>
+      <th>代码</th>
+      <th>名称</th>
+      <th>模板文件夹</th>
+      <th>默认</th>
+      <th>状态</th>
+      <th>排序</th>
+      <th style="width:340px">操作</th>
+    </tr>
+    {if $langs}
+    {foreach $langs as $l}
+    <tr>
+      <td>{$l.id}</td>
+      <td class="mono"><strong>{$l.code}</strong></td>
+      <td>{$l.name}</td>
+      <td class="mono">template/{$l.tpl_dir}{if $l.code != $l.tpl_dir}<span class="text-sub">（≠代码）</span>{/if}</td>
+      <td>{if $l.is_default == 1}<span class="tag ok">默认</span>{else}<button class="btn sm" onclick="yy.post('/admin/language/setDefault/id/{$l.id}', {}, {literal}{url:'/admin/language/index'}{/literal});">设为默认</button>{/if}</td>
+      <td>{if $l.is_open == 1}<span class="tag ok">启用</span>{else}<span class="tag gray">停用</span>{/if}</td>
+      <td>{$l.sort}</td>
+      <td class="ops">
+        <a class="btn sm" href="/admin/language/edit/id/{$l.id}">编辑</a>
+        <button class="btn sm line" onclick="copyTpl({$l.id},'{$l.code}','{$l.name}')">复制模板</button>
+        {if $l.is_open == 1}
+          <button class="btn sm" onclick="yy.confirm('确定停用语言「{$l.name}」？', function(){ yy.post('/admin/language/setOpen/id/{$l.id}', {open:0}, {}); })">停用</button>
+        {else}
+          <button class="btn sm" onclick="yy.post('/admin/language/setOpen/id/{$l.id}', {open:1}, {});">启用</button>
+        {/if}
+        <button class="btn sm danger" onclick="yy.confirm('确定删除语言「{$l.name}」？（其数据表将保留，不会误删）', function(){ yy.post('/admin/language/delete/id/{$l.id}', {}, {literal}{url:'/admin/language/index'}{/literal}); })">删除</button>
+      </td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="8"><div class="empty">还没有语言，点击右上角「添加语言版本」开始</div></td></tr>
+    {/if}
+  </table>
+</div>
+<script>
+// 复制模板文件夹（从任意现有语言/站点复制到该语言，v3.18）
+function copyTpl(id, code, name){
+  var src = prompt('从哪个语言/站点复制模板文件夹？\n（填语言代码，如 cn / en / 站群站点别名）\n将复制 template/源 → template/' + code + '，覆盖同名文件。', 'cn');
+  if(!src) return;
+  yy.confirm('确定从 template/' + src + ' 复制模板到 template/' + code + '（语言「' + name + '」）？', function(){
+    yy.post('/admin/language/copyTpl/id/' + id, { src: src }, { delay: 0, callback: function(){ location.reload(); } });
+  });
+}
+</script>
+{/block}

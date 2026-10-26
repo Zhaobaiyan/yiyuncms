@@ -1,0 +1,177 @@
+@media screen and (max-width: 1850px) {
+    .navbox {
+    width: 1400px;
+    }
+    .header .nav li {
+        margin-left: 0;
+    }
+} 
+@media screen and (max-width: 1400px) {
+    .container{width:1200px; margin: 0 auto;}
+    .in-pro-left{ width: 230px; }
+    .in-pro-right{  width: 920px; }
+    .ct2-sd{float:left;width:250px}
+    .ct2-mn{float:right;width:920px}
+    .header .nav li>a{ padding: 0 15px; }
+    .header .search-btn {margin-left: 10px;}
+    .header .nav {margin-left: 30px;}
+    .in-about-left .img-cover{ width:300px; }
+    .in-about-left .text{padding: 30px; }
+    .header .nav li>a {
+        font-size: 14px;
+    }
+    .header .nav .dropdown-box a {
+        font-size: 12px;
+    }
+    .footer .contact .tel {
+        font-size: 16px;
+    }
+    .footer .fnav dl {
+        margin-right: 30px;
+    }
+}
+@media screen and (max-width: 767px) {
+    body {min-width: 320px;padding-top: 60px;padding-bottom: 50px;}
+    .container {width: auto; padding: 0 10px;}
+    #message .m-content .m-message{width:90%;padding:20px;}
+  
+    .kf {display: none;}
+    .footer-fix {display: block;}
+
+    .header {padding: 10px 0 0; height: 60px;}
+    .header .logo a{height: 40px;}
+    .header .search-btn,.header .tel{ display: none;}
+    .header .nav {text-align: left;display: none;height: auto; width: 100%;  margin: 9px 0 0 }
+    .header .nav ul {margin: 0 -15px; background: #FFF; }
+    .header .nav li {display: block;margin: 0;border-top: 1px solid #eee;background: none; }
+    .header .nav li a {line-height: 40px;padding: 0 15px;color: #333;  margin: 0}
+    .header .nav li>a::before{  height: 1px;}
+    .header .nav li .arr {display: block;}
+    .header .nav li.open .arr:after {border-color: #5841e0;transform: rotate(225deg);}
+    .header .nav .dropdown-box {position: static;background-color: #f5f5f5;min-width: auto;text-align: left;box-shadow: none;}
+    .header .nav .dropdown-box a {color: #333 !important;border-top: 1px dotted #ddd;padding: 0 15px;line-height: 40px;background-color: transparent !important;border-bottom: 0;}
+    .header .nav .dropdown-box a:hover {background-color: transparent !important;}
+
+    .search .close{ right: 20px; top:20px;}
+    .search form{ padding: 0 20px; }
+    .search form button{ width: 80px; }
+
+    .menu-btn {display: block;}
+
+    .yunu-showcase {margin-bottom: 30px;}
+    .pc-slide {float: none;width: auto;}
+    .view .swiper-slide .img-center {height: 260px;line-height: 260px;}
+    .yunu-showcase-info {margin: 20px 0 0;}
+    .yunu-showcase-info h1 {margin-bottom: 20px;font-size: 18px;}
+    .yunu-showcase-info p {margin-top: 10px;min-height: auto;}
+    .yunu-showcase-info .tel {font-size: 14px;}
+    .yunu-showcase-info .tel strong {font-size: 18px;}
+
+    .banner {display: none;}
+    .m-banner {display: block;}
+
+    .section {padding: 30px 0;}
+    .section2 {padding: 10px 0;}
+ 
+    .in-about{ padding: 10px 0;}
+    .in-about-left{ float: none; width: auto; height: auto; flex-wrap: wrap; }
+    .in-about-right{float: none; width: auto; height: auto; margin-top: 15px; }
+    
+    .in-about-left .img-cover{ width: 100%; height: 300px; }
+    .in-about-left .text{ width: 100%; }
+
+    .in-about-right .tits{ height: 120px; }
+    .in-about-right ul{ padding: 10px 0; }
+    .in-about-right li{ padding: 10px 15px; }
+
+    .section-title{ margin-bottom: 15px; }
+    .section-title span{ font-size: 28px; width: 100%; text-align: center; }
+    .section-title .in-pro-menu{ flex:100%; text-align: center; margin-top: 15px; }
+    .section-title .in-pro-menu a{  font-size: 16px; margin:0 10px; line-height: 30px;}
+
+    .in-pro ul{ margin: 0 0 0 -10px; }
+    .in-pro li{ width: 50%; }
+    .in-pro li a{ margin: 0 0 10px 10px; font-size: 14px; }
+    .in-pro li a:before{ height: 4px; }
+    .in-pro li .text h2{ font-size: 16px; }
+  
+    .section-title3{margin-bottom: 20px; }
+    .section-title3 span{ font-size: 28px;}
+
+    .in-ys:before{ display: none; }
+    .in-ys ul{ margin: 0}
+    .in-ys li{ float: none; width: auto; }
+    .in-ys li a{  margin: 0 0 20px 0; padding: 0 20px; }
+    .in-ys li .yuan{ margin-top: 20px;}
+    .in-ys li .text{ padding: 10px 0; }
+
+    .in-fangan-left{ float: none; width: auto; }
+    .in-fangan-left .tits{ font-size: 28px; margin-bottom: 10px; }
+    .in-fangan-con{ float: none; width: auto; margin-top: 10px; }
+    .in-fangan-menu li{ margin-bottom: 0; }
+    .in-fangan-menu li a{ font-size: 16px; line-height: 35px; padding: 0 10px; background-position: 95%}
+    .in-fangan-con .swiper-slide .text{ height: 70px; padding: 0 20px; }
+    .in-fangan-con .swiper-slide .text h2{  font-size: 22px; }
+    .in-fangan-con .swiper-slide .text p{ font-size: 14px; margin-top: 5px;}
+
+    .footer{ padding-top: 25px; }
+    .footer .fnav{ display: none; }
+    .footer .contact{ float: none; width: 100%; }
+    .footer .contact .tel{padding-top: 10px; }
+    .footer-copy{ margin-top: 20px; padding: 10px 0; text-align: center; }
+    .footer-copy .container{  padding: 0 20px;  }
+    .footer-copy span{ width: 100%; }
+    
+
+
+   
+
+    .banner-sub {height: 130px;}
+
+    .section-sub {padding: 30px 0;}
+
+    .sub-tit {padding-bottom: 10px;margin-bottom: 15px;}
+    .curmbs {display: none;}
+
+    .ct2-sd {display: none;}
+    .ct2-mn {float: none !important;width: auto;}
+
+    .list-3 {margin: -10px 0 0 -10px;}
+    .list-3 li {float: left;width: 50%;}
+    .list-3 li a {margin: 10px 0 0 10px;}
+    .list-3 li .text {line-height: 34px;font-size: 12px;}
+    .list-3 li .text p span{ height: 34px; }
+    .list-3 li .btn a{ font-size: 12px; padding: 0px 10px; }
+
+    .list-4 li{ float: none; width: auto; }
+
+    .list-5 li {padding-bottom: 15px;border-bottom: 1px solid #eee;}
+    .list-5 li a {padding: 0;border: 0;}
+    .list-5 li .img-center {float: none;width: auto;display: none;}
+    .list-5 li .text {margin: 0;}
+    .list-5 li .text .more {display: none;}
+    .list-5 li .text h4 {line-height: 20px;font-size: 16px;}
+    .list-5 li .text p {margin: 10px 0 0;}
+
+    .list-6 li{width: 50%;  }
+
+    .pages {margin-top: 20px;}
+    .pages a {font-size: 12px;line-height: 30px;padding: 0 12px;}
+
+    .yunu-infocontent-title h1 {font-size: 18px;}
+    .yunu-infocontent-desc {padding: 10px;}
+    .yunu-infocontent-epx li {line-height: 24px;}
+    .yunu-infocontent-epx li span {font-size: 12px;padding: 0 5px;margin-right: 5px;}
+    .yunu-infocontent-epx li em {display: none;}
+    .yunu-infocontent-return .more {display: none;}
+    .yunu-infocontent-return {font-size: 12px;line-height: 22px;padding-top: 5px;}
+    .yunu-infocontent-rem h4 {font-size: 18px;line-height: 34px;margin-bottom: 5px;}
+
+    .prod-menu {margin-bottom: 15px;}
+    .prod-menu li {margin-right: 5px;}
+    .prod-menu li a {font-size: 14px;line-height: 34px;padding: 0 15px;}
+
+    .m-message{width:auto;margin:18px auto 0}
+    .m-message label input.inp,.m-message label textarea{width:67%;}
+    .m-message label.code input{}
+}

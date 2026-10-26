@@ -1,0 +1,123 @@
+{extend name="layout" /}
+{block name="title"}浏览管理 - 易云CMS{/block}
+{block name="crumb"}扩展功能 · 浏览管理{/block}
+{block name="content"}
+<style>
+  .v-cards{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .v-card{flex:1;min-width:130px;background:#fff;border:1px solid #e6ebf1;border-radius:10px;padding:14px 16px;text-align:center}
+  .v-card .num{font-size:26px;font-weight:700;color:var(--primary,#2f6bff)}
+  .v-card .lab{color:#889;font-size:12px;margin-top:4px}
+  .v-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:1200px){.v-grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:800px){.v-grid{grid-template-columns:1fr}}
+  .v-block{background:#fff;border:1px solid #e6ebf1;border-radius:10px;padding:14px 16px}
+  .v-block h3{font-size:14px;margin:0 0 12px;color:#445;font-weight:600}
+  .v-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px}
+  .v-row .nm{width:88px;color:#556;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .v-row .bar{flex:1;height:16px;background:#f1f5f9;border-radius:8px;overflow:hidden;position:relative}
+  .v-row .bar i{display:block;height:100%;background:linear-gradient(90deg,#2f6bff,#6aa5ff);border-radius:8px;min-width:4px}
+  .v-row .num{width:44px;text-align:right;color:#334;font-weight:600}
+  .v-row .pct{width:34px;text-align:right;color:#889;font-size:12px}
+  .v-empty{color:#999;text-align:center;padding:18px 0;font-size:13px}
+</style>
+
+<div class="card">
+  <div class="card-title">浏览管理</div>
+  <div class="toolbar">
+    <form method="get" style="display:flex;gap:8px;align-items:center">
+      <select name="range" onchange="this.form.submit()" style="height:32px;border:1px solid #e2e8f0;border-radius:8px;padding:0 8px">
+        <option value="today" {if $range=='today'}selected{/if}>今日</option>
+        <option value="yesterday" {if $range=='yesterday'}selected{/if}>昨日</option>
+        <option value="week" {if $range=='week'}selected{/if}>本周</option>
+        <option value="month" {if $range=='month'}selected{/if}>本月</option>
+        <option value="year" {if $range=='year'}selected{/if}>本年</option>
+        <option value="all" {if $range=='all'}selected{/if}>全部</option>
+      </select>
+    </form>
+    <span style="flex:1"></span>
+    <span style="line-height:32px;color:#667">当前范围浏览量：<b style="color:var(--primary)">{$data.rangePv}</b> 次</span>
+    <button class="btn sm ghost" onclick="yy.confirm('确定清理全部爬虫浏览记录？', function(){ yy.post('/admin/visit/clear', {only_spider:1}, {literal}{url:'/admin/visit/index'}{/literal}); })">清理爬虫记录</button>
+    <button class="btn sm danger" onclick="yy.confirm('确定清空全部浏览统计？清空后不可恢复！', function(){ yy.post('/admin/visit/clear', {}, {literal}{url:'/admin/visit/index'}{/literal}); })">清空统计</button>
+  </div>
+  <div style="background:#fff8f0;border:1px solid #f0d9b4;border-radius:8px;padding:8px 12px;font-size:12px;color:#8a5a1a;margin-bottom:14px">
+    数据采集：前台每次页面访问自动记录（含静态页 JS 打点兜底）。地区识别内置「本地/内网」；如需精确省市区归属，将官方 ip2region.xdb 及 XdbSearcher.php 放入 <b>public/static/ip2region/</b> 后自动启用。
+  </div>
+  <div class="v-cards">
+    <div class="v-card"><div class="num">{$data.today}</div><div class="lab">今日浏览量</div></div>
+    <div class="v-card"><div class="num">{$data.yesterday}</div><div class="lab">昨日浏览量</div></div>
+    <div class="v-card"><div class="num">{$data.week}</div><div class="lab">本周浏览量</div></div>
+    <div class="v-card"><div class="num">{$data.month}</div><div class="lab">本月浏览量</div></div>
+    <div class="v-card"><div class="num">{$data.year}</div><div class="lab">本年浏览量</div></div>
+  </div>
+
+  <div class="v-grid">
+    <div class="v-block"><h3>地区浏览量排行</h3>
+      {if $ranks.area}
+      {foreach $ranks.area as $r}<div class="v-row"><span class="nm" title="{$r.name}">{$r.name}</span><span class="bar"><i style="width:{$r.pct}%"></i></span><span class="num">{$r.num}</span><span class="pct">{$r.pct}%</span></div>{/foreach}
+      {else}<div class="v-empty">暂无数据</div>{/if}
+    </div>
+    <div class="v-block"><h3>关键词搜索进入排行</h3>
+      {if $ranks.keyword}
+      {foreach $ranks.keyword as $r}<div class="v-row"><span class="nm" title="{$r.name}">{$r.name}</span><span class="bar"><i style="width:{$r.pct}%"></i></span><span class="num">{$r.num}</span><span class="pct">{$r.pct}%</span></div>{/foreach}
+      {else}<div class="v-empty">暂无数据</div>{/if}
+    </div>
+    <div class="v-block"><h3>搜索引擎来源排行</h3>
+      {if $ranks.engine}
+      {foreach $ranks.engine as $r}<div class="v-row"><span class="nm" title="{$r.name}">{$r.name}</span><span class="bar"><i style="width:{$r.pct}%"></i></span><span class="num">{$r.num}</span><span class="pct">{$r.pct}%</span></div>{/foreach}
+      {else}<div class="v-empty">暂无数据</div>{/if}
+    </div>
+    <div class="v-block"><h3>浏览器排行</h3>
+      {if $ranks.browser}
+      {foreach $ranks.browser as $r}<div class="v-row"><span class="nm" title="{$r.name}">{$r.name}</span><span class="bar"><i style="width:{$r.pct}%"></i></span><span class="num">{$r.num}</span><span class="pct">{$r.pct}%</span></div>{/foreach}
+      {else}<div class="v-empty">暂无数据</div>{/if}
+    </div>
+    <div class="v-block"><h3>电脑 / 手机 / 平板访问</h3>
+      {if $ranks.device}
+      {foreach $ranks.device as $r}
+      <div class="v-row"><span class="nm">{if $r.name=='pc'}电脑 PC{elseif $r.name=='mobile'}手机 Mobile{elseif $r.name=='tablet'}平板 Tablet{elseif $r.name=='spider'}搜索引擎爬虫{else}{$r.name}{/if}</span><span class="bar"><i style="width:{$r.pct}%"></i></span><span class="num">{$r.num}</span><span class="pct">{$r.pct}%</span></div>
+      {/foreach}
+      {else}<div class="v-empty">暂无数据</div>{/if}
+    </div>
+    <div class="v-block"><h3>操作系统排行</h3>
+      {if $ranks.os}
+      {foreach $ranks.os as $r}<div class="v-row"><span class="nm" title="{$r.name}">{$r.name}</span><span class="bar"><i style="width:{$r.pct}%"></i></span><span class="num">{$r.num}</span><span class="pct">{$r.pct}%</span></div>{/foreach}
+      {else}<div class="v-empty">暂无数据</div>{/if}
+    </div>
+    <div class="v-block" style="grid-column:1/-1"><h3>访问页面排行</h3>
+      {if $ranks.page}
+      {foreach $ranks.page as $r}<div class="v-row"><span class="nm" style="width:220px" title="{$r.name}">{$r.name}</span><span class="bar"><i style="width:{$r.pct}%"></i></span><span class="num">{$r.num}</span><span class="pct">{$r.pct}%</span></div>{/foreach}
+      {else}<div class="v-empty">暂无数据</div>{/if}
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:14px">
+  <div class="card-title">最近访问明细</div>
+  <table class="table">
+    <thead><tr>
+      <th style="width:60px">ID</th><th>访问页面</th><th style="width:110px">地区</th>
+      <th style="width:90px">来源</th><th style="width:80px">浏览器</th><th style="width:80px">设备</th>
+      <th style="width:70px">系统</th><th style="width:90px">IP</th><th style="width:130px">时间</th>
+    </tr></thead>
+    <tbody>
+      {if $recent}
+      {foreach $recent as $r}
+      <tr>
+        <td>{$r.id}</td>
+        <td class="text-sub" style="word-break:break-all">{$r.page_url}</td>
+        <td>{$r.area|default='-'}</td>
+        <td>{if $r.engine}{$r.engine}{if $r.keyword}<span class="text-sub"> · {$r.keyword}</span>{/if}{else}<span class="text-sub">直接/其他</span>{/if}</td>
+        <td>{$r.browser|default='-'}</td>
+        <td>{$r.device|default='-'}</td>
+        <td class="text-sub">{$r.os|default='-'}</td>
+        <td class="text-sub">{$r.ip}</td>
+        <td class="text-sub">{$r.create_time|date='Y-m-d H:i'}</td>
+      </tr>
+      {/foreach}
+      {else}
+      <tr><td colspan="9" style="text-align:center;color:#999;padding:30px 0">暂无访问记录，前台有访问后自动统计</td></tr>
+      {/if}
+    </tbody>
+  </table>
+</div>
+{/block}

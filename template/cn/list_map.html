@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta name="renderer" content="webkit|ie-comp|ie-stand" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<meta http-equiv="Cache-Control" content="no-transform"/> 
+<meta name="applicable-device" content="pc,wap">
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+<title>{if strlen($category.seo_title) neq 0}{$category.seo_title}{else /}{$category.name}-{yunu:config name="site_title" /}{/if}</title>
+<meta name="keywords" content="{if strlen($category.keywords) neq 0}{$category.keywords}{else /}{$category.name}{/if}">
+<meta name="description" content="{if strlen($category.description) neq 0}{$category.description|str2sub=160, true}{else /}{$category.description|str2sub=160, true}{/if}">
+<link rel="Shortcut Icon" type=image/x-icon href="{yunu:config name="site_ico" /}" />
+<link rel="stylesheet" href="__PUBLIC__/css/animate.min.css">
+<link rel="stylesheet" href="__PUBLIC__/css/swiper.min.css">
+<link rel="stylesheet" href="__PUBLIC__/css/yunu.css">
+<link rel="stylesheet" href="__PUBLIC__/css/media.css">
+<script src="__PUBLIC__/js/jquery.min.js"></script>
+<script src="__PUBLIC__/js/wow.min.js"></script>
+<script src="__PUBLIC__/js/swiper.min.js"></script>
+<script src="__PUBLIC__/js/yunu.js"></script>
+<style type="text/css">
+#container{width:1200px;margin:0 auto;margin-top:10px;border:1px solid #f4f4f4}
+#container1{width:1200px;margin:50px auto;margin-top:10px}
+.item{line-height:24px;overflow:hidden;border-bottom:1px solid #f4f4f4;margin:0}
+.item:hover{background-color:#f5f5f5}
+.item dt{float:left;font-family:arial;font-size:14px;padding:5px 10px;color:#333;margin:0}
+.item dd{margin:0 0 0 70px;padding-left:15px;border-left:1px solid #f4f4f4;padding:5px 10px}
+.item dd a{display:block;white-space:nowrap;float:left;margin:0 12px}
+.item dd a:hover{text-decoration:none;color:#ff552e}
+.m_text p{width:1200px;line-height:60px;display:block;margin-top:20px}
+.m_text .p1{display:inline-block;float:left;margin-right:15px;color:#ff552e;line-height:30px;font-size:14px;font-weight:bold}
+.m_text a{display:inline-block;float:left;margin-right:15px;color:#666;font-size:14px;line-height:30px}
+.m_text a:hover{color:#ff552e}
+.m_text .p3{color:#555;font-size:16px;font-weight:800}
+@media screen and (max-width:767px){
+    .m_text p{width:100%}
+    #container{width:95%;}
+    #container1{width:95%;}
+}
+</style>
+
+</head>
+<body>
+{include file="header" /}
+{include file="public_banner" /}
+<div class="center" id="container1">
+	<div class="m_text clearfix">
+		<p class="clearfix"> <span class="p1">热门城市</span>
+		{yunu:area type="level" top="1" conurl="1"} <a href="{$area.url}">{$area.title}</a> {/yunu:area}
+		</p>
+		<p class="p3">按省份选择</p>
+	</div>
+	<div id="container">
+	<div class="city_list clearfix">
+		{yunu:area pid="0" limit="50" conurl="1"}
+		<dl class="item clearfix">
+			<dt class="clearfix"><a href="{$area.url}">{$area.title}</a></dt>
+			<dd class="clearfix">{yunu:area pid="$area['id']" conurl="1" limit="50"} <a href="{$area.url}">{$area.title}</a> {/yunu:area}
+			</dd>
+		</dl>
+		{/yunu:area}
+	</div>
+	</div>
+</div>
+{include file="footer" /}
+</body>
+</html>

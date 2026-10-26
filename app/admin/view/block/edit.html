@@ -1,0 +1,127 @@
+{extend name="layout" /}
+{block name="title"}{if $info}编辑自定义块{else}添加自定义块{/if} - 易云CMS{/block}
+{block name="crumb"}模板与样式 · 自定义块{/block}
+{block name="content"}
+<div class="card" style="max-width:680px">
+  <div class="card-title">{if $info}编辑「{$info.title}」{else}添加自定义块{/if}</div>
+  <form id="b-form">
+    <div class="form-item">
+      <div class="lab">名称 *</div>
+      <div class="ctl"><input type="text" name="title" value="{$info.title|default=''}" required placeholder="中文名称，如 联系电话、公司地址"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">标识（可选）</div>
+      <div class="ctl">
+        <input type="text" name="name" value="{$info.name|default=''}" placeholder="留空自动生成">
+        <div class="help">通常留空自动生成；前台用 {literal}{cms:block name="标识" /}{/literal} 调用</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">所属板块</div>
+      <div class="ctl">
+        <select name="parent_id">
+          <option value="0" {if (!$info || $info.parent_id==0) && $presetParent==0}selected{/if}>作为顶级板块</option>
+          {foreach $parents as $p}
+          <option value="{$p.id}" {if ($info && $info.parent_id==$p.id) || (!$info && $presetParent==$p.id)}selected{/if}>{$p.title}</option>
+          {/foreach}
+        </select>
+        <div class="help">选所属板块则此自定义块归入该板块；选「作为顶级板块」则为板块分组</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">内容类型</div>
+      <div class="ctl">
+        <select name="type" id="type-sel">
+          <option value="text" {if !isset($info.type) || $info.type=='text'}selected{/if}>单行文本</option>
+          <option value="textarea" {if isset($info.type) && $info.type=='textarea'}selected{/if}>多行文本</option>
+          <option value="rich" {if isset($info.type) && $info.type=='rich'}selected{/if}>富文本</option>
+          <option value="image" {if isset($info.type) && $info.type=='image'}selected{/if}>图片</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">内容</div>
+      <div class="ctl">
+        <div id="type-text" style="display:none"><input type="text" name="content" value="{$info.content|default=''}" placeholder="单行文本内容"></div>
+        <div id="type-textarea" style="display:none"><textarea name="content" rows="4" placeholder="多行文本内容">{$info.content|default=''}</textarea></div>
+        <div id="type-rich" style="display:none">
+          <div class="editor-box"><div id="block-ueditor"></div></div>
+          <textarea name="content" id="content-area" style="display:none">{$info.content|default=''}</textarea>
+        </div>
+        <div id="type-image" style="display:none">
+          <div style="display:flex;gap:10px;align-items:center">
+            <input type="text" name="image" id="blk-img" value="{$info.image|default=''}" placeholder="点击右侧选择图片" style="flex:1">
+            <button type="button" class="btn sm" id="blk-img-btn">选择图片</button>
+          </div>
+          <div id="img-preview" style="margin-top:8px">{if $info && $info.image}<img src="{$info.image}" style="max-height:90px;border-radius:6px">{/if}</div>
+          <div class="help">前台调用：{literal}{cms:block name="标识" /}{/literal} 输出带 img 标签；{literal}{cms:block name="标识" type="url" /}{/literal} 只输出图片地址</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">链接（可选）</div>
+      <div class="ctl"><input type="text" name="link" value="{$info.link|default=''}"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">排序</div>
+      <div class="ctl"><input type="number" name="sort" value="{$info.sort|default=100}"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">状态</div>
+      <div class="ctl">
+        <label><input type="radio" name="status" value="1" {if !isset($info.status) || $info.status == 1}checked{/if}> 启用</label>
+        <label><input type="radio" name="status" value="0" {if isset($info.status) && $info.status == 0}checked{/if}> 停用</label>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl">
+        <button type="submit" class="btn primary">保存</button>
+        <a class="btn" href="/admin/block/index">返回</a>
+      </div>
+    </div>
+  </form>
+</div>
+<script type="text/javascript" src="__UEDITOR__/ueditor.config.js"></script>
+<script type="text/javascript" src="__UEDITOR__/ueditor.all.min.js"></script>
+<script>
+function ensureEditor(){
+  var ue = UE.getEditor('block-ueditor', {
+    serverUrl: '/admin/ueditor/index',
+    initialFrameWidth: '100%',
+    initialFrameHeight: 320,
+    autoHeightEnabled: false
+  });
+  var initHtml = {if $info}{:json_encode($info.content, JSON_HEX_QUOT|JSON_HEX_APOS|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)}{else}''{/if};
+  if (initHtml) {
+    ue.ready(function(){ ue.setContent(initHtml); });
+  }
+  return ue;
+}
+var curType = '{if $info}{$info.type}{else}text{/if}';
+function showTypeType(t){
+  ['text','textarea','rich','image'].forEach(function(k){
+    var el = document.getElementById('type-' + k);
+    if (el) el.style.display = (k === t) ? '' : 'none';
+  });
+  if (t === 'rich') { ensureEditor(); }
+}
+document.getElementById('type-sel').addEventListener('change', function(){
+  showTypeType(this.value);
+});
+showTypeType(curType);
+
+yy.bindImagePicker(document.getElementById('blk-img'), document.getElementById('blk-img-btn'), document.getElementById('img-preview'));
+
+document.getElementById('b-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  if (document.getElementById('type-sel').value === 'rich') {
+    try {
+      var ue = UE.getEditor('block-ueditor');
+      document.getElementById('content-area').value = ue.getContent();
+    } catch (err) {}
+  }
+  yy.post('{if $info}/admin/block/edit/id/{$info.id}{else}/admin/block/edit{/if}', new FormData(this), {});
+});
+</script>
+{/block}

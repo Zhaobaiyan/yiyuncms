@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta name="renderer" content="webkit|ie-comp|ie-stand" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-transform"/> 
+<meta name="applicable-device" content="pc,wap">
+<title>{if strlen($category.seo_title) neq 0}{$category.seo_title}{else /}{$category.name}-{yunu:config name="site.name" /}{/if}</title>
+<meta name="keywords" content="{if strlen($category.keywords) neq 0}{$category.keywords}{else /}{$category.name}{/if}">
+<meta name="description" content="{if strlen($category.description) neq 0}{$category.description|str2sub=160, true}{/if}">
+<link rel="Shortcut Icon" type=image/x-icon href="{yunu:config name="site_ico" /}" />
+<link rel="stylesheet" href="__PUBLIC__/css/modern.css">
+<script src="__PUBLIC__/js/jquery.min.js"></script>
+</head>
+<body>
+{include file="header" /}
+
+<div class="yy-page-head">
+  <div class="yy-container">
+    <h1>{$category.name}</h1>
+    <div class="yy-crumbs"><span>您的位置：</span><a href="{:url_home()}">首页</a>{cms:crumbs item="c"}<i>&gt;&gt;</i><a href="{:url_cat($c)}">{$c.name}</a>{/cms:crumbs}</div>
+  </div>
+</div>
+
+<div class="yy-section">
+  <div class="yy-container" style="display:grid;grid-template-columns:260px 1fr;gap:26px;align-items:start">
+    <aside style="display:flex;flex-direction:column;gap:20px">
+      <div style="background:#fff;border:1px solid var(--yy-line);border-radius:var(--yy-radius);padding:20px">
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:14px">产品分类</h4>
+        <ul style="display:flex;flex-direction:column;gap:6px">
+          {cms:category top="1" deep="2" item="nav"}
+          <li>
+            <a href="{:url_cat($nav)}" style="display:block;padding:9px 14px;border-radius:9px;font-size:14px;{if $nav.active_self}background:#eff4ff;color:var(--yy-primary);font-weight:600{/if}">{$nav.name}</a>
+            {if !empty($nav.children)}
+            <div style="padding-left:16px;margin-top:4px;display:flex;flex-direction:column;gap:4px">
+              {foreach $nav.children as $v}
+              <a href="{:url_cat($v)}" style="display:block;padding:7px 12px;border-radius:8px;font-size:13.5px;color:var(--yy-muted);{if $v.active_self}color:var(--yy-primary);font-weight:600{/if}">{$v.name}</a>
+              {if !empty($v.children)}
+              <div style="padding-left:16px;margin-top:4px;display:flex;flex-direction:column;gap:4px">
+                {foreach $v.children as $v2}
+                <a href="{:url_cat($v2)}" style="display:block;padding:6px 12px;border-radius:8px;font-size:13px;color:var(--yy-muted);{if $v2.active_self}color:var(--yy-primary);font-weight:600{/if}">{$v2.name}</a>
+                {/foreach}
+              </div>
+              {/if}
+              {/foreach}
+            </div>
+            {/if}
+          </li>
+          {/cms:category}
+        </ul>
+      </div>
+      {if $sys_open.service}
+      <div style="background:linear-gradient(135deg,#0f1c33,#1e40af);border-radius:var(--yy-radius);padding:22px;color:#fff">
+        <h4 style="font-size:16px;font-weight:700;margin-bottom:10px">需要帮助？</h4>
+        <p style="font-size:13.5px;color:#b9c8e8;line-height:1.8">产品咨询、方案定制、工程报价请联系在线客服或拨打热线。</p>
+        <a class="yy-btn yy-btn-accent yy-btn-sm" href="/service/chat" style="margin-top:14px">在线客服</a>
+      </div>
+      {/if}
+    </aside>
+    <div style="background:#fff;border:1px solid var(--yy-line);border-radius:var(--yy-radius);padding:24px;min-height:420px">
+      <div class="yy-grid" id="yy-list">
+        {if $list}
+        {foreach $list as $vo}
+        <div class="yy-card">
+          <a class="yy-card-img" href="{:url_content($vo, $category)}" title="{$vo.title}">
+            <img src="{if $vo.thumb}{$vo.thumb}{else}{$vo.image}{/if}" onerror="javascript:this.src='__PUBLIC__/images/nopic.jpg';" alt="{$vo.title}">
+            {if $vo.is_top==1}<span class="yy-tag">置顶</span>{elseif $vo.is_hot==1}<span class="yy-tag">热销</span>{/if}
+          </a>
+          <div class="yy-card-body">
+            <h3><a href="{:url_content($vo, $category)}" title="{$vo.title}">{$vo.title}</a></h3>
+            {if $vo.description}<div class="yy-card-desc">{$vo.description|str2sub=60, true}</div>{/if}
+            <div class="yy-price-row">
+              {if isset($shop_map[$vo.id]) && $shop_map[$vo.id]['price'] > 0}
+              <span class="yy-price"><i>¥</i>{$shop_map[$vo.id]['price']}{if $shop_map[$vo.id].original_price > 0}<span class="yy-price-old">¥{$shop_map[$vo.id]['original_price']}</span>{/if}</span>
+              <span class="yy-sales">已售 {$shop_map[$vo.id]['sales']} 件</span>
+              {else}
+              <span class="yy-sales" style="color:var(--yy-primary)"><a href="{:url_content($vo, $category)}">查看详情 →</a></span>
+              {/if}
+            </div>
+          </div>
+        </div>
+        {/foreach}
+        {else}
+        <div class="yy-search-empty" style="grid-column:1/-1">该栏目暂无产品</div>
+        {/if}
+      </div>
+      <div class="yy-pages">
+        {if is_object($list) && method_exists($list, "render")}{$list|raw}{/if}
+      </div>
+    </div>
+  </div>
+</div>
+
+{include file="footer" /}
+</body>
+</html>

@@ -1,0 +1,60 @@
+{extend name="layout" /}
+{block name="title"}{if $info.id}编辑角色{else}添加角色{/if} - 易云CMS{/block}
+{block name="crumb"}扩展功能 · 角色管理{/block}
+{block name="content"}
+<div class="card" style="max-width:640px">
+  <div class="card-title">{if $info.id}编辑「{$info.name}」{else}添加角色{/if}</div>
+  <form id="r-form">
+    <div class="form-item"><div class="lab">角色名称 *</div><div class="ctl"><input type="text" name="name" value="{$info.name|default=''}" required placeholder="如：投稿员"></div></div>
+    <div class="form-item"><div class="lab">角色标识 *</div><div class="ctl"><input type="text" name="code" value="{$info.code|default=''}" required placeholder="如：tougao（字母数字下划线）"></div></div>
+    <div class="form-item"><div class="lab">权限</div><div class="ctl">
+      <div class="rule-grid">
+      {foreach $modules as $mcode => $mname}
+        <label class="rule-chk"><input type="checkbox" name="rules[]" value="{$mcode}" {if in_array($mcode, $info.rules_arr)}checked{/if}> {$mname}</label>
+      {/foreach}
+      </div>
+      <div class="text-sub" style="margin-top:6px">勾选该角色可访问的后台模块；超级管理员为全部权限。发布内容需勾选「内容管理」+「图片/文件上传」。</div>
+    </div></div>
+    <div class="form-item"><div class="lab">栏目范围</div><div class="ctl">
+      <div class="rule-grid scope-grid">
+        {foreach $flatCats as $c}
+        <label class="rule-chk scope-chk cat-scope-item" data-depth="{$c.depth}" style="padding-left:{if $c.depth>0}{$c.depth*30}{else}8{/if}px;{if $c.depth>0}border-left:2px solid #dbe7f5;{/if}">
+          <input type="checkbox" name="cat_ids[]" value="{$c.id}" {if in_array($c.id, $selCats)}checked{/if}>
+          {if $c.depth>0}<span class="scope-branch">└</span>{/if}
+          {$c.name}
+        </label>
+        {/foreach}
+      </div>
+      <div class="text-sub" style="margin-top:6px">勾选该角色可管理的栏目（**含其全部子栏目与内容**）；留空 = 全部栏目。当前按后台语言「{$admin_lang|strtoupper}」配置，各语言范围可分别设置。</div>
+    </div></div>
+    <div class="form-item"><div class="lab">留言板范围</div><div class="ctl">
+      <div class="rule-grid">
+        {foreach $boards as $b}
+        <label class="rule-chk"><input type="checkbox" name="board_ids[]" value="{$b.id}" {if in_array($b.id, $selBoards)}checked{/if}> {$b.title}</label>
+        {/foreach}
+      </div>
+      <div class="text-sub" style="margin-top:6px">勾选该角色可查看的留言板；留空 = 全部留言板。</div>
+    </div></div>
+    <div class="form-item"><div class="lab">发布审核</div><div class="ctl">
+      <label><input type="radio" name="need_audit" value="1" {if $info.need_audit == 1}checked{/if}> 需审核（该角色发布内容默认草稿，需管理员/审核角色改为发布）</label>
+      <br><label><input type="radio" name="need_audit" value="0" {if !isset($info.need_audit) || $info.need_audit == 0}checked{/if}> 无需审核（发布内容默认直接发布）</label>
+      <div class="text-sub" style="margin-top:6px">超级管理员恒为无需审核；「投稿员」默认需审核。审核通过时自动记录审核人与审核时间。</div>
+    </div></div>
+    <div class="form-item"><div class="lab">排序</div><div class="ctl"><input type="number" name="sort" value="{$info.sort|default=0}"></div></div>
+    <div class="form-item"><div class="lab">状态</div><div class="ctl">
+      <label><input type="radio" name="status" value="1" {if !isset($info.status) || $info.status == 1}checked{/if}> 启用</label>
+      <label><input type="radio" name="status" value="0" {if isset($info.status) && $info.status == 0}checked{/if}> 停用</label>
+    </div></div>
+    <div class="form-item"><div class="lab">备注</div><div class="ctl"><input type="text" name="remark" value="{$info.remark|default=''}"></div></div>
+    <div class="form-item"><div class="lab"></div><div class="ctl">
+      <button type="submit" class="btn primary">保存</button><a class="btn" href="/admin/admin_role/index">返回</a>
+    </div></div>
+  </form>
+</div>
+<script>
+document.getElementById('r-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  yy.post('{if $info.id}/admin/admin_role/edit/id/{$info.id}{else}/admin/admin_role/edit{/if}', new FormData(this), {});
+});
+</script>
+{/block}

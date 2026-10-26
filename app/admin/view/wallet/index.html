@@ -1,0 +1,34 @@
+{extend name="layout" /}
+{block name="title"}钱包管理 - 易云CMS{/block}
+{block name="crumb"}商城管理 · 钱包管理{/block}
+{block name="content"}
+<div class="toolbar">
+  <form class="inline-form" method="get" action="/admin/wallet/index">
+    <input type="text" name="keyword" class="ipt sm" value="{$keyword}" placeholder="按账号/昵称搜索">
+    <button class="btn sm primary" style="height:33px">搜索</button>
+  </form>
+  <a class="btn sm" href="/admin/wallet/withdraw" style="height:33px">提现审核</a>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr><th style="width:50px">ID</th><th>会员</th><th>可用余额</th><th>冻结中</th><th>累计收入</th><th>累计提现</th><th>最近更新</th><th style="width:90px">操作</th></tr>
+    {if $list}
+    {foreach $list as $row}
+    <tr>
+      <td>{$row.member_id}</td>
+      <td>{$row.nickname|default=''}{if $row.username}<br><span class="text-sub">{$row.username}</span>{/if}</td>
+      <td><b>¥{$row.balance}</b></td>
+      <td>¥{$row.frozen}</td>
+      <td>¥{$row.total_income}</td>
+      <td>¥{$row.total_withdraw}</td>
+      <td>{if $row.update_time>0}{$row.update_time|date='Y-m-d H:i'}{else}—{/if}</td>
+      <td><a class="btn sm" href="/admin/wallet/detail/member_id/{$row.member_id}">明细</a></td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="8"><div class="empty">暂无会员钱包（会员发生退款或提现后自动创建）</div></td></tr>
+    {/if}
+  </table>
+  <div class="pager-bar"><div class="pagination">{$pages|raw}</div></div>
+</div>
+{/block}

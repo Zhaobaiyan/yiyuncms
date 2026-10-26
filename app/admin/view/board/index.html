@@ -1,0 +1,70 @@
+{extend name="layout" /}
+{block name="title"}留言板 - 易云CMS{/block}
+{block name="crumb"}内容管理 · 留言板{/block}
+{block name="content"}
+<div class="toolbar"><a class="btn primary" href="/admin/board/edit">+ 添加留言板</a></div>
+<div class="card">
+  <table class="tbl">
+    <tr><th style="width:60px">ID</th><th>标识</th><th>名称</th><th>描述</th><th>字段数</th><th>留言数</th><th style="width:90px">状态</th><th style="width:230px">操作</th></tr>
+    {foreach $boards as $b}
+    <tr>
+      <td>{$b.id}</td>
+      <td><code class="mono">{$b.name}</code></td>
+      <td>{$b.title}{if $b.id == 1} <span class="tag">默认</span>{/if}</td>
+      <td>{$b.description}</td>
+      <td>{:count($b.fields)} 个</td>
+      <td><a href="/admin/message/index?board_id={$b.id}">{$b.msg_count} 条</a></td>
+      <td>{if $b.status==1}<span class="tag ok">启用</span>{else}<span class="tag gray">停用</span>{/if}</td>
+      <td class="ops">
+        <a class="btn sm" href="/admin/message/index?board_id={$b.id}" title="该留言板留言管理">留言</a>
+        <a class="btn sm" href="/admin/board/fields/id/{$b.id}">字段</a>
+        <a class="btn sm" href="/admin/board/edit/id/{$b.id}">编辑</a>
+        <button class="btn sm" onclick="viewBoardCode({$b.id})">代码</button>
+        {if $b.id > 1}
+        <button class="btn sm danger" onclick="yy.confirm('删除留言板及其全部留言？', function(){ yy.post('/admin/board/delete/id/{$b.id}', {}, {literal}{url:'/admin/board/index'}{/literal}); })">删除</button>
+        {/if}
+      </td>
+    </tr>
+    {/foreach}
+  </table>
+</div>
+{/block}
+
+{block name="script"}
+<script>
+function viewBoardCode(id){
+  fetch('/admin/board/code/id/'+id).then(function(r){return r.json();}).then(function(res){
+    if(res.code!==1){ alert(res.msg); return; }
+    showCode(res.data);
+  }).catch(function(){ alert('获取代码失败'); });
+}
+function showCode(code){
+  var mask = document.createElement('div');
+  mask.className = 'modal-mask show';
+  mask.style.alignItems = 'flex-start';
+  mask.style.paddingTop = '40px';
+  var esc = String(code).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  mask.innerHTML =
+    '<div class="modal" style="max-width:900px;width:92%">' +
+    '<div class="m-head">留言板前台调用代码 <span style="color:#999;font-weight:normal">（复制到前台模板即可使用）</span></div>' +
+    '<div class="m-body"><textarea id="board-code" readonly style="width:100%;height:340px;font-family:ui-monospace,Consolas,monospace;font-size:12px;border:1px solid #e2e8f0;border-radius:8px;padding:10px;box-sizing:border-box">' + esc + '</textarea></div>' +
+    '<div class="m-foot">' +
+    '<button class="btn" data-a="cancel">关闭</button>' +
+    '<button class="btn primary" data-a="copy">复制代码</button>' +
+    '</div></div>';
+  mask.addEventListener('click', function(e){
+    var a = e.target.getAttribute('data-a');
+    if(a==='cancel' || e.target===mask){ mask.remove(); }
+    if(a==='copy'){
+      var ta = document.getElementById('board-code');
+      ta.removeAttribute('readonly');
+      ta.select();
+      try { document.execCommand('copy'); alert('已复制，粘贴到前台模板即可使用'); }
+      catch(err){ alert('复制失败，请手动复制'); }
+      ta.setAttribute('readonly','readonly');
+    }
+  });
+  document.body.appendChild(mask);
+}
+</script>
+{/block}

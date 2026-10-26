@@ -1,0 +1,42 @@
+{extend name="layout" /}
+{block name="title"}客服会话 - 易云CMS{/block}
+{block name="crumb"}客服系统 · 客服会话{/block}
+{block name="content"}
+<div class="toolbar">
+  <form class="inline-form" method="get" action="/admin/service/index">
+    <select name="status" class="ipt sm" onchange="this.form.submit()">
+      <option value="-1" {if $cur==-1}selected{/if}>全部会话</option>
+      <option value="0" {if $cur==0}selected{/if}>待接入</option>
+      <option value="1" {if $cur==1}selected{/if}>进行中</option>
+      <option value="2" {if $cur==2}selected{/if}>已关闭</option>
+    </select>
+  </form>
+  <span class="text-sub">开启客服功能后，会员在前台「在线客服」发起咨询，可在此接待回复（实时轮询）</span>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr><th style="width:50px">ID</th><th>会员</th><th>状态</th><th>未读</th><th>客户IP</th><th>最后消息时间</th><th>开始时间</th><th style="width:90px">操作</th></tr>
+    {if $list}
+    {foreach $list as $row}
+    <tr>
+      <td>{$row.id}</td>
+      <td>{$row.username}（ID {$row.member_id}）</td>
+      <td>
+        {if $row.status==0}<span class="tag warn">待接入</span>
+        {elseif $row.status==1}<span class="tag ok">进行中</span>
+        {else}<span class="tag gray">已关闭</span>{/if}
+      </td>
+      <td>{if $row.unread>0}<span class="tag" style="background:var(--danger);color:#fff">{$row.unread}</span>{else}0{/if}</td>
+      <td>{$row.ip|default='—'}</td>
+      <td>{if $row.last_msg_time>0}{$row.last_msg_time|date='m-d H:i'}{else}—{/if}</td>
+      <td>{$row.create_time|date='m-d H:i'}</td>
+      <td><a class="btn sm primary" href="/admin/service/chat/id/{$row.id}">接待</a></td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="8"><div class="empty">暂无客服会话</div></td></tr>
+    {/if}
+  </table>
+  <div class="pager-bar"><div class="pagination">{$pages|raw}</div></div>
+</div>
+{/block}

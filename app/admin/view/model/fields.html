@@ -1,0 +1,50 @@
+{extend name="layout" /}
+{block name="title"}模型字段 - 易云CMS{/block}
+{block name="crumb"}内容管理 · 内容模型 · {$model.title} 字段{/block}
+{block name="content"}
+<div class="toolbar">
+  <a class="btn primary" href="/admin/model/field_edit?model_id={$model.id}">+ 添加字段</a>
+  <a class="btn" href="/admin/model/index">返回模型</a>
+</div>
+<div class="card">
+  <div class="card-title" style="font-weight:600;margin-bottom:8px">系统默认字段（内置，不可增删）</div>
+  <table class="tbl">
+    <tr><th>字段名</th><th>标签</th><th>类型</th><th>说明</th></tr>
+    {foreach $defaultFields as $df}
+    <tr style="color:#888">
+      <td><code class="mono">{$df.name}</code></td>
+      <td>{$df.label}</td>
+      <td>{$df.type}</td>
+      <td><span class="tag gray">内置</span></td>
+    </tr>
+    {/foreach}
+  </table>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="card-title" style="font-weight:600;margin-bottom:8px">自定义字段</div>
+  <table class="tbl">
+    <tr><th style="width:60px">ID</th><th>字段名</th><th>标签</th><th>类型</th><th>选项</th><th style="width:70px">必填</th><th>排序</th><th style="width:140px">操作</th></tr>
+    {foreach $fields as $f}
+    <tr>
+      <td>{$f.id}</td>
+      <td><code class="mono">{$f.name}</code></td>
+      <td>{$f.label}</td>
+      <td>{$f.type}</td>
+      <td>{if !empty($f.options)}{$f.options|json_encode}{else}-{/if}</td>
+      <td>{if $f.required}<span class="tag ok">必填</span>{else}<span class="tag gray">选填</span>{/if}</td>
+      <td>{$f.sort}</td>
+      <td>
+        <a class="btn sm" href="/admin/model/field_edit/id/{$f.id}">编辑</a>
+        <button class="btn sm danger" onclick="yy.confirm('删除字段「{$f.label}」？', function(){ yy.post('/admin/model/field_delete/id/{$f.id}', {}, {literal}{url:'/admin/model/fields/model_id/{$model.id}'}{/literal}); })">删除</button>
+      </td>
+    </tr>
+    {/foreach}
+    {if !$fields->count()}
+    <tr><td colspan="8"><div class="empty">暂无自定义字段，点击右上角「添加字段」</div></td></tr>
+    {/if}
+  </table>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="help" style="padding:10px 0">字段类型说明：文本(单行) / 多行文本 / 图片(自动带上传按钮) / 富文本 / 数字 / 下拉 / 单选 / 多选。字段值将存于内容记录的扩展字段中，前台可用 {literal}{cms:content}{/literal} 配合字段名输出。</div>
+</div>
+{/block}

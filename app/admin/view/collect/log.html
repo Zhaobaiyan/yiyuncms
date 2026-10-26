@@ -1,0 +1,48 @@
+{extend name="layout" /}
+{block name="title"}采集日志 - 易云CMS{/block}
+{block name="crumb"}扩展功能 · 采集器 · 采集日志{/block}
+{block name="content"}
+<div class="toolbar">
+  <form action="/admin/collect/log" method="get" class="filter-form">
+    <select name="rule_id" style="width:240px" onchange="this.form.submit()">
+      <option value="0">全部规则</option>
+      {foreach $rules as $r}
+      <option value="{$r.id}" {if $ruleId == $r.id}selected{/if}>{$r.name}</option>
+      {/foreach}
+    </select>
+    <span class="fl-sp"></span>
+    <a class="btn sm" href="/admin/collect/index">返回规则列表</a>
+  </form>
+</div>
+<div class="card">
+  <table class="tbl">
+    <tr>
+      <th style="width:60px">ID</th>
+      <th>规则</th>
+      <th style="width:70px">语言</th>
+      <th style="width:80px">抓取</th>
+      <th style="width:80px">新增</th>
+      <th style="width:80px">跳过</th>
+      <th style="width:80px">失败</th>
+      <th style="width:170px">时间</th>
+    </tr>
+    {if $rows}
+    {foreach $rows as $r}
+    <tr>
+      <td>{$r.id}</td>
+      <td>{$r.rule_name}</td>
+      <td class="text-sub">{$r.lang}</td>
+      <td>{$r.total}</td>
+      <td style="color:#25a35a">{$r.added}</td>
+      <td class="text-sub">{$r.skipped}</td>
+      <td style="color:#d03050">{$r.failed}</td>
+      <td class="text-sub">{$r._time}</td>
+    </tr>
+    {/foreach}
+    {else}
+    <tr><td colspan="8"><div class="empty">暂无采集日志，先创建规则并「执行采集」</div></td></tr>
+    {/if}
+  </table>
+  <div class="pager-bar"><div class="pagination">{$rows|raw}</div></div>
+</div>
+{/block}

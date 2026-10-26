@@ -1,0 +1,68 @@
+{extend name="layout" /}
+{block name="title"}{if $field}编辑字段{else}添加字段{/if} - 易云CMS{/block}
+{block name="crumb"}内容管理 · 内容模型 · {if $model}{$model.title}{/if} 字段 · {if $field}编辑{else}添加{/if}{/block}
+{block name="content"}
+<div class="card">
+  <div class="card-title">{if $field}编辑字段「{$field.label}」{else}为「{$model.title|default=''}」添加字段{/if}</div>
+  <form id="f-form">
+    <input type="hidden" name="model_id" value="{$modelId}">
+    <div class="form-item">
+      <div class="lab">字段名 *</div>
+      <div class="ctl">
+        <input type="text" name="name" value="{$field.name|default=''}" placeholder="如 price，字母开头，用于前台调用" required>
+        <div class="help">前台用字段名输出，创建后尽量不改</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">字段标签 *</div>
+      <div class="ctl"><input type="text" name="label" value="{$field.label|default=''}" placeholder="如 产品价格" required></div>
+    </div>
+    <div class="form-item">
+      <div class="lab">字段类型</div>
+      <div class="ctl">
+        <select name="type" id="f-type">
+          {foreach $types as $t => $tn}
+          <option value="{$t}" {if isset($field.type) && $field.type == $t}selected{/if}>{$tn}</option>
+          {/foreach}
+        </select>
+      </div>
+    </div>
+    <div class="form-item" id="opt-box" {if !isset($field.type) || !in_array($field.type, ['select','radio','checkbox'])}style="display:none"{/if}>
+      <div class="lab">选项（每行一个）</div>
+      <div class="ctl">
+        <textarea name="options" rows="4" id="f-options">{if $field && $field.options}{foreach $field.options as $o}{$o}{"\n"}{/foreach}{/if}</textarea>
+        <div class="help">仅「下拉/单选/多选」需要填写，每行一个选项</div>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">是否必填</div>
+      <div class="ctl">
+        <label><input type="radio" name="required" value="1" {if isset($field.required) && $field.required}checked{/if}> 必填</label>
+        &nbsp;&nbsp;
+        <label><input type="radio" name="required" value="0" {if !isset($field.required) || !$field.required}checked{/if}> 非必填</label>
+      </div>
+    </div>
+    <div class="form-item">
+      <div class="lab">排序</div>
+      <div class="ctl"><input type="number" name="sort" value="{$field.sort|default=100}"></div>
+    </div>
+    <div class="form-item">
+      <div class="lab"></div>
+      <div class="ctl">
+        <button type="submit" class="btn primary">保存</button>
+        <a class="btn" href="/admin/model/fields/model_id/{$modelId}">返回</a>
+      </div>
+    </div>
+  </form>
+</div>
+<script>
+document.getElementById('f-type').addEventListener('change', function(){
+  var v = this.value;
+  document.getElementById('opt-box').style.display = (v==='select'||v==='radio'||v==='checkbox') ? '' : 'none';
+});
+document.getElementById('f-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  yy.post('{if $field}/admin/model/field_edit/id/{$field.id}{else}/admin/model/field_edit{/if}', new FormData(this), {});
+});
+</script>
+{/block}

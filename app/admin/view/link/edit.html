@@ -1,0 +1,34 @@
+{extend name="layout" /}
+{block name="title"}{if $info}编辑链接{else}添加链接{/if} - 易云CMS{/block}
+{block name="crumb"}扩展功能 · 友情链接{/block}
+{block name="content"}
+<div class="card" style="max-width:620px">
+  <div class="card-title">{if $info}编辑「{$info.name}」{else}添加友情链接{/if}</div>
+  <form id="l-form">
+    <div class="form-item"><div class="lab">站名 *</div><div class="ctl"><input type="text" name="name" value="{$info.name|default=''}" required></div></div>
+    <div class="form-item"><div class="lab">网址 *</div><div class="ctl"><input type="text" name="url" value="{$info.url|default=''}" required placeholder="https://"></div></div>
+    <div class="form-item"><div class="lab">LOGO</div><div class="ctl">
+      <div style="display:flex;gap:10px;align-items:center">
+        <input type="text" name="logo" id="l-logo" value="{$info.logo|default=''}" placeholder="点击右侧选择图片" style="flex:1">
+        <button type="button" class="btn sm" id="l-logo-btn">选择图片</button>
+      </div>
+    </div></div>
+    <div class="form-item"><div class="lab">描述</div><div class="ctl"><textarea name="description" rows="3">{$info.description|default=''}</textarea></div></div>
+    <div class="form-item"><div class="lab">排序</div><div class="ctl"><input type="number" name="sort" value="{$info.sort|default=100}"></div></div>
+    <div class="form-item"><div class="lab">状态</div><div class="ctl">
+      <label><input type="radio" name="status" value="1" {if !isset($info.status) || $info.status == 1}checked{/if}> 启用</label>
+      <label><input type="radio" name="status" value="0" {if isset($info.status) && $info.status == 0}checked{/if}> 停用</label>
+    </div></div>
+    <div class="form-item"><div class="lab"></div><div class="ctl">
+      <button type="submit" class="btn primary">保存</button><a class="btn" href="/admin/link/index">返回</a>
+    </div></div>
+  </form>
+</div>
+<script>
+yy.bindImagePicker(document.getElementById('l-logo'), document.getElementById('l-logo-btn'));
+document.getElementById('l-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  yy.post('{if $info}/admin/link/edit/id/{$info.id}{else}/admin/link/edit{/if}', new FormData(this), {});
+});
+</script>
+{/block}
